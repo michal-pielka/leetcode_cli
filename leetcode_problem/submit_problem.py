@@ -115,7 +115,9 @@ def submit_and_get_result(cookie, title_slug, question_id, solution_file_path):
     submission_result = check_submission(cookie, submission_id, title_slug)
     return submission_result
 
+"""
 cookie = load_cookie()
 x = submit_and_get_result(cookie, "two-sum", "1", "sol.py")
 from ..parsers.submission_parser import parse_submission
 print(parse_submission(x))
+"""

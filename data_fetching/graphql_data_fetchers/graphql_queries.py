@@ -1,7 +1,7 @@
 GRAPHQL_URL = "https://leetcode.com/graphql"
 
 GRAPHQL_QUERIES = {
-    'user_problem_stats': """
+    'problems_stats': """
         query userProfileUserQuestionProgressV2($userSlug: String!) {
           userProfileUserQuestionProgressV2(userSlug: $userSlug) {
             numAcceptedQuestions {
@@ -45,7 +45,7 @@ GRAPHQL_QUERIES = {
         }
     """,
 
-    'problems_by_tags': """
+    'problems_data': """
         query problemsetQuestionList($categorySlug: String, $limit: Int, $skip: Int, $filters: QuestionListFilterInput) {
           problemsetQuestionList: questionList(
             categorySlug: $categorySlug
@@ -69,10 +69,20 @@ GRAPHQL_QUERIES = {
                 id
                 slug
               }
-              hasSolution
-              hasVideoSolution
             }
           }
         }
-    """
+    """,
+
+    'code_snippets': """
+        query getQuestionDetail($titleSlug: String!) {
+            question(titleSlug: $titleSlug) {
+                codeSnippets {
+                    lang
+                    langSlug
+                    code
+                }
+            }
+        }
+        """
 }

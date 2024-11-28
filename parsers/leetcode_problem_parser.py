@@ -4,6 +4,7 @@ import re
 from ..graphics.escape_sequences import ANSI_CODES, ANSI_RESET
 from ..graphics.symbols import SYMBOLS
 
+
 class LeetCodeProblemParser:
     HTML_TO_ANSI = {
         "strong": ANSI_CODES["BOLD"],
@@ -13,6 +14,7 @@ class LeetCodeProblemParser:
         "u": ANSI_CODES["UNDERLINE"],
         "code": ANSI_CODES["GRAY_BG"],
         "pre": ANSI_CODES["RED"],
+        "tag": ANSI_CODES["BABY_BLUE_BG"] + ANSI_CODES["WHITE"],
         "title": ANSI_CODES["BOLD"],
         "example_title": ANSI_CODES["BOLD"],
         "example_input_string": ANSI_CODES["BOLD"],
@@ -33,6 +35,7 @@ class LeetCodeProblemParser:
     }
 
     def __init__(self, metadata):
+        print(metadata)
         if not metadata or not isinstance(metadata, dict):
             raise ValueError("Metadata must be a non-empty dictionary.")
 
@@ -161,6 +164,20 @@ class LeetCodeProblemParser:
             traverse(child)
         return ansi_str
 
+
+
+
+
+    def get_formatted_topic_tags(self):
+        formatted_tags = "Tags: "
+
+        for tag_index in range(len(self.question_topic_tags)):
+            tag = self.question_topic_tags[tag_index]["name"]
+            formatted_tags += self.HTML_TO_ANSI["tag"] + tag + ANSI_RESET + " "
+
+        return formatted_tags
+
+
     def get_formatted_title(self):
         title = f"{self.HTML_TO_ANSI['title'] + self.question_id}. {self.question_title + ANSI_RESET} {self.HTML_TO_ANSI[self.question_difficulty]}[{self.question_difficulty}]{ANSI_RESET}"
 
@@ -192,6 +209,7 @@ class LeetCodeProblemParser:
         return f"{self.HTML_TO_ANSI['constraints_string']}Constraints:{ANSI_RESET}\n\n{constraints_str}"
 
 
+"""
 from ..data_fetching.graphql_data_fetchers.leetcode_problem_fetcher import LeetCodeProblemFetcher
 
 
@@ -200,9 +218,11 @@ metadata = LeetCodeProblemFetcher.fetch_problem_data(title_slug)
 
 l = LeetCodeProblemParser(metadata)
 print(l.get_formatted_title())
+print()
+print(l.get_formatted_topic_tags())
 print(l.get_formatted_description())
 print(l.get_formatted_examples())
 print("\n")
 print(l.get_formatted_constraints())
 
-
+"""

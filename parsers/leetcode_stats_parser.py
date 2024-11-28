@@ -162,6 +162,7 @@ def parse_daily_activity(filled_activity):
 
     return f"{months_parsed}\n{calendar_parsed}"
 
+"""
 def main():
     """
     Main function to fetch and display LeetCode stats and activity.
@@ -198,3 +199,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    """

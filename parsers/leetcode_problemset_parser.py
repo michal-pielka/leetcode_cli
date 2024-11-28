@@ -20,7 +20,6 @@ class LeetCodeProblemsetParser:
     def __init__(self, problemset_metadata):
         self.problemset_metadata = problemset_metadata
 
-        #{'acRate': 35.78945760464872, 'difficulty': 'Medium', 'freqBar': None, 'frontendQuestionId': '3', 'isFavor': False, 'paidOnly': False, 'status': None, 'title': 'Longest Substring Without Repeating Characters', 'titleSlug': 'longest-substring-without-repeating-characters', 'topicTags': [{'name': 'Hash Table', 'id': 'VG9waWNUYWdOb2RlOjY=', 'slug': 'hash-table'}, {'name': 'String', 'id': 'VG9waWNUYWdOb2RlOjEw', 'slug': 'string'}, {'name': 'Sliding Window', 'id': 'VG9waWNUYWdOb2RlOjU1ODIx', 'slug': 'sliding-window'}], 'hasSolution': True, 'hasVideoSolution': True}        
         self.problemset_data = self.problemset_metadata.get("data", None)
 
         self.problemset_question_list = self.problemset_data.get("problemsetQuestionList", None)
@@ -43,7 +42,7 @@ class LeetCodeProblemsetParser:
         
         
 
-
+"""
 
 tags = []
 limit = 50
@@ -58,3 +57,4 @@ for i in range(len(questions)):
     x = l._parse_question(questions[i])
     print(x)
 
+"""

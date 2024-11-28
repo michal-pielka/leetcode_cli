@@ -3,7 +3,7 @@
 import json
 from datetime import datetime, timezone
 
-from ...graphics.escape_sequences import ANSI_CODES, ANSI_RESET
+from ...graphics.escape_sequences import ANSI_CODES
 
 def join_and_slice_calendars(previous_year_calendar, current_year_calendar):
     if not previous_year_calendar or not current_year_calendar:
