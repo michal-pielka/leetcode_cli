@@ -1,7 +1,7 @@
 GRAPHQL_URL = "https://leetcode.com/graphql"
 
 GRAPHQL_QUERIES = {
-    'user_problem_stats' : """
+    'user_problem_stats': """
         query userProfileUserQuestionProgressV2($userSlug: String!) {
           userProfileUserQuestionProgressV2(userSlug: $userSlug) {
             numAcceptedQuestions {
@@ -25,7 +25,7 @@ GRAPHQL_QUERIES = {
         }
     """,
 
-    "user_calendar": """
+    'user_calendar': """
         query userProfileCalendar($username: String!, $year: Int) {
           matchedUser(username: $username) {
             userCalendar(year: $year) {
@@ -45,5 +45,34 @@ GRAPHQL_QUERIES = {
         }
     """,
 
-
+    'problems_by_tags': """
+        query problemsetQuestionList($categorySlug: String, $limit: Int, $skip: Int, $filters: QuestionListFilterInput) {
+          problemsetQuestionList: questionList(
+            categorySlug: $categorySlug
+            limit: $limit
+            skip: $skip
+            filters: $filters
+          ) {
+            total: totalNum
+            questions: data {
+              acRate
+              difficulty
+              freqBar
+              frontendQuestionId: questionFrontendId
+              isFavor
+              paidOnly: isPaidOnly
+              status
+              title
+              titleSlug
+              topicTags {
+                name
+                id
+                slug
+              }
+              hasSolution
+              hasVideoSolution
+            }
+          }
+        }
+    """
 }

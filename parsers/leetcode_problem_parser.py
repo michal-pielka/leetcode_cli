@@ -1,0 +1,208 @@
+from bs4 import BeautifulSoup, NavigableString, Tag
+import re
+
+from ..graphics.escape_sequences import ANSI_CODES, ANSI_RESET
+from ..graphics.symbols import SYMBOLS
+
+class LeetCodeProblemParser:
+    HTML_TO_ANSI = {
+        "strong": ANSI_CODES["BOLD"],
+        "b": ANSI_CODES["BOLD"],
+        "em": ANSI_CODES["ITALIC"],
+        "i": ANSI_CODES["ITALIC"],
+        "u": ANSI_CODES["UNDERLINE"],
+        "code": ANSI_CODES["GRAY_BG"],
+        "pre": ANSI_CODES["RED"],
+        "title": ANSI_CODES["BOLD"],
+        "example_title": ANSI_CODES["BOLD"],
+        "example_input_string": ANSI_CODES["BOLD"],
+        "example_output_string": ANSI_CODES["BOLD"],
+        "example_explanation_string": ANSI_CODES["BOLD"],
+        "example_input_data": ANSI_CODES["GRAY"],
+        "example_output_data": ANSI_CODES["GRAY"],
+        "example_explanation_data": ANSI_CODES["GRAY"],
+        "constraints_string": ANSI_CODES["BOLD"],
+        "Easy" : ANSI_CODES["GREEN_BG"],
+        "Medium" : ANSI_CODES["ORANGE_BG"],
+        "Hard" : ANSI_CODES["RED_BG"],
+    }
+
+    HTML_TO_SYMBOL = {
+        "sup": SYMBOLS["CARET"],
+        "li": SYMBOLS["DOT"] + " ",
+    }
+
+    def __init__(self, metadata):
+        if not metadata or not isinstance(metadata, dict):
+            raise ValueError("Metadata must be a non-empty dictionary.")
+
+        self.metadata = metadata
+        self.question_data = self._extract_question_data()
+        self.question_html_content = self.question_data.get("content", "")
+        self.is_paid_only = self.question_data.get("isPaidOnly", False)
+
+        # Extracted attributes
+        self.question_id = self.question_data.get("questionId", "")
+        self.question_title = self.question_data.get("title", "")
+        self.question_description = self._extract_question_description()
+        self.question_examples = self._extract_question_examples()
+        self.question_constraints = self._extract_question_constraints()
+        self.question_hints = self.question_data.get("hints", [])
+        self.question_topic_tags = self.question_data.get("topicTags", [])
+        self.question_difficulty = self.question_data.get("difficulty", "")
+        self.question_likes = self.question_data.get("likes", 0)
+        self.question_dislikes = self.question_data.get("dislikes", 0)
+        self.question_example_testcases = self.question_data.get("exampleTestcases", "")
+
+    def _extract_question_data(self):
+        try:
+            return self.metadata["data"]["question"]
+        except KeyError as e:
+            raise KeyError(f"Missing key in metadata: {e}")
+
+    def _extract_question_description(self):
+        soup = BeautifulSoup(self.question_html_content, "html.parser")
+        description_elements = []
+        for element in soup.find_all(['p', 'ul']):
+            if element.find('strong', string=re.compile(r'Example')):
+                break
+            description_elements.append(str(element))
+        description_html = "\n".join(description_elements).strip()
+        return description_html
+
+    def _extract_question_examples(self):
+        soup = BeautifulSoup(self.question_html_content, "html.parser")
+        examples = []
+        example_headers = soup.find_all('strong', string=re.compile(r'Example \d+'))
+        for header in example_headers:
+            example = self._parse_example_section(header)
+            if example:
+                examples.append(example)
+        return examples
+
+    def _parse_example_section(self, header):
+        example_title = header.get_text(strip=True).rstrip(':')
+        pre_tag = header.find_next('pre')
+        if not pre_tag:
+            return None
+        example_content = pre_tag.decode_contents()
+        parsed_example = self._parse_example_content(example_content)
+        if parsed_example:
+            parsed_example['title'] = example_title
+            return parsed_example
+        return None
+
+    def _parse_example_content(self, html_content):
+        soup = BeautifulSoup(html_content, "html.parser")
+        content_text = soup.get_text(separator="\n").strip()
+        example_dict = {}
+        input_match = re.search(r'Input:\s*(.*)', content_text)
+        output_match = re.search(r'Output:\s*(.*)', content_text)
+        explanation_match = re.search(r'Explanation:\s*(.*)', content_text, re.DOTALL)
+        if input_match:
+            example_dict['input'] = self._parse_input(input_match.group(1))
+        if output_match:
+            example_dict['output'] = output_match.group(1).strip()
+        if explanation_match:
+            example_dict['explanation'] = explanation_match.group(1).strip()
+        return example_dict
+
+    def _parse_input(self, input_str):
+        input_dict = {}
+        # Split inputs by commas, accounting for brackets
+        parts = re.split(r',\s*(?![^[]*\])', input_str)
+        for part in parts:
+            if '=' in part:
+                key, value = part.split('=', 1)
+                input_dict[key.strip()] = value.strip()
+            else:
+                input_dict['value'] = part.strip()
+        return input_dict
+
+    def _extract_question_constraints(self):
+        soup = BeautifulSoup(self.question_html_content, "html.parser")
+        constraints_header = soup.find('strong', string='Constraints:')
+        if not constraints_header:
+            return []
+        ul_tag = constraints_header.find_next('ul')
+        if not ul_tag:
+            return []
+        constraints = [str(li) for li in ul_tag.find_all('li')]
+        return constraints
+
+    def html_to_ansi(self, html_content):
+        if not html_content:
+            return ""
+        soup = BeautifulSoup(html_content, "html.parser")
+        ansi_str = ""
+        style_stack = []
+
+        def traverse(element):
+            nonlocal ansi_str
+            if isinstance(element, NavigableString):
+                ansi_str += element
+            elif isinstance(element, Tag):
+                if element.name in self.HTML_TO_SYMBOL:
+                    ansi_str += self.HTML_TO_SYMBOL[element.name]
+                if element.name in self.HTML_TO_ANSI:
+                    ansi_code = self.HTML_TO_ANSI[element.name]
+                    ansi_str += ansi_code
+                    style_stack.append(ansi_code)
+                if element.name in ['p', 'br', 'ul']:
+                    ansi_str += '\n'
+                for child in element.children:
+                    traverse(child)
+                if element.name in self.HTML_TO_ANSI:
+                    ansi_str += ANSI_RESET
+                    if style_stack:
+                        style_stack.pop()
+
+        for child in soup.children:
+            traverse(child)
+        return ansi_str
+
+    def get_formatted_title(self):
+        title = f"{self.HTML_TO_ANSI['title'] + self.question_id}. {self.question_title + ANSI_RESET} {self.HTML_TO_ANSI[self.question_difficulty]}[{self.question_difficulty}]{ANSI_RESET}"
+
+        return f"{self.HTML_TO_ANSI['title']}{title}{ANSI_RESET}"
+
+    def get_formatted_description(self):
+        return self.html_to_ansi(self.question_description)
+
+    def _format_example(self, example):
+        parts = []
+        parts.append(f"{self.HTML_TO_ANSI['example_title']}{example['title']}{ANSI_RESET}\n\n")
+        input_str = ', '.join(f"{k} = {v}" for k, v in example['input'].items())
+        parts.append(f"| {self.HTML_TO_ANSI['example_input_string']}Input: {ANSI_RESET}{self.HTML_TO_ANSI['example_input_data']}{input_str}{ANSI_RESET}\n")
+        parts.append(f"| {self.HTML_TO_ANSI['example_output_string']}Output: {ANSI_RESET}{self.HTML_TO_ANSI['example_output_data']}{example['output']}{ANSI_RESET}")
+        if 'explanation' in example:
+            explanation = example['explanation'].replace("\n", f"{ANSI_RESET}\n| {self.HTML_TO_ANSI['example_explanation_data']}")
+            parts.append(f"\n| {self.HTML_TO_ANSI['example_explanation_string']}Explanation: {ANSI_RESET}{self.HTML_TO_ANSI['example_explanation_data']}{explanation}{ANSI_RESET}")
+        return "".join(parts)
+
+    def get_formatted_examples(self):
+        formatted_examples = [self._format_example(example) for example in self.question_examples]
+        return "\n\n".join(formatted_examples)
+
+    def get_formatted_constraints(self):
+        if not self.question_constraints:
+            return ""
+        constraints = [self.html_to_ansi(html) for html in self.question_constraints]
+        constraints_str = "\n".join(constraints)
+        return f"{self.HTML_TO_ANSI['constraints_string']}Constraints:{ANSI_RESET}\n\n{constraints_str}"
+
+
+from ..data_fetching.graphql_data_fetchers.leetcode_problem_fetcher import LeetCodeProblemFetcher
+
+
+title_slug = "two-sum"
+metadata = LeetCodeProblemFetcher.fetch_problem_data(title_slug)
+
+l = LeetCodeProblemParser(metadata)
+print(l.get_formatted_title())
+print(l.get_formatted_description())
+print(l.get_formatted_examples())
+print("\n")
+print(l.get_formatted_constraints())
+
+

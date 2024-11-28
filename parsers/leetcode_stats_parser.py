@@ -11,7 +11,7 @@ from ..data_fetching.graphql_data_fetchers.leetcode_stats import (
 )
 
 from ..graphics.symbols import SYMBOLS
-from ..graphics.colors import COLORS
+from ..graphics.escape_sequences import ANSI_CODES, ANSI_RESET
 
 from ..parsers.parser_utils.leetcode_stats_parser import (
     join_and_slice_calendars,
@@ -20,7 +20,7 @@ from ..parsers.parser_utils.leetcode_stats_parser import (
 )
 
 # Constants
-RECTANGLES_TOTAL = 67
+RECTANGLES_TOTAL = 66
 DIFFICULTIES = ["EASY", "MEDIUM", "HARD"]
 
 MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -43,9 +43,9 @@ def parse_leetcode_stats(data, username):
 
         # Define colors for difficulties
         difficulty_colors = {
-            "EASY": COLORS["GREEN"],
-            "MEDIUM": COLORS["ORANGE"],
-            "HARD": COLORS["RED"]
+            "EASY": ANSI_CODES["GREEN"],
+            "MEDIUM": ANSI_CODES["ORANGE"],
+            "HARD": ANSI_CODES["RED"]
         }
 
         # Calculate total questions per difficulty
@@ -69,9 +69,9 @@ def parse_leetcode_stats(data, username):
             progress_bar = SYMBOLS["FILLED_SQUARE"] * filled + SYMBOLS["EMPTY_SQUARE"] * (RECTANGLES_TOTAL - filled)
 
             # Formatting
-            color = difficulty_colors.get(difficulty, COLORS["RESET_COLOR"])
+            color = difficulty_colors.get(difficulty, ANSI_RESET)
             stats_line = (
-                f"{color}{difficulty:<6} {passed:>4}/{total:<4} ({percentage:.2f}%) {progress_bar} {COLORS['RESET_COLOR']}"
+                f"{color}{difficulty:<6} {passed:>4}/{total:<4} ({percentage:.2f}%) {progress_bar} {ANSI_RESET}"
             )
             stats_lines.append(stats_line)
 
@@ -127,9 +127,9 @@ def parse_daily_activity(filled_activity):
 
         if submissions > 0:
             color = calculate_color(submissions, max_submissions, min_submissions)
-            output[weekday][week_index] = f"{color}{SYMBOLS['FILLED_SQUARE']}{COLORS['RESET_COLOR']}"
+            output[weekday][week_index] = f"{color}{SYMBOLS['FILLED_SQUARE']}{ANSI_RESET}"
         else:
-            output[weekday][week_index] = f"{COLORS['GRAY']}{SYMBOLS['FILLED_SQUARE']}{COLORS['RESET_COLOR']}"
+            output[weekday][week_index] = f"{ANSI_CODES['GRAY']}{SYMBOLS['FILLED_SQUARE']}{ANSI_RESET}"
 
         # Check if it's the last day of the month
         last_day = calendar.monthrange(date.year, date.month)[1]

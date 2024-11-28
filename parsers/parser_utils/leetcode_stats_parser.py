@@ -3,7 +3,7 @@
 import json
 from datetime import datetime, timezone
 
-from ...graphics.colors import COLORS
+from ...graphics.escape_sequences import ANSI_CODES, ANSI_RESET
 
 def join_and_slice_calendars(previous_year_calendar, current_year_calendar):
     if not previous_year_calendar or not current_year_calendar:
@@ -116,8 +116,8 @@ def fill_daily_activity(daily_activity):
 
 
 def calculate_color(submissions: int, max_submissions: int, min_submission: int) -> str:
-    CUSTOM_GREENS = [COLORS["GREEN1"], COLORS["GREEN2"], COLORS["GREEN3"], COLORS["GREEN4"],
-                     COLORS["GREEN5"], COLORS["GREEN6"]]
+    CUSTOM_GREENS = [ANSI_CODES["GREEN1"], ANSI_CODES["GREEN2"], ANSI_CODES["GREEN3"], ANSI_CODES["GREEN4"],
+                     ANSI_CODES["GREEN5"], ANSI_CODES["GREEN6"]]
     
     if max_submissions == min_submission:
         # Avoid division by zero; default to the brightest green
