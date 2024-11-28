@@ -1,26 +1,24 @@
-from ..graphql_queries import GRAPHQL_QUERIES, GRAPHQL_URL
+from ..graphql_data_fetchers.graphql_queries import GRAPHQL_QUERIES, GRAPHQL_URL
 
 import requests
 
-def fetch_leetcode_stats(user_slug):
-    if not user_slug:
+def fetch_leetcode_stats(username):
+    if not username:
         print("Error: Username was not found in config file nor provided in this call.")
         return None
 
-    url = GRAPHQL_URL
-
     payload = {
-        "query": GRAPHQL_QUERIES['user_stats'],
+        "query": GRAPHQL_QUERIES['user_problem_stats'],
 
         "variables": {
-            "userSlug": user_slug
+            "userSlug": username
         },
 
         "operationName": "userProfileUserQuestionProgressV2"
     }
 
     try:
-        response = requests.post(url, json=payload)
+        response = requests.post(GRAPHQL_URL, json=payload)
         if response.status_code == 200:
             result = response.json()
 
@@ -37,6 +35,49 @@ def fetch_leetcode_stats(user_slug):
             print(f"Error: Failed to fetch stats. HTTP Status Code: {response.status_code}")
     except requests.RequestException as e:
 
+        print(f"Error: Network or API issue occurred: {e}")
+
+    return None
+
+
+def fetch_leetcode_activity(username, year):
+    if not username:
+        print("Error: Username was not found in config file nor provided in this call.")
+        return None
+
+
+    if year is None:
+        print("Error: year is None")
+        return None
+
+    payload = {
+        "query": GRAPHQL_QUERIES['user_calendar'],
+        "variables": {
+            "username": username,
+            "year": year
+        },
+        "operationName": "userProfileCalendar"
+    }
+
+    try:
+        response = requests.post(GRAPHQL_URL, json=payload)
+
+        if response.status_code == 200:
+            result = response.json()
+
+            if "errors" in result:
+                print(f"Error from API: {result['errors']}")
+                return None
+
+            return result
+
+        elif response.status_code == 401:
+            print("Error: Unauthorized. Cookie might be invalid or expired.")
+
+        else:
+            print(f"Error: Failed to fetch activity data. HTTP Status Code: {response.status_code}")
+
+    except requests.RequestException as e:
         print(f"Error: Network or API issue occurred: {e}")
 
     return None

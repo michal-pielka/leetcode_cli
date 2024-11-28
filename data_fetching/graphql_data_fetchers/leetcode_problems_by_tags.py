@@ -1,3 +1,6 @@
+# TODO: Implement this, current approach is slow as shit
+
+
 import json
 import requests
 

@@ -1,4 +1,5 @@
 # TODO: Make the parsed message 'friendlier'
+from ..graphics.colors import COLORS
 
 def parse_submission(submission):
     status_code = submission.get("status_code")
@@ -24,8 +25,9 @@ def parse_submission(submission):
 def parse_accepted(submission):
     time_ms = submission.get("status_runtime", "N/A")
     memory_size = submission.get("status_memory", "N/A")
+
     parsed_result = (
-        f"\033[92mAccepted\033[0m\n"
+        f"{COLORS["GREEN"]}Accepted{COLORS["RESET_COLOR"]}\n"
         f"Runtime: {time_ms}\n"
         f"Memory Usage: {memory_size}"
     )
@@ -37,7 +39,7 @@ def parse_wrong_answer(submission):
     expected_output = submission.get("expected_output", "")
     code_output = submission.get("code_output", "")
     parsed_result = (
-        f"\033[91mWrong Answer\033[0m\n"
+        f"{COLORS["RED"]}Wrong Answer{COLORS["RESET_COLOR"]}"
         f"Testcase: {last_testcase}\n"
         f"Expected Output: {expected_output}\n"
         f"Your Output: {code_output}"
@@ -46,18 +48,18 @@ def parse_wrong_answer(submission):
     return parsed_result
 
 def parse_memory_limit_exceeded(submission):
-    return f"\033[91mMemory Limit Exceeded\033[0m"
+    return f"{COLORS["RED"]}Memory Limit Exceeded{COLORS["RESET_COLOR"]}"
 
 def parse_output_limit_exceeded(submission):
-    return f"\033[91mOutput Limit Exceeded\033[0m"
+    return f"{COLORS["RED"]}Output Limit Exceeded{COLORS["RESET_COLOR"]}"
 
 def parse_time_limit_exceeded(submission):
-    return f"\033[91mTime Limit Exceeded\033[0m"
+    return f"{COLORS["RED"]}Time Limit Exceeded{COLORS["RESET_COLOR"]}"
 
 def parse_runtime_error(submission):
     error_msg = submission.get("runtime_error", "No error message.")
-    return f"\033[91mRuntime Error\033[0m\n{error_msg}"
+    return f"{COLORS["RED"]}Runtime Error{COLORS["RESET_COLOR"]}\n{error_msg}"
 
 def parse_compile_error(submission):
     error_msg = submission.get("compile_error", "No error message.")
-    return f"\033[91mCompile Error\033[0m\n{error_msg}"
+    return f"{COLORS["RED"]}Compile Error{COLORS["RESET_COLOR"]}\n{error_msg}"

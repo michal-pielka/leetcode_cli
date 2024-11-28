@@ -42,19 +42,8 @@ def fetch_leetcode_problems():
             "passed_submissions": passed_submissions,
             "total_submissions": total_submissions
         }
+
         problems.append(problem)
 
     print(f"Fetched {len(problems)} problems.")
-
-    # Display the fetched problems
-    for idx, problem in enumerate(problems, start=1):
-        print(f"Problem {idx}:")
-        for key, value in problem.items():
-            print(f"\t{key} : {value}")
-        print()  # Add a newline for better readability
-
     return problems
-
-# Example usage
-if __name__ == "__main__":
-    problems = fetch_leetcode_problems()

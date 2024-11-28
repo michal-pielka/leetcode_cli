@@ -33,6 +33,10 @@ def submit_solution(cookie, title_slug, question_id, solution_file_path):
     SUBMIT_URL = f"https://leetcode.com/problems/{title_slug}/submit/"
     csrf_token = extract_csrf_token(cookie)
 
+    if csrf_token == None:
+        print("Error: csrf_token is None")
+        return None
+
     try:
         with open(solution_file_path, 'r', encoding='utf-8') as file:
             code = file.read()
@@ -44,6 +48,7 @@ def submit_solution(cookie, title_slug, question_id, solution_file_path):
     # Determine language from file extension
     try:
         file_extension = solution_file_path[solution_file_path.rindex(".") + 1:]
+
     except ValueError:
         print("Solution file path is incorrect.")
         return None
@@ -112,6 +117,5 @@ def submit_and_get_result(cookie, title_slug, question_id, solution_file_path):
 
 cookie = load_cookie()
 x = submit_and_get_result(cookie, "two-sum", "1", "sol.py")
-
 from ..parsers.submission_parser import parse_submission
 print(parse_submission(x))
