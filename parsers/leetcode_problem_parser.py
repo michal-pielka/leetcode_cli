@@ -1,9 +1,10 @@
 from bs4 import BeautifulSoup, NavigableString, Tag
 import re
 
-from ..graphics.escape_sequences import ANSI_CODES, ANSI_RESET
+from ..graphics.escape_sequences import *
 from ..graphics.symbols import SYMBOLS
 
+from ..data_fetching.graphql_data_fetchers.leetcode_problem_fetcher import LeetCodeProblemFetcher
 
 class LeetCodeProblemParser:
     HTML_TO_ANSI = {
@@ -24,9 +25,9 @@ class LeetCodeProblemParser:
         "example_output_data": ANSI_CODES["GRAY"],
         "example_explanation_data": ANSI_CODES["GRAY"],
         "constraints_string": ANSI_CODES["BOLD"],
-        "Easy" : ANSI_CODES["GREEN_BG"],
-        "Medium" : ANSI_CODES["ORANGE_BG"],
-        "Hard" : ANSI_CODES["RED_BG"],
+        "Easy": ANSI_CODES["GREEN_BG"],
+        "Medium": ANSI_CODES["ORANGE_BG"],
+        "Hard": ANSI_CODES["RED_BG"],
     }
 
     HTML_TO_SYMBOL = {
@@ -34,8 +35,13 @@ class LeetCodeProblemParser:
         "li": SYMBOLS["DOT"] + " ",
     }
 
-    def __init__(self, metadata):
-        print(metadata)
+    def __init__(self, metadata: dict):
+        """
+        Initializes the parser with problem metadata.
+
+        Args:
+            metadata (dict): The raw problem metadata fetched from LeetCode API.
+        """
         if not metadata or not isinstance(metadata, dict):
             raise ValueError("Metadata must be a non-empty dictionary.")
 
@@ -57,13 +63,25 @@ class LeetCodeProblemParser:
         self.question_dislikes = self.question_data.get("dislikes", 0)
         self.question_example_testcases = self.question_data.get("exampleTestcases", "")
 
-    def _extract_question_data(self):
+    def _extract_question_data(self) -> dict:
+        """
+        Extracts question data from metadata.
+
+        Returns:
+            dict: The question data.
+        """
         try:
             return self.metadata["data"]["question"]
         except KeyError as e:
             raise KeyError(f"Missing key in metadata: {e}")
 
-    def _extract_question_description(self):
+    def _extract_question_description(self) -> str:
+        """
+        Extracts the question description from HTML content.
+
+        Returns:
+            str: The question description in HTML.
+        """
         soup = BeautifulSoup(self.question_html_content, "html.parser")
         description_elements = []
         for element in soup.find_all(['p', 'ul']):
@@ -73,7 +91,13 @@ class LeetCodeProblemParser:
         description_html = "\n".join(description_elements).strip()
         return description_html
 
-    def _extract_question_examples(self):
+    def _extract_question_examples(self) -> list:
+        """
+        Extracts examples from the question content.
+
+        Returns:
+            list: A list of example dictionaries.
+        """
         soup = BeautifulSoup(self.question_html_content, "html.parser")
         examples = []
         example_headers = soup.find_all('strong', string=re.compile(r'Example \d+'))
@@ -83,7 +107,16 @@ class LeetCodeProblemParser:
                 examples.append(example)
         return examples
 
-    def _parse_example_section(self, header):
+    def _parse_example_section(self, header) -> dict:
+        """
+        Parses an example section from the HTML.
+
+        Args:
+            header (Tag): The header tag of the example.
+
+        Returns:
+            dict: A dictionary containing the example data.
+        """
         example_title = header.get_text(strip=True).rstrip(':')
         pre_tag = header.find_next('pre')
         if not pre_tag:
@@ -95,7 +128,16 @@ class LeetCodeProblemParser:
             return parsed_example
         return None
 
-    def _parse_example_content(self, html_content):
+    def _parse_example_content(self, html_content: str) -> dict:
+        """
+        Parses the content of an example.
+
+        Args:
+            html_content (str): The HTML content of the example.
+
+        Returns:
+            dict: A dictionary containing input, output, and explanation.
+        """
         soup = BeautifulSoup(html_content, "html.parser")
         content_text = soup.get_text(separator="\n").strip()
         example_dict = {}
@@ -110,9 +152,17 @@ class LeetCodeProblemParser:
             example_dict['explanation'] = explanation_match.group(1).strip()
         return example_dict
 
-    def _parse_input(self, input_str):
+    def _parse_input(self, input_str: str) -> dict:
+        """
+        Parses the input string of an example.
+
+        Args:
+            input_str (str): The input string.
+
+        Returns:
+            dict: A dictionary of input parameters.
+        """
         input_dict = {}
-        # Split inputs by commas, accounting for brackets
         parts = re.split(r',\s*(?![^[]*\])', input_str)
         for part in parts:
             if '=' in part:
@@ -122,7 +172,13 @@ class LeetCodeProblemParser:
                 input_dict['value'] = part.strip()
         return input_dict
 
-    def _extract_question_constraints(self):
+    def _extract_question_constraints(self) -> list:
+        """
+        Extracts the constraints from the question content.
+
+        Returns:
+            list: A list of constraint strings.
+        """
         soup = BeautifulSoup(self.question_html_content, "html.parser")
         constraints_header = soup.find('strong', string='Constraints:')
         if not constraints_header:
@@ -133,7 +189,16 @@ class LeetCodeProblemParser:
         constraints = [str(li) for li in ul_tag.find_all('li')]
         return constraints
 
-    def html_to_ansi(self, html_content):
+    def html_to_ansi(self, html_content: str) -> str:
+        """
+        Converts HTML content to ANSI-formatted string.
+
+        Args:
+            html_content (str): The HTML content.
+
+        Returns:
+            str: The ANSI-formatted string.
+        """
         if not html_content:
             return ""
         soup = BeautifulSoup(html_content, "html.parser")
@@ -164,29 +229,50 @@ class LeetCodeProblemParser:
             traverse(child)
         return ansi_str
 
+    def get_formatted_topic_tags(self) -> str:
+        """
+        Formats the topic tags.
 
-
-
-
-    def get_formatted_topic_tags(self):
+        Returns:
+            str: A formatted string of topic tags.
+        """
         formatted_tags = "Tags: "
 
-        for tag_index in range(len(self.question_topic_tags)):
-            tag = self.question_topic_tags[tag_index]["name"]
-            formatted_tags += self.HTML_TO_ANSI["tag"] + tag + ANSI_RESET + " "
+        for tag in self.question_topic_tags:
+            tag_name = tag["name"]
+            formatted_tags += self.HTML_TO_ANSI["tag"] + tag_name + ANSI_RESET + " "
 
         return formatted_tags
 
+    def get_formatted_title(self) -> str:
+        """
+        Formats the question title.
 
-    def get_formatted_title(self):
-        title = f"{self.HTML_TO_ANSI['title'] + self.question_id}. {self.question_title + ANSI_RESET} {self.HTML_TO_ANSI[self.question_difficulty]}[{self.question_difficulty}]{ANSI_RESET}"
-
+        Returns:
+            str: The formatted title.
+        """
+        title = f"{self.question_id}. {self.question_title} {self.HTML_TO_ANSI[self.question_difficulty]}[{self.question_difficulty}]{ANSI_RESET}"
         return f"{self.HTML_TO_ANSI['title']}{title}{ANSI_RESET}"
 
-    def get_formatted_description(self):
+    def get_formatted_description(self) -> str:
+        """
+        Formats the question description.
+
+        Returns:
+            str: The formatted description.
+        """
         return self.html_to_ansi(self.question_description)
 
-    def _format_example(self, example):
+    def _format_example(self, example: dict) -> str:
+        """
+        Formats a single example.
+
+        Args:
+            example (dict): The example data.
+
+        Returns:
+            str: The formatted example string.
+        """
         parts = []
         parts.append(f"{self.HTML_TO_ANSI['example_title']}{example['title']}{ANSI_RESET}\n\n")
         input_str = ', '.join(f"{k} = {v}" for k, v in example['input'].items())
@@ -197,11 +283,23 @@ class LeetCodeProblemParser:
             parts.append(f"\n| {self.HTML_TO_ANSI['example_explanation_string']}Explanation: {ANSI_RESET}{self.HTML_TO_ANSI['example_explanation_data']}{explanation}{ANSI_RESET}")
         return "".join(parts)
 
-    def get_formatted_examples(self):
+    def get_formatted_examples(self) -> str:
+        """
+        Formats all examples.
+
+        Returns:
+            str: The formatted examples.
+        """
         formatted_examples = [self._format_example(example) for example in self.question_examples]
         return "\n\n".join(formatted_examples)
 
-    def get_formatted_constraints(self):
+    def get_formatted_constraints(self) -> str:
+        """
+        Formats the constraints.
+
+        Returns:
+            str: The formatted constraints.
+        """
         if not self.question_constraints:
             return ""
         constraints = [self.html_to_ansi(html) for html in self.question_constraints]
@@ -209,20 +307,15 @@ class LeetCodeProblemParser:
         return f"{self.HTML_TO_ANSI['constraints_string']}Constraints:{ANSI_RESET}\n\n{constraints_str}"
 
 
-"""
-from ..data_fetching.graphql_data_fetchers.leetcode_problem_fetcher import LeetCodeProblemFetcher
-
-
 title_slug = "two-sum"
-metadata = LeetCodeProblemFetcher.fetch_problem_data(title_slug)
+problem = LeetCodeProblemFetcher()
+metadata = problem.fetch_problem_data(title_slug)
 
-l = LeetCodeProblemParser(metadata)
-print(l.get_formatted_title())
-print()
-print(l.get_formatted_topic_tags())
-print(l.get_formatted_description())
-print(l.get_formatted_examples())
-print("\n")
-print(l.get_formatted_constraints())
+parser = LeetCodeProblemParser(metadata)
 
-"""
+print(parser.get_formatted_title())
+print(parser.get_formatted_topic_tags())
+print(parser.get_formatted_description())
+print(parser.get_formatted_examples())
+print(parser.get_formatted_constraints())
+

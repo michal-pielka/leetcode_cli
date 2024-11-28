@@ -4,11 +4,11 @@ import requests
 
 def fetch_leetcode_stats(username):
     if not username:
-        print("Error: Username was not found in config file nor provided in this call.")
+        print("Error: Username was not provided")
         return None
 
     payload = {
-        "query": GRAPHQL_QUERIES['user_problem_stats'],
+        "query": GRAPHQL_QUERIES['problem_stats'],
 
         "variables": {
             "userSlug": username
@@ -42,7 +42,7 @@ def fetch_leetcode_stats(username):
 
 def fetch_leetcode_activity(username, year):
     if not username:
-        print("Error: Username was not found in config file nor provided in this call.")
+        print("Error: Username was not provided")
         return None
 
 

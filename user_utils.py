@@ -1,130 +1,156 @@
 import json
-import re
 import os
 import platform
+import re
+import logging
 
-def get_config_path():
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
+
+def get_config_path() -> str:
+    """
+    Determines the configuration file path based on the operating system.
+
+    Returns:
+        str: The full path to the configuration file.
+    """
     if platform.system() == "Windows":
         config_dir = os.getenv("APPDATA", os.path.expanduser("~\\AppData\\Roaming"))
         config_path = os.path.join(config_dir, "leetcode", "config.json")
-
     else:  # macOS and Linux
         config_dir = os.path.expanduser("~/.config/leetcode")
         config_path = os.path.join(config_dir, "config.json")
-
     return config_path
 
 
-def set_cookie(cookie):
+def _load_config() -> dict:
+    """
+    Loads the configuration from the config file.
+
+    Returns:
+        dict: The configuration dictionary.
+    """
     config_path = get_config_path()
-    config_dir = os.path.dirname(config_path)
-
-    # Create the config directory if it doesn't exist
-    os.makedirs(config_dir, exist_ok=True)
-
-    # Load existing config if it exists, else start with an empty dict
-    config = {}
-    if os.path.exists(config_path):
-        with open(config_path, "r") as f:
-            try:
-                config = json.load(f)
-            except json.JSONDecodeError:
-                print("Warning: Config file is corrupted. Overwriting it.")
-
-    # Update the cookie value
-    config["cookie"] = cookie
-
-    # Save the updated config back to the file
-    with open(config_path, "w") as f:
-        json.dump(config, f, indent=4)
-
-    print(f"Cookie saved to {config_path}")
-
-
-def set_username(username):
-    config_path = get_config_path()
-    config_dir = os.path.dirname(config_path)
-
-    # Create the config directory if it doesn't exist
-    os.makedirs(config_dir, exist_ok=True)
-
-    # Load existing config if it exists, else start with an empty dict
-    config = {}
-    if os.path.exists(config_path):
-        with open(config_path, "r") as f:
-            try:
-                config = json.load(f)
-            except json.JSONDecodeError:
-                print("Warning: Config file is corrupted. Overwriting it.")
-
-    # Update the user_slug value
-    config["username"] = username
-
-    # Save the updated config back to the file
-    with open(config_path, "w") as f:
-        json.dump(config, f, indent=4)
-
-    print(f"Username saved to {config_path}")
-
-
-def set_language(language):
-    config_path = get_config_path()
-    config_dir = os.path.dirname(config_path)
-
-    # Create the config directory if it doesn't exist
-    os.makedirs(config_dir, exist_ok=True)
-
-    # Load existing config if it exists, else start with an empty dict
-    config = {}
-    if os.path.exists(config_path):
-        with open(config_path, "r") as f:
-            try:
-                config = json.load(f)
-            except json.JSONDecodeError:
-                print("Warning: Config file is corrupted. Overwriting it.")
-
-    # Update the user_slug value
-    config["language"] = language
-
-    # Save the updated config back to the file
-    with open(config_path, "w") as f:
-        json.dump(config, f, indent=4)
-
-    print(f"language saved to {config_path}")
-
-
-def extract_csrf_token(cookie):
-    match = re.search(r'csrftoken=([^;]+)', cookie)
-
-    if match:
-        return match.group(1)
-    else:
-        return None
-
-
-def load_cookie():
-    config_path = get_config_path()
-
     if os.path.exists(config_path):
         try:
             with open(config_path, "r") as f:
-                config = json.load(f)
-                return config.get("cookie")
-        except (json.JSONDecodeError, KeyError):
-            print("Error: Invalid config file format.")
-            return None
+                return json.load(f)
+        except json.JSONDecodeError:
+            logger.warning("Config file is corrupted. Starting with an empty config.")
+            return {}
+    return {}
+
+
+def _save_config(config: dict):
+    """
+    Saves the configuration dictionary to the config file.
+
+    Args:
+        config (dict): The configuration dictionary to save.
+    """
+    config_path = get_config_path()
+    config_dir = os.path.dirname(config_path)
+    os.makedirs(config_dir, exist_ok=True)
+    with open(config_path, "w") as f:
+        json.dump(config, f, indent=4)
+    logger.info(f"Configuration saved to {config_path}")
+
+
+def set_cookie(cookie: str):
+    """
+    Sets the user's cookie in the configuration file.
+
+    Args:
+        cookie (str): The cookie string to save.
+    """
+    config = _load_config()
+    config["cookie"] = cookie
+    _save_config(config)
+
+
+def set_username(username: str):
+    """
+    Sets the user's username in the configuration file.
+
+    Args:
+        username (str): The username to save.
+    """
+    config = _load_config()
+    config["username"] = username
+    _save_config(config)
+
+
+def set_language(language: str):
+    """
+    Sets the user's preferred programming language in the configuration file.
+
+    Args:
+        language (str): The programming language to save.
+    """
+    config = _load_config()
+    config["language"] = language
+    _save_config(config)
+
+
+def extract_csrf_token(cookie: str) -> str:
+    """
+    Extracts the CSRF token from the cookie string.
+
+    Args:
+        cookie (str): The cookie string.
+
+    Returns:
+        str: The CSRF token if found, else an empty string.
+    """
+    match = re.search(r'csrftoken=([^;]+)', cookie)
+    if match:
+        return match.group(1)
     else:
-        print("Error: Config file not found. Use 'save_cookie' to create one.")
-        return None
+        logger.error("CSRF token not found in the cookie.")
+        return ""
 
 
-# Example usage
-if __name__ == "__main__":
-    username = "BucketAbuser"
-    cookie = '__stripe_mid=50af2006-33dc-414e-b857-14bc3e74ac84742cff; cf_clearance=kK.2EfoZktQ.kN9BwHEULRvqhpGRXgKzIkFlSsL_._8-1731354607-1.2.1.1-THHVDQhzyCa0xdOZr4Aj0VvK_NWcDlJqe7Y1JXr53eYiLfPwzy04n1zJVcin0cyYRUYGDxa_ul0UpEOfyGe3ndoJ3LDmj2z2Pp23.EeJhSRjpbq.W2tUNo8epGlY9adZT_y_s6qtqIykedkjVnd0FD6kJlEpxfdl7OaXeagxQw2K0a2DR5N1EKKTsA6F5Ql1TdEAT09JdUnz3supzh0xJ1VNSKrF.n5uHH_vdQFNV5cAZFf_.BDhEmIhJ7ZLzQDc7EMBFWrstNokCAv0dGix9SrTnsKdyquXYnG.MHq2.kynS0Ti3p8rQFDUydGW8akf0DTYh_xtW3_gBTLP1kod3lJ3gF7n6bDZb4Ep3DxSKuFzPct7LJh6jDVlcG.rct9ThQfhVpB8kiZ1qh5R6NyYWSVf7foqvPolqdCPvJWpAVaBW05IkbxfhjkZ1qEYVcNL; csrftoken=tKsgNsn78jkr8zPZEBlwQhfjLdCqjzdpUIOfvE4utfWkFIuBJNstG5fpoG9NakSY; messages=.eJyLjlaKj88qzs-Lz00tLk5MT1XSMdAxMtVRCi5NTgaKpJXm5FQqFGem56WmKGTmKSQWKziVJmenljgmlRanFukpxepQbEIsABb7LkM:1tAaQK:tKp42SuG0Dl-oSPWsZ0BojMl2iTyREsyPB7hQ5STU1E; INGRESSCOOKIE=6542b644a233f3d8a33703e8cfe82090|8e0876c7c1464cc0ac96bc2edceabd27; LEETCODE_SESSION=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJfYXV0aF91c2VyX2lkIjoiNzIxNzc4NCIsIl9hdXRoX3VzZXJfYmFja2VuZCI6ImFsbGF1dGguYWNjb3VudC5hdXRoX2JhY2tlbmRzLkF1dGhlbnRpY2F0aW9uQmFja2VuZCIsIl9hdXRoX3VzZXJfaGFzaCI6IjM1NDEwZGJkZTBhZmE2MjhhM2NhYjZkZmI1ZDViNjcyMmRmOTg5OTRmMGRkZjc5MmJhOTQ0Y2JmOGI2M2RmZGEiLCJpZCI6NzIxNzc4NCwiZW1haWwiOiJtcGllbGthNzI2QGdtYWlsLmNvbSIsInVzZXJuYW1lIjoiQnVja2V0QWJ1c2VyIiwidXNlcl9zbHVnIjoiQnVja2V0QWJ1c2VyIiwiYXZhdGFyIjoiaHR0cHM6Ly9hc3NldHMubGVldGNvZGUuY29tL3VzZXJzL2RlZmF1bHRfYXZhdGFyLmpwZyIsInJlZnJlc2hlZF9hdCI6MTczMjc2MTY3OSwiaXAiOiIxMDkuMjQzLjEuOTMiLCJpZGVudGl0eSI6ImE0NTVlYmM2N2QwYjUwMDdlMmEwNTU0MTRkZDE0ZDc4IiwiZGV2aWNlX3dpdGhfaXAiOlsiZDk5MzBhOGIxMTZhNzdkZGQzN2MyOGI2ZGI3MGIxNmQiLCIxMDkuMjQzLjEuOTMiXSwic2Vzc2lvbl9pZCI6MTgwNjEzLCJfc2Vzc2lvbl9leHBpcnkiOjEyMDk2MDB9.tHp5p4TC8haXKfLaH5gAE5JO-B-9qZTTE0PGXxWmqtA; ip_check=(false, "109.243.1.93"); __cf_bm=7T_WKoAkgyyi._BhqabkPGyGAVT_c1tYA4.AqQKZcCI-1732801859-1.0.1.1-VJ4e85.iLMqNkfpB6CGyGQBd4Nqg86wxQGGiDxzwkcvBoJDoL8NsZQbBUh0idXytKT5VIA.91tEe.IHVeCeHeQ'
-    language = "py"
+def get_cookie() -> str:
+    """
+    Loads the user's cookie from the configuration file.
+
+    Returns:
+        str: The cookie string if found, else an empty string.
+    """
+    config = _load_config()
+    cookie = config.get("cookie", "")
+    if not cookie:
+        logger.error("Cookie not found in configuration.")
+    return cookie
 
 
-    set_cookie(cookie)
-    set_username(username)
-    set_language(language)
+def get_username() -> str:
+    """
+    Loads the user's username from the configuration file.
+
+    Returns:
+        str: The username string if found, else an empty string.
+    """
+    config = _load_config()
+    username = config.get("username", "")
+    if not username:
+        logger.error("Cookie not found in configuration.")
+
+    return username
+
+
+def get_language() -> str:
+    """
+    Loads the user's language from the configuration file.
+
+    Returns:
+        str: The language string if found, else an empty string.
+    """
+    config = _load_config()
+    language = config.get("language", "")
+
+    if not language:
+        logger.error("language not found in configuration.")
+
+    return language

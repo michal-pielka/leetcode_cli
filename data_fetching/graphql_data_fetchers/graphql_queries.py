@@ -1,7 +1,7 @@
 GRAPHQL_URL = "https://leetcode.com/graphql"
 
 GRAPHQL_QUERIES = {
-    'problems_stats': """
+    'problem_stats': """
         query userProfileUserQuestionProgressV2($userSlug: String!) {
           userProfileUserQuestionProgressV2(userSlug: $userSlug) {
             numAcceptedQuestions {

@@ -18,7 +18,7 @@ class LeetCodeProblemFetcher:
 
 
         payload = {
-            "query": GRAPHQL_QUERIES['problems_by_tags'],
+            "query": GRAPHQL_QUERIES['problem_data'],
             "variables": {
                 "categorySlug": category_slug,
                 "skip": skip,

@@ -5,7 +5,18 @@ from datetime import datetime, timezone
 
 from ...graphics.escape_sequences import ANSI_CODES
 
-def join_and_slice_calendars(previous_year_calendar, current_year_calendar):
+
+def join_and_slice_calendars(previous_year_calendar: dict, current_year_calendar: dict) -> dict:
+    """
+    Joins and slices the activity calendars from the previous and current years.
+
+    Args:
+        previous_year_calendar (dict): The calendar data for the previous year.
+        current_year_calendar (dict): The calendar data for the current year.
+
+    Returns:
+        dict: A dictionary with timestamps as keys and submission counts as values.
+    """
     if not previous_year_calendar or not current_year_calendar:
         return {}
 
@@ -42,14 +53,11 @@ def join_and_slice_calendars(previous_year_calendar, current_year_calendar):
     else:
         start_date = today_utc.replace(year=today_utc.year - 1)
 
-    # Create start and end datetime objects without using `combine`
+    # Create start and end datetime objects
     start_datetime = datetime(
         year=start_date.year,
         month=start_date.month,
         day=start_date.day,
-        hour=0,
-        minute=0,
-        second=0,
         tzinfo=timezone.utc
     )
 
@@ -57,21 +65,28 @@ def join_and_slice_calendars(previous_year_calendar, current_year_calendar):
         year=today_utc.year,
         month=today_utc.month,
         day=today_utc.day,
-        hour=0,
-        minute=0,
-        second=0,
         tzinfo=timezone.utc
     )
 
     start_timestamp = int(start_datetime.timestamp())
     end_timestamp = int(end_datetime.timestamp())
 
-    sliced_activity = {timestamp : count for timestamp, count in merged_activity.items() if start_timestamp <= timestamp < end_timestamp}
+    sliced_activity = {timestamp: count for timestamp, count in merged_activity.items()
+                       if start_timestamp <= timestamp < end_timestamp}
 
     return sliced_activity
 
 
-def fill_daily_activity(daily_activity):
+def fill_daily_activity(daily_activity: dict) -> dict:
+    """
+    Fills the daily activity dictionary to ensure every day in the past year is represented.
+
+    Args:
+        daily_activity (dict): The original activity data.
+
+    Returns:
+        dict: A filled dictionary with timestamps for each day.
+    """
     filled_activity = {}
     today_utc = datetime.utcnow().date()
 
@@ -81,23 +96,17 @@ def fill_daily_activity(daily_activity):
     else:
         start_date = today_utc.replace(year=today_utc.year - 1)
 
-    # Create start and end datetime objects without using `combine`
+    # Create start and end datetime objects
     start_datetime = datetime(
         year=start_date.year,
         month=start_date.month,
         day=start_date.day,
-        hour=0,
-        minute=0,
-        second=0,
         tzinfo=timezone.utc
     )
     end_datetime = datetime(
         year=today_utc.year,
         month=today_utc.month,
         day=today_utc.day,
-        hour=0,
-        minute=0,
-        second=0,
         tzinfo=timezone.utc
     )
 
@@ -115,19 +124,36 @@ def fill_daily_activity(daily_activity):
     return filled_activity
 
 
-def calculate_color(submissions: int, max_submissions: int, min_submission: int) -> str:
-    CUSTOM_GREENS = [ANSI_CODES["GREEN1"], ANSI_CODES["GREEN2"], ANSI_CODES["GREEN3"], ANSI_CODES["GREEN4"],
-                     ANSI_CODES["GREEN5"], ANSI_CODES["GREEN6"]]
-    
-    if max_submissions == min_submission:
+def calculate_color(submissions: int, max_submissions: int, min_submissions: int) -> str:
+    """
+    Calculates the color code based on the number of submissions.
+
+    Args:
+        submissions (int): The number of submissions on a particular day.
+        max_submissions (int): The maximum number of submissions in the dataset.
+        min_submissions (int): The minimum number of submissions in the dataset.
+
+    Returns:
+        str: The ANSI color code.
+    """
+    CUSTOM_GREENS = [
+        ANSI_CODES["GREEN1"],
+        ANSI_CODES["GREEN2"],
+        ANSI_CODES["GREEN3"],
+        ANSI_CODES["GREEN4"],
+        ANSI_CODES["GREEN5"],
+        ANSI_CODES["GREEN6"]
+    ]
+
+    if max_submissions == min_submissions:
         # Avoid division by zero; default to the brightest green
-        return f"\033[38;2;{CUSTOM_GREENS[-1][0]};{CUSTOM_GREENS[-1][1]};{CUSTOM_GREENS[-1][2]}m"
-    
+        return CUSTOM_GREENS[-1]
+
     # Normalize submissions to a value between 0 and 1
-    normalized = (submissions - min_submission) / (max_submissions - min_submission)
+    normalized = (submissions - min_submissions) / (max_submissions - min_submissions)
     normalized = max(0.0, min(1.0, normalized))  # Clamp between 0 and 1
-    
+
     # Determine the index in the CUSTOM_GREENS list
     index = int(normalized * (len(CUSTOM_GREENS) - 1))
-    
+
     return CUSTOM_GREENS[index]

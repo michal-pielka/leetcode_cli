@@ -4,7 +4,6 @@ from datetime import datetime, timedelta, timezone
 import sys
 import calendar
 
-# Import fetch functions (ensure these paths are correct in your project structure)
 from ..data_fetching.graphql_data_fetchers.leetcode_stats import (
     fetch_leetcode_stats,
     fetch_leetcode_activity,
@@ -19,18 +18,24 @@ from ..parsers.parser_utils.leetcode_stats_parser import (
     calculate_color,
 )
 
-# Constants
 RECTANGLES_TOTAL = 66
 DIFFICULTIES = ["EASY", "MEDIUM", "HARD"]
-
 MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 MONTH_SEPARATION = 3
 COLUMNS = 100
 
-def parse_leetcode_stats(data, username):
+
+def parse_leetcode_stats(data: dict, username: str) -> str:
     """
     Parses LeetCode statistics and returns a formatted string.
+
+    Args:
+        data (dict): The raw data fetched from LeetCode API.
+        username (str): The username of the LeetCode user.
+
+    Returns:
+        str: A formatted string representing the user's stats.
     """
     try:
         user_progress = data["data"]["userProfileUserQuestionProgressV2"]
@@ -61,11 +66,10 @@ def parse_leetcode_stats(data, username):
             percentage = beats_percentage.get(difficulty, 0.0)
 
             # Calculate filled rectangles
+            filled = 0
             if total > 0:
                 filled = round((passed / total) * RECTANGLES_TOTAL)
-            else:
-                filled = 0
-            filled = max(0, min(filled, RECTANGLES_TOTAL))  # Clamp between 0 and RECTANGLES_TOTAL
+                filled = max(0, min(filled, RECTANGLES_TOTAL))  # Clamp between 0 and RECTANGLES_TOTAL
             progress_bar = SYMBOLS["FILLED_SQUARE"] * filled + SYMBOLS["EMPTY_SQUARE"] * (RECTANGLES_TOTAL - filled)
 
             # Formatting
@@ -83,9 +87,16 @@ def parse_leetcode_stats(data, username):
         print(f"Error parsing LeetCode stats: {error}", file=sys.stderr)
         return ""
 
-def parse_daily_activity(filled_activity):
+
+def parse_daily_activity(filled_activity: dict) -> str:
     """
     Parses daily activity and returns a formatted calendar string.
+
+    Args:
+        filled_activity (dict): A dictionary with timestamps as keys and submission counts as values.
+
+    Returns:
+        str: A formatted string representing the activity calendar.
     """
     if not filled_activity:
         print("No daily activity data available", file=sys.stderr)
@@ -145,11 +156,9 @@ def parse_daily_activity(filled_activity):
             weekday += 1
 
     # Generate month labels
-    MONTHS = [MONTH_NAMES[(min_date.month - 1 + i) % len(MONTH_NAMES)] for i in range(len(MONTH_NAMES))]
     months_parsed_list = [' ' for _ in range(COLUMNS)]
-
     for idx, start_index in enumerate(months_starting_indexes):
-        month = MONTHS[(min_date.month + idx + 1) % 12]
+        month = MONTH_NAMES[(min_date.month + idx) % 12]
         for i, char in enumerate(month):
             target_index = start_index - 3 + i
             if 0 <= target_index < COLUMNS:
@@ -162,41 +171,24 @@ def parse_daily_activity(filled_activity):
 
     return f"{months_parsed}\n{calendar_parsed}"
 
-"""
-def main():
-    """
-    Main function to fetch and display LeetCode stats and activity.
-    """
-    username = "BucketAbuser"
+username = "rahulvarma5297"
+stats = fetch_leetcode_stats(username)
 
-    # Fetch and parse stats
-    stats = fetch_leetcode_stats(username)
-    if stats:
-        parsed_stats = parse_leetcode_stats(stats, username)
-        print()
-        print(parsed_stats)
-    else:
-        print("Failed to fetch LeetCode stats.", file=sys.stderr)
+parsed_stats = parse_leetcode_stats(stats, username)
 
-    # Fetch and parse activity
-    current_year = datetime.now().year
-    activity_past_year = fetch_leetcode_activity(username, current_year - 1)
-    activity_this_year = fetch_leetcode_activity(username, current_year)
-    sliced_activity = join_and_slice_calendars(activity_this_year, activity_past_year)
-    filled_activity = fill_daily_activity(sliced_activity)
 
-    if filled_activity:
-        print()
-        print()
-        parsed_activity = parse_daily_activity(filled_activity)
-        print(parsed_activity)
-    else:
-        print("Failed to fetch daily activity.", file=sys.stderr)
+# Fetch and parse activity
+current_year = datetime.now().year
+activity_past_year = fetch_leetcode_activity(username, current_year - 1)
+activity_this_year = fetch_leetcode_activity(username, current_year)
+sliced_activity = join_and_slice_calendars(activity_this_year, activity_past_year)
+filled_activity = fill_daily_activity(sliced_activity)
 
+if filled_activity:
+    print(parsed_stats)
     print()
     print()
-
-
-if __name__ == "__main__":
-    main()
-    """
+    parsed_activity = parse_daily_activity(filled_activity)
+    print(parsed_activity)
+else:
+    print("Failed to fetch daily activity.", file=sys.stderr)
