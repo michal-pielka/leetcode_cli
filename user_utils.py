@@ -1,7 +1,6 @@
 import json
 import os
 import platform
-import re
 import logging
 from typing import Dict
 
@@ -105,6 +104,7 @@ def extract_csrf_token(cookie: str) -> str:
     Returns:
         str: The CSRF token if found, else an empty string.
     """
+    import re
     match = re.search(r'csrftoken=([^;]+)', cookie)
     if match:
         return match.group(1)

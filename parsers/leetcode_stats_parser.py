@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
+import logging
 
-from ..data_fetching.leetcode_stats import fetch_leetcode_stats, fetch_leetcode_activity
 from ..graphics.symbols import SYMBOLS
 from ..graphics.escape_sequences import ANSI_CODES, ANSI_RESET
 from ..parsers.parser_utils.leetcode_stats_parser import (
@@ -8,7 +8,6 @@ from ..parsers.parser_utils.leetcode_stats_parser import (
     fill_daily_activity,
     calculate_color,
 )
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +21,7 @@ MONTH_SEPARATION = 3
 COLUMNS = 100
 
 
-def parse_leetcode_stats(data: dict) -> str:
+def get_formatted_leetcode_stats(data: dict) -> str:
     try:
         user_progress = data["data"]["userProfileUserQuestionProgressV2"]
 
@@ -89,7 +88,7 @@ def parse_leetcode_stats(data: dict) -> str:
         return ""
 
 
-def parse_daily_activity(filled_activity: dict) -> str:
+def get_formatted_daily_activity(filled_activity: dict) -> str:
     """
     Parses daily activity and returns a formatted calendar string.
 

@@ -1,10 +1,11 @@
 from bs4 import BeautifulSoup, NavigableString, Tag
 import re
+import logging
 
-from ..graphics.escape_sequences import *
+from ..graphics.escape_sequences import ANSI_CODES, ANSI_RESET
 from ..graphics.symbols import SYMBOLS
 
-#from ..data_fetching.leetcode_problem_fetcher
+logger = logging.getLogger(__name__)
 
 class LeetCodeProblemParser:
     HTML_TO_ANSI = {
@@ -44,6 +45,7 @@ class LeetCodeProblemParser:
             metadata (dict): The raw problem metadata fetched from LeetCode API.
         """
         if not metadata or not isinstance(metadata, dict):
+            logger.error("Metadata must be a non-empty dictionary.")
             raise ValueError("Metadata must be a non-empty dictionary.")
 
         self.metadata = metadata
@@ -75,6 +77,7 @@ class LeetCodeProblemParser:
         try:
             return self.metadata["data"]["question"]
         except KeyError as e:
+            logger.error(f"Missing key in metadata: {e}")
             raise KeyError(f"Missing key in metadata: {e}")
 
     def _extract_question_description(self) -> str:
@@ -323,5 +326,3 @@ class LeetCodeProblemParser:
         constraints = [self.html_to_ansi(html) for html in self.question_constraints]
         constraints_str = "\n".join(constraints)
         return f"{self.HTML_TO_ANSI['constraints_string']}Constraints:{ANSI_RESET}\n\n{constraints_str}"
-
-

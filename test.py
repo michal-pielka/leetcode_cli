@@ -3,8 +3,8 @@ from .data_fetching.fetch_code_snippet import fetch_code_snippet
 from .data_fetching.leetcode_problem_fetcher import LeetCodeProblemFetcher
 
 from .parsers.parser_utils.leetcode_stats_parser import *
-from .parsers.submission_parser import parse_submission
-from .parsers.leetcode_stats_parser import parse_leetcode_stats, parse_daily_activity
+from .parsers.submission_parser import get_formatted_submission
+from .parsers.leetcode_stats_parser import get_formatted_daily_activity, get_formatted_leetcode_stats, get_formatted_daily_activity
 from .parsers.leetcode_problem_parser import LeetCodeProblemParser
 from .parsers.leetcode_problemset_parser import LeetCodeProblemsetParser
 
@@ -15,7 +15,7 @@ def parse_stats():
     username = "BucketAbuser"
     user_stats = fetch_leetcode_stats(username)
 
-    parsed_stats = parse_leetcode_stats(user_stats)
+    parsed_stats = get_formatted_leetcode_stats(user_stats)
     print(parsed_stats)
 
 def parse_activity():
@@ -26,7 +26,7 @@ def parse_activity():
     joinedActiv = join_and_slice_calendars(y2activ, y1activ)
     filledActiv = fill_daily_activity(joinedActiv)
 
-    parsed = parse_daily_activity(filledActiv)
+    parsed = get_formatted_daily_activity(filledActiv)
     print(parsed)
 
 
@@ -55,7 +55,7 @@ def parse_problemset():
     problems_dict = LeetCodeProblemFetcher.fetch_problemset(tags = tags, difficulty = difficulty, limit = limit, skip = skip, category_slug=category_slug)
 
     parser = LeetCodeProblemsetParser(problems_dict)
-    s = parser.parse_questions()
+    s = parser.get_formatted_questions()
     print(s)
 
 #parse_stats()

@@ -79,6 +79,8 @@ GRAPHQL_QUERIES = {
     'code_snippets': """
         query getQuestionDetail($titleSlug: String!) {
             question(titleSlug: $titleSlug) {
+                questionId
+                titleSlug
                 codeSnippets {
                     lang
                     langSlug

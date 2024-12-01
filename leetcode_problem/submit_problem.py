@@ -1,7 +1,7 @@
 import time
 import requests
-from user_utils import extract_csrf_token, get_cookie
-from data_fetching.graphql_data_fetchers.leetcode_problem_fetcher import LeetCodeProblemFetcher
+from ..user_utils import extract_csrf_token, get_cookie
+from ..data_fetching.leetcode_problem_fetcher import LeetCodeProblemFetcher
 import logging
 
 logger = logging.getLogger(__name__)
@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 def map_extension_to_language(file_extension: str) -> str:
     extension_mapping = {
-        "py": "python3",
+        "py": "python",
         "js": "javascript",
         "ts": "typescript",
         "java": "java",
@@ -32,13 +32,8 @@ def map_extension_to_language(file_extension: str) -> str:
     return extension_mapping.get(normalized_extension)
 
 
-def submit_solution(cookie: str, title_slug: str, question_id: str, solution_file_path: str) -> str:
+def submit_solution(cookie: str, csrf_token: str, title_slug: str, question_id: str, solution_file_path: str) -> str:
     submit_url = f"https://leetcode.com/problems/{title_slug}/submit/"
-    csrf_token = extract_csrf_token(cookie)
-
-    if not csrf_token:
-        logger.error("CSRF token is None")
-        return ""
 
     try:
         with open(solution_file_path, 'r', encoding='utf-8') as file:
@@ -84,10 +79,8 @@ def submit_solution(cookie: str, title_slug: str, question_id: str, solution_fil
     return submission.get('submission_id', "")
 
 
-def check_submission(cookie: str, submission_id: str, title_slug: str) -> dict:
+def check_submission(cookie: str, csrf_token: str, submission_id: str, title_slug: str) -> dict:
     check_submission_url = f"https://leetcode.com/submissions/detail/{submission_id}/check/"
-
-    csrf_token = extract_csrf_token(cookie)
 
     headers = {
         "Content-Type": "application/json",
@@ -108,11 +101,11 @@ def check_submission(cookie: str, submission_id: str, title_slug: str) -> dict:
         time.sleep(0.25)
 
 
-def submit_and_get_result(cookie: str, title_slug: str, question_id: str, solution_file_path: str) -> dict:
-    submission_id = submit_solution(cookie, title_slug, question_id, solution_file_path)
+def submit_and_get_result(cookie: str, csrf_token: str, title_slug: str, question_id: str, solution_file_path: str) -> dict:
+    submission_id = submit_solution(cookie, csrf_token, title_slug, question_id, solution_file_path)
 
     if not submission_id:
         return {}
 
-    submission_result = check_submission(cookie, submission_id, title_slug)
+    submission_result = check_submission(cookie, csrf_token, submission_id, title_slug)
     return submission_result
