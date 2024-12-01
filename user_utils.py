@@ -3,9 +3,9 @@ import os
 import platform
 import re
 import logging
+from typing import Dict
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
 
 
 def get_config_path() -> str:
@@ -24,7 +24,7 @@ def get_config_path() -> str:
     return config_path
 
 
-def _load_config() -> dict:
+def _load_config() -> Dict[str, str]:
     """
     Loads the configuration from the config file.
 
@@ -38,11 +38,10 @@ def _load_config() -> dict:
                 return json.load(f)
         except json.JSONDecodeError:
             logger.warning("Config file is corrupted. Starting with an empty config.")
-            return {}
     return {}
 
 
-def _save_config(config: dict):
+def _save_config(config: Dict[str, str]) -> None:
     """
     Saves the configuration dictionary to the config file.
 
@@ -51,13 +50,16 @@ def _save_config(config: dict):
     """
     config_path = get_config_path()
     config_dir = os.path.dirname(config_path)
-    os.makedirs(config_dir, exist_ok=True)
-    with open(config_path, "w") as f:
-        json.dump(config, f, indent=4)
-    logger.info(f"Configuration saved to {config_path}")
+    try:
+        os.makedirs(config_dir, exist_ok=True)
+        with open(config_path, "w") as f:
+            json.dump(config, f, indent=4)
+        logger.info(f"Configuration saved to {config_path}")
+    except OSError as e:
+        logger.error(f"Failed to save configuration: {e}")
 
 
-def set_cookie(cookie: str):
+def set_cookie(cookie: str) -> None:
     """
     Sets the user's cookie in the configuration file.
 
@@ -69,7 +71,7 @@ def set_cookie(cookie: str):
     _save_config(config)
 
 
-def set_username(username: str):
+def set_username(username: str) -> None:
     """
     Sets the user's username in the configuration file.
 
@@ -81,7 +83,7 @@ def set_username(username: str):
     _save_config(config)
 
 
-def set_language(language: str):
+def set_language(language: str) -> None:
     """
     Sets the user's preferred programming language in the configuration file.
 
@@ -135,22 +137,19 @@ def get_username() -> str:
     config = _load_config()
     username = config.get("username", "")
     if not username:
-        logger.error("Cookie not found in configuration.")
-
+        logger.error("Username not found in configuration.")
     return username
 
 
 def get_language() -> str:
     """
-    Loads the user's language from the configuration file.
+    Loads the user's preferred language from the configuration file.
 
     Returns:
         str: The language string if found, else an empty string.
     """
     config = _load_config()
     language = config.get("language", "")
-
     if not language:
-        logger.error("language not found in configuration.")
-
+        logger.error("Language not found in configuration.")
     return language

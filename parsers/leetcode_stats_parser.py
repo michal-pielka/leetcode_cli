@@ -1,50 +1,45 @@
-# TODO: Tf is this code nigga
-
 from datetime import datetime, timedelta, timezone
-import sys
-import calendar
 
-from ..data_fetching.graphql_data_fetchers.leetcode_stats import (
-    fetch_leetcode_stats,
-    fetch_leetcode_activity,
-)
-
+from ..data_fetching.leetcode_stats import fetch_leetcode_stats, fetch_leetcode_activity
 from ..graphics.symbols import SYMBOLS
 from ..graphics.escape_sequences import ANSI_CODES, ANSI_RESET
-
 from ..parsers.parser_utils.leetcode_stats_parser import (
     join_and_slice_calendars,
     fill_daily_activity,
     calculate_color,
 )
+import logging
+
+logger = logging.getLogger(__name__)
 
 RECTANGLES_TOTAL = 66
 DIFFICULTIES = ["EASY", "MEDIUM", "HARD"]
-MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-               "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+MONTH_NAMES = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+]
 MONTH_SEPARATION = 3
 COLUMNS = 100
 
 
-def parse_leetcode_stats(data: dict, username: str) -> str:
-    """
-    Parses LeetCode statistics and returns a formatted string.
-
-    Args:
-        data (dict): The raw data fetched from LeetCode API.
-        username (str): The username of the LeetCode user.
-
-    Returns:
-        str: A formatted string representing the user's stats.
-    """
+def parse_leetcode_stats(data: dict) -> str:
     try:
         user_progress = data["data"]["userProfileUserQuestionProgressV2"]
 
         # Extract counts by difficulty
-        accepted = {item["difficulty"]: item["count"] for item in user_progress.get("numAcceptedQuestions", [])}
-        failed = {item["difficulty"]: item["count"] for item in user_progress.get("numFailedQuestions", [])}
-        untouched = {item["difficulty"]: item["count"] for item in user_progress.get("numUntouchedQuestions", [])}
-        beats_percentage = {item["difficulty"]: item["percentage"] for item in user_progress.get("userSessionBeatsPercentage", [])}
+        accepted = {item["difficulty"].upper(): item["count"] for item in user_progress.get("numAcceptedQuestions", [])}
+        failed = {item["difficulty"].upper(): item["count"] for item in user_progress.get("numFailedQuestions", [])}
+        untouched = {item["difficulty"].upper(): item["count"] for item in user_progress.get("numUntouchedQuestions", [])}
+        logger.debug(f"Accepted: {accepted}, Failed: {failed}, Untouched: {untouched}")
+
+        # Calculate total per difficulty
+        total_counts = {}
+        for difficulty in DIFFICULTIES:
+            total_counts[difficulty] = (
+                accepted.get(difficulty, 0) +
+                failed.get(difficulty, 0) +
+                untouched.get(difficulty, 0)
+            )
 
         # Define colors for difficulties
         difficulty_colors = {
@@ -53,38 +48,44 @@ def parse_leetcode_stats(data: dict, username: str) -> str:
             "HARD": ANSI_CODES["RED"]
         }
 
-        # Calculate total questions per difficulty
-        total_questions = {}
-        for difficulty in DIFFICULTIES:
-            total = accepted.get(difficulty, 0) + failed.get(difficulty, 0) + untouched.get(difficulty, 0)
-            total_questions[difficulty] = total
-
         stats_lines = []
         for difficulty in DIFFICULTIES:
             passed = accepted.get(difficulty, 0)
-            total = total_questions[difficulty]
-            percentage = beats_percentage.get(difficulty, 0.0)
+            total = total_counts.get(difficulty, 0)
+
+            if total == 0:
+                percentage = 0.0
+            else:
+                percentage = (passed / total) * 100
 
             # Calculate filled rectangles
-            filled = 0
             if total > 0:
-                filled = round((passed / total) * RECTANGLES_TOTAL)
-                filled = max(0, min(filled, RECTANGLES_TOTAL))  # Clamp between 0 and RECTANGLES_TOTAL
-            progress_bar = SYMBOLS["FILLED_SQUARE"] * filled + SYMBOLS["EMPTY_SQUARE"] * (RECTANGLES_TOTAL - filled)
+                progress_ratio = passed / total
+            else:
+                progress_ratio = 0.0
+            filled = int(round(progress_ratio * RECTANGLES_TOTAL))
+            filled = max(0, min(filled, RECTANGLES_TOTAL))  # Clamp between 0 and RECTANGLES_TOTAL
+
+            # Create progress bar with filled and empty rectangles (without coloring the symbols)
+            filled_bar = SYMBOLS['FILLED_SQUARE'] * filled
+            empty_bar = SYMBOLS['EMPTY_SQUARE'] * (RECTANGLES_TOTAL - filled)
+            progress_bar = filled_bar + empty_bar
+
+            # Get the color for the entire line
+            color = difficulty_colors.get(difficulty, ANSI_RESET)
 
             # Formatting
-            color = difficulty_colors.get(difficulty, ANSI_RESET)
             stats_line = (
-                f"{color}{difficulty:<6} {passed:>4}/{total:<4} ({percentage:.2f}%) {progress_bar} {ANSI_RESET}"
+                f"{color}{difficulty:<7} {passed:>4}/{total:<4} ({percentage:.2f}%) {progress_bar}{ANSI_RESET}"
             )
             stats_lines.append(stats_line)
 
         # Combine all outputs
-        formatted_stats = f"LeetCode Stats for {username}\n" + "\n".join(stats_lines)
+        formatted_stats = "\n".join(stats_lines)
         return formatted_stats
 
     except (KeyError, TypeError, ZeroDivisionError) as error:
-        print(f"Error parsing LeetCode stats: {error}", file=sys.stderr)
+        logger.error(f"Error parsing LeetCode stats: {error}")
         return ""
 
 
@@ -99,7 +100,7 @@ def parse_daily_activity(filled_activity: dict) -> str:
         str: A formatted string representing the activity calendar.
     """
     if not filled_activity:
-        print("No daily activity data available", file=sys.stderr)
+        logger.error("No daily activity data available")
         return ""
 
     # Initialize output: 7 rows for days of the week, COLUMNS weeks
@@ -115,7 +116,7 @@ def parse_daily_activity(filled_activity: dict) -> str:
             continue  # Skip invalid timestamps
 
     if not date_counts:
-        print("No valid daily activity data available", file=sys.stderr)
+        logger.error("No valid daily activity data available")
         return ""
 
     months_starting_indexes = []
@@ -143,8 +144,7 @@ def parse_daily_activity(filled_activity: dict) -> str:
             output[weekday][week_index] = f"{ANSI_CODES['GRAY']}{SYMBOLS['FILLED_SQUARE']}{ANSI_RESET}"
 
         # Check if it's the last day of the month
-        last_day = calendar.monthrange(date.year, date.month)[1]
-        if date.day == last_day and week_index < COLUMNS - 1:
+        if date.day == 1 and week_index < COLUMNS - 1:
             months_starting_indexes.append(week_index)
             week_index += MONTH_SEPARATION
 
@@ -158,7 +158,7 @@ def parse_daily_activity(filled_activity: dict) -> str:
     # Generate month labels
     months_parsed_list = [' ' for _ in range(COLUMNS)]
     for idx, start_index in enumerate(months_starting_indexes):
-        month = MONTH_NAMES[(min_date.month + idx) % 12]
+        month = MONTH_NAMES[(min_date.month + idx - 1) % 12]
         for i, char in enumerate(month):
             target_index = start_index - 3 + i
             if 0 <= target_index < COLUMNS:
@@ -170,25 +170,3 @@ def parse_daily_activity(filled_activity: dict) -> str:
     calendar_parsed = '\n'.join(''.join(row) for row in output)
 
     return f"{months_parsed}\n{calendar_parsed}"
-
-username = "rahulvarma5297"
-stats = fetch_leetcode_stats(username)
-
-parsed_stats = parse_leetcode_stats(stats, username)
-
-
-# Fetch and parse activity
-current_year = datetime.now().year
-activity_past_year = fetch_leetcode_activity(username, current_year - 1)
-activity_this_year = fetch_leetcode_activity(username, current_year)
-sliced_activity = join_and_slice_calendars(activity_this_year, activity_past_year)
-filled_activity = fill_daily_activity(sliced_activity)
-
-if filled_activity:
-    print(parsed_stats)
-    print()
-    print()
-    parsed_activity = parse_daily_activity(filled_activity)
-    print(parsed_activity)
-else:
-    print("Failed to fetch daily activity.", file=sys.stderr)

@@ -1,24 +1,43 @@
-from ..graphql_data_fetchers.graphql_queries import GRAPHQL_QUERIES, GRAPHQL_URL 
+from ..data_fetching.graphql_queries import GRAPHQL_QUERIES, GRAPHQL_URL 
 
-from ...user_utils import load_cookie, extract_csrf_token
+from ..user_utils import get_cookie, extract_csrf_token
 
 import requests
 
 class LeetCodeProblemFetcher:
 
     @staticmethod
-    def fetch_problemset(tags, limit=50, skip=0, category_slug="all-code-essentials"):
+    def fetch_problemset(tags=None, difficulty=None, limit=50, skip=0, category_slug="all-code-essentials"):
         if not category_slug:
             print("Error: category_slug is required but not provided.")
             return None
 
-        if not isinstance(tags, list):
+        if tags is not None and not isinstance(tags, list):
             print("Error: tags must be a list of strings.")
             return None
 
+        if difficulty is not None and not (isinstance(difficulty, str) or (isinstance(difficulty, list) and all(isinstance(d, str) for d in difficulty))):
+            print("Error: difficulty must be a string or a list of strings.")
+            return None
+
+        # Validate difficulty values
+        valid_difficulties = {"EASY", "MEDIUM", "HARD"}
+        difficulties = []
+        if isinstance(difficulty, str):
+            difficulties = [difficulty.upper()]
+
+        elif isinstance(difficulty, list):
+            difficulties = [d.upper() for d in difficulty]
+
+        for d in difficulties:
+            if d not in valid_difficulties:
+                print(f"Error: Invalid difficulty level '{d}'. Valid options are EASY, MEDIUM, HARD.")
+                return None
+
+        query = GRAPHQL_QUERIES['problemset_data']
 
         payload = {
-            "query": GRAPHQL_QUERIES['problem_data'],
+            "query": query,
             "variables": {
                 "categorySlug": category_slug,
                 "skip": skip,
@@ -28,27 +47,35 @@ class LeetCodeProblemFetcher:
             "operationName": "problemsetQuestionList"
         }
 
+        # Add tags to filters if provided
         if tags:
             payload["variables"]["filters"]["tags"] = tags
-            print("found tags")
+            print("Tags filter applied:", tags)
 
+        # Add difficulty to filters if provided
+        if difficulties:
+            if len(difficulties) == 1:
+                payload["variables"]["filters"]["difficulty"] = difficulties[0]
+            else:
+                payload["variables"]["filters"]["difficulty"] = difficulties
+            print("Difficulty filter applied:", difficulties)
 
-        cookie = load_cookie()
+        cookie = get_cookie()
         headers = None
 
-        if cookie:
-            headers = {
-                "Content-Type": "application/json",
-                "User-Agent": "Mozilla/5.0",
-                "Cookie": cookie,
-                "x-csrftoken": extract_csrf_token(cookie),
-                "Referer": f"https://leetcode.com/problemset/",
-            }
-
-
+        # TODO: Check if cookie is valid: cookie might be set but inactive
         try:
             if cookie:
+                headers = {
+                    "Content-Type": "application/json",
+                    "User-Agent": "Mozilla/5.0",
+                    "Cookie": cookie,
+                    "x-csrftoken": extract_csrf_token(cookie),
+                    "Referer": f"https://leetcode.com/problemset/",
+                }
+
                 response = requests.post(GRAPHQL_URL, json=payload, headers=headers)
+
             else:
                 response = requests.post(GRAPHQL_URL, json=payload)
             
@@ -58,6 +85,7 @@ class LeetCodeProblemFetcher:
                 if "errors" in result:
                     print(f"Error from API: {result['errors']}")
                     return None
+
 
                 return result
 
@@ -78,26 +106,8 @@ class LeetCodeProblemFetcher:
             print("Error: title_slug is required but not provided.")
             return None
 
-        query = """
-        query questionData($titleSlug: String!) {
-          question(titleSlug: $titleSlug) {
-            questionId
-            title
-            titleSlug
-            content
-            difficulty
-            likes
-            dislikes
-            exampleTestcases
-            topicTags {
-              name
-              slug
-            }
-            hints
-            isPaidOnly
-          }
-        }
-        """
+
+        query = GRAPHQL_QUERIES['problem_data']
 
         payload = {
             "query": query,

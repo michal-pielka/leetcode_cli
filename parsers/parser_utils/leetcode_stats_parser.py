@@ -1,9 +1,10 @@
-# TODO: Fix deprecated values
-
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+import logging
 
 from ...graphics.escape_sequences import ANSI_CODES
+
+logger = logging.getLogger(__name__)
 
 
 def join_and_slice_calendars(previous_year_calendar: dict, current_year_calendar: dict) -> dict:
@@ -30,11 +31,11 @@ def join_and_slice_calendars(previous_year_calendar: dict, current_year_calendar
         )
 
     except KeyError as error:
-        print(f"Missing key in submission_calendar data: {error}")
+        logger.error(f"Missing key in submission_calendar data: {error}")
         return {}
 
     except json.JSONDecodeError as error:
-        print(f"JSON decoding error: {error}")
+        logger.error(f"JSON decoding error: {error}")
         return {}
 
     # Merge activities ensuring the combined dictionary has all timestamps
@@ -45,34 +46,19 @@ def join_and_slice_calendars(previous_year_calendar: dict, current_year_calendar
 
     # Get today's date in UTC
     today_utc = datetime.utcnow().date()
-
-    # Handle the special case for leap years
-    if today_utc.month == 2 and today_utc.day == 29:
-        # Roll back to March 1 of the previous year
-        start_date = today_utc.replace(year=today_utc.year - 1, month=3, day=1)
-    else:
-        start_date = today_utc.replace(year=today_utc.year - 1)
+    start_date = today_utc - timedelta(days=365)
 
     # Create start and end datetime objects
-    start_datetime = datetime(
-        year=start_date.year,
-        month=start_date.month,
-        day=start_date.day,
-        tzinfo=timezone.utc
-    )
-
-    end_datetime = datetime(
-        year=today_utc.year,
-        month=today_utc.month,
-        day=today_utc.day,
-        tzinfo=timezone.utc
-    )
+    start_datetime = datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc)
+    end_datetime = datetime.combine(today_utc, datetime.min.time(), tzinfo=timezone.utc)
 
     start_timestamp = int(start_datetime.timestamp())
     end_timestamp = int(end_datetime.timestamp())
 
-    sliced_activity = {timestamp: count for timestamp, count in merged_activity.items()
-                       if start_timestamp <= timestamp < end_timestamp}
+    sliced_activity = {
+        timestamp: count for timestamp, count in merged_activity.items()
+        if start_timestamp <= timestamp < end_timestamp
+    }
 
     return sliced_activity
 
@@ -89,37 +75,19 @@ def fill_daily_activity(daily_activity: dict) -> dict:
     """
     filled_activity = {}
     today_utc = datetime.utcnow().date()
-
-    # Handle the special case for leap years
-    if today_utc.month == 2 and today_utc.day == 29:
-        start_date = today_utc.replace(year=today_utc.year - 1, month=3, day=1)
-    else:
-        start_date = today_utc.replace(year=today_utc.year - 1)
+    start_date = today_utc - timedelta(days=365)
 
     # Create start and end datetime objects
-    start_datetime = datetime(
-        year=start_date.year,
-        month=start_date.month,
-        day=start_date.day,
-        tzinfo=timezone.utc
-    )
-    end_datetime = datetime(
-        year=today_utc.year,
-        month=today_utc.month,
-        day=today_utc.day,
-        tzinfo=timezone.utc
-    )
-
-    # Convert to timestamps
-    start_timestamp = int(start_datetime.timestamp())
-    end_timestamp = int(end_datetime.timestamp())
+    start_datetime = datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc)
+    end_datetime = datetime.combine(today_utc, datetime.min.time(), tzinfo=timezone.utc)
 
     # Generate all daily timestamps within the past year
-    current_timestamp = start_timestamp
+    current_datetime = start_datetime
 
-    while current_timestamp <= end_timestamp:
-        filled_activity[current_timestamp] = daily_activity.get(current_timestamp, 0)
-        current_timestamp += 86400  # Increment by one day (in seconds)
+    while current_datetime <= end_datetime:
+        timestamp = int(current_datetime.timestamp())
+        filled_activity[timestamp] = daily_activity.get(timestamp, 0)
+        current_datetime += timedelta(days=1)
 
     return filled_activity
 

@@ -1,4 +1,4 @@
-from ..graphql_data_fetchers.graphql_queries import GRAPHQL_QUERIES, GRAPHQL_URL
+from ..data_fetching.graphql_queries import GRAPHQL_QUERIES, GRAPHQL_URL
 
 import requests
 

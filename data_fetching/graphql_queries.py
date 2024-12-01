@@ -45,7 +45,7 @@ GRAPHQL_QUERIES = {
         }
     """,
 
-    'problems_data': """
+    'problemset_data': """
         query problemsetQuestionList($categorySlug: String, $limit: Int, $skip: Int, $filters: QuestionListFilterInput) {
           problemsetQuestionList: questionList(
             categorySlug: $categorySlug
@@ -69,6 +69,8 @@ GRAPHQL_QUERIES = {
                 id
                 slug
               }
+              hasSolution
+              hasVideoSolution
             }
           }
         }
@@ -84,5 +86,32 @@ GRAPHQL_QUERIES = {
                 }
             }
         }
+        """,
+
+    'problem_data': """
+        query questionData($titleSlug: String!) {
+          submittableLanguageList {
+            id
+            name
+            verboseName
+          }
+          question(titleSlug: $titleSlug) {
+            questionId
+            title
+            titleSlug
+            content
+            difficulty
+            likes
+            dislikes
+            exampleTestcases
+            topicTags {
+              name
+              slug
+            }
+            hints
+            isPaidOnly
+          }
+        }
         """
+
 }

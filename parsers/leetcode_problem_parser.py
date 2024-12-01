@@ -4,7 +4,7 @@ import re
 from ..graphics.escape_sequences import *
 from ..graphics.symbols import SYMBOLS
 
-from ..data_fetching.graphql_data_fetchers.leetcode_problem_fetcher import LeetCodeProblemFetcher
+#from ..data_fetching.leetcode_problem_fetcher
 
 class LeetCodeProblemParser:
     HTML_TO_ANSI = {
@@ -15,7 +15,8 @@ class LeetCodeProblemParser:
         "u": ANSI_CODES["UNDERLINE"],
         "code": ANSI_CODES["GRAY_BG"],
         "pre": ANSI_CODES["RED"],
-        "tag": ANSI_CODES["BABY_BLUE_BG"] + ANSI_CODES["WHITE"],
+        "tag": ANSI_CODES["BABY_BLUE_BG"] + ANSI_CODES["WHITE"] + ANSI_CODES["BOLD"],
+        "language": ANSI_CODES["ORANGE_BG"] + ANSI_CODES["BLACK"] + ANSI_CODES["BOLD"],
         "title": ANSI_CODES["BOLD"],
         "example_title": ANSI_CODES["BOLD"],
         "example_input_string": ANSI_CODES["BOLD"],
@@ -58,6 +59,7 @@ class LeetCodeProblemParser:
         self.question_constraints = self._extract_question_constraints()
         self.question_hints = self.question_data.get("hints", [])
         self.question_topic_tags = self.question_data.get("topicTags", [])
+        self.question_languages = self.metadata.get("data", {}).get("submittableLanguageList", [])
         self.question_difficulty = self.question_data.get("difficulty", "")
         self.question_likes = self.question_data.get("likes", 0)
         self.question_dislikes = self.question_data.get("dislikes", 0)
@@ -236,13 +238,29 @@ class LeetCodeProblemParser:
         Returns:
             str: A formatted string of topic tags.
         """
-        formatted_tags = "Tags: "
+        formatted_tags = ["Tags:"]
 
         for tag in self.question_topic_tags:
-            tag_name = tag["name"]
-            formatted_tags += self.HTML_TO_ANSI["tag"] + tag_name + ANSI_RESET + " "
+            tag_name = " " + tag["name"].lower() + " "
+            formatted_tags.append(self.HTML_TO_ANSI["tag"] + tag_name + ANSI_RESET + " ")
 
-        return formatted_tags
+        return " ".join(formatted_tags)
+
+    def get_formatted_languages(self) -> str:
+        """
+        Formats the submittable languages.
+
+        Returns:
+            str: A formatted string of languages
+        """
+        formatted_languages = ["Langs:"]
+
+        for language in self.question_languages:
+            language_name = " " + language["name"] + " "
+            formatted_language = f"{self.HTML_TO_ANSI['language']}{language_name}{ANSI_RESET}"
+            formatted_languages.append(formatted_language)
+
+        return " ".join(formatted_languages)
 
     def get_formatted_title(self) -> str:
         """
@@ -251,7 +269,7 @@ class LeetCodeProblemParser:
         Returns:
             str: The formatted title.
         """
-        title = f"{self.question_id}. {self.question_title} {self.HTML_TO_ANSI[self.question_difficulty]}[{self.question_difficulty}]{ANSI_RESET}"
+        title = f"[{self.question_id}] {self.question_title} {self.HTML_TO_ANSI[self.question_difficulty]} [{self.question_difficulty}] {ANSI_RESET}"
         return f"{self.HTML_TO_ANSI['title']}{title}{ANSI_RESET}"
 
     def get_formatted_description(self) -> str:
@@ -306,16 +324,4 @@ class LeetCodeProblemParser:
         constraints_str = "\n".join(constraints)
         return f"{self.HTML_TO_ANSI['constraints_string']}Constraints:{ANSI_RESET}\n\n{constraints_str}"
 
-
-title_slug = "two-sum"
-problem = LeetCodeProblemFetcher()
-metadata = problem.fetch_problem_data(title_slug)
-
-parser = LeetCodeProblemParser(metadata)
-
-print(parser.get_formatted_title())
-print(parser.get_formatted_topic_tags())
-print(parser.get_formatted_description())
-print(parser.get_formatted_examples())
-print(parser.get_formatted_constraints())
 

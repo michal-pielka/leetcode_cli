@@ -1,7 +1,11 @@
-# TODO: Make the parsed message 'friendlier'
-from ..graphics.colors import COLORS
+from ..graphics.escape_sequences import ANSI_CODES, ANSI_RESET
+import logging
 
-def parse_submission(submission):
+logger = logging.getLogger(__name__)
+
+# TODO: Make submissions friendlier
+
+def parse_submission(submission: dict) -> str:
     status_code = submission.get("status_code")
 
     # Map status codes to their corresponding parser functions
@@ -19,27 +23,29 @@ def parse_submission(submission):
     if parse_function:
         return parse_function(submission)
     else:
-        print("Unknown submission status code.")
-        return None
+        logger.error("Unknown submission status code.")
+        return "Unknown submission status code."
 
-def parse_accepted(submission):
+
+def parse_accepted(submission: dict) -> str:
     time_ms = submission.get("status_runtime", "N/A")
     memory_size = submission.get("status_memory", "N/A")
 
     parsed_result = (
-        f"{COLORS["GREEN"]}Accepted{COLORS["RESET_COLOR"]}\n"
+        f"{ANSI_CODES['GREEN']}Accepted{ANSI_RESET}\n"
         f"Runtime: {time_ms}\n"
         f"Memory Usage: {memory_size}"
     )
 
     return parsed_result
 
-def parse_wrong_answer(submission):
+
+def parse_wrong_answer(submission: dict) -> str:
     last_testcase = submission.get("last_testcase", "")
     expected_output = submission.get("expected_output", "")
     code_output = submission.get("code_output", "")
     parsed_result = (
-        f"{COLORS["RED"]}Wrong Answer{COLORS["RESET_COLOR"]}"
+        f"{ANSI_CODES['RED']}Wrong Answer{ANSI_CODES['RESET_COLOR']}\n"
         f"Testcase: {last_testcase}\n"
         f"Expected Output: {expected_output}\n"
         f"Your Output: {code_output}"
@@ -47,19 +53,24 @@ def parse_wrong_answer(submission):
 
     return parsed_result
 
-def parse_memory_limit_exceeded(submission):
-    return f"{COLORS["RED"]}Memory Limit Exceeded{COLORS["RESET_COLOR"]}"
 
-def parse_output_limit_exceeded(submission):
-    return f"{COLORS["RED"]}Output Limit Exceeded{COLORS["RESET_COLOR"]}"
+def parse_memory_limit_exceeded(submission: dict) -> str:
+    return f"{ANSI_CODES['RED']}Memory Limit Exceeded{ANSI_CODES['RESET_COLOR']}"
 
-def parse_time_limit_exceeded(submission):
-    return f"{COLORS["RED"]}Time Limit Exceeded{COLORS["RESET_COLOR"]}"
 
-def parse_runtime_error(submission):
+def parse_output_limit_exceeded(submission: dict) -> str:
+    return f"{ANSI_CODES['RED']}Output Limit Exceeded{ANSI_CODES['RESET_COLOR']}"
+
+
+def parse_time_limit_exceeded(submission: dict) -> str:
+    return f"{ANSI_CODES['RED']}Time Limit Exceeded{ANSI_CODES['RESET_COLOR']}"
+
+
+def parse_runtime_error(submission: dict) -> str:
     error_msg = submission.get("runtime_error", "No error message.")
-    return f"{COLORS["RED"]}Runtime Error{COLORS["RESET_COLOR"]}\n{error_msg}"
+    return f"{ANSI_CODES['RED']}Runtime Error{ANSI_CODES['RESET_COLOR']}\n{error_msg}"
 
-def parse_compile_error(submission):
+
+def parse_compile_error(submission: dict) -> str:
     error_msg = submission.get("compile_error", "No error message.")
-    return f"{COLORS["RED"]}Compile Error{COLORS["RESET_COLOR"]}\n{error_msg}"
+    return f"{ANSI_CODES['RED']}Compile Error{ANSI_CODES['RESET_COLOR']}\n{error_msg}"

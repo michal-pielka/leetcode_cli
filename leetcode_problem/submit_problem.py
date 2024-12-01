@@ -1,10 +1,13 @@
-from ..user_utils import extract_csrf_token, load_cookie
-
-import requests
 import time
+import requests
+from user_utils import extract_csrf_token, get_cookie
+from data_fetching.graphql_data_fetchers.leetcode_problem_fetcher import LeetCodeProblemFetcher
+import logging
+
+logger = logging.getLogger(__name__)
 
 
-def map_extension_to_language(file_extension):
+def map_extension_to_language(file_extension: str) -> str:
     extension_mapping = {
         "py": "python3",
         "js": "javascript",
@@ -26,37 +29,36 @@ def map_extension_to_language(file_extension):
     }
 
     normalized_extension = file_extension.lstrip(".").lower()
-    return extension_mapping.get(normalized_extension, None)
+    return extension_mapping.get(normalized_extension)
 
 
-def submit_solution(cookie, title_slug, question_id, solution_file_path):
-    SUBMIT_URL = f"https://leetcode.com/problems/{title_slug}/submit/"
+def submit_solution(cookie: str, title_slug: str, question_id: str, solution_file_path: str) -> str:
+    submit_url = f"https://leetcode.com/problems/{title_slug}/submit/"
     csrf_token = extract_csrf_token(cookie)
 
-    if csrf_token == None:
-        print("Error: csrf_token is None")
-        return None
+    if not csrf_token:
+        logger.error("CSRF token is None")
+        return ""
 
     try:
         with open(solution_file_path, 'r', encoding='utf-8') as file:
             code = file.read()
 
     except IOError as e:
-        print(f"Error reading solution file: {e}")
-        return -1
+        logger.error(f"Error reading solution file: {e}")
+        return ""
 
     # Determine language from file extension
     try:
         file_extension = solution_file_path[solution_file_path.rindex(".") + 1:]
-
     except ValueError:
-        print("Solution file path is incorrect.")
-        return None
+        logger.error("Solution file path is incorrect.")
+        return ""
 
     language = map_extension_to_language(file_extension)
     if not language:
-        print("Unknown file extension.")
-        return None
+        logger.error("Unknown file extension.")
+        return ""
 
     # Create submission payload
     payload = {
@@ -75,15 +77,15 @@ def submit_solution(cookie, title_slug, question_id, solution_file_path):
     }
 
     # Submit code
-    response = requests.post(SUBMIT_URL, json=payload, headers=headers)
+    response = requests.post(submit_url, json=payload, headers=headers)
     response.raise_for_status()
     submission = response.json()
 
-    return submission.get('submission_id', None)
+    return submission.get('submission_id', "")
 
 
-def check_submission(cookie, submission_id, title_slug):
-    CHECK_SUBMISSION_URL = f"https://leetcode.com/submissions/detail/{submission_id}/check/"
+def check_submission(cookie: str, submission_id: str, title_slug: str) -> dict:
+    check_submission_url = f"https://leetcode.com/submissions/detail/{submission_id}/check/"
 
     csrf_token = extract_csrf_token(cookie)
 
@@ -96,7 +98,7 @@ def check_submission(cookie, submission_id, title_slug):
     }
 
     while True:
-        response = requests.get(CHECK_SUBMISSION_URL, headers=headers)
+        response = requests.get(check_submission_url, headers=headers)
         response.raise_for_status()
         submission_result = response.json()
 
@@ -106,18 +108,11 @@ def check_submission(cookie, submission_id, title_slug):
         time.sleep(0.25)
 
 
-def submit_and_get_result(cookie, title_slug, question_id, solution_file_path):
+def submit_and_get_result(cookie: str, title_slug: str, question_id: str, solution_file_path: str) -> dict:
     submission_id = submit_solution(cookie, title_slug, question_id, solution_file_path)
 
-    if submission_id == -1:
-        return None
+    if not submission_id:
+        return {}
 
     submission_result = check_submission(cookie, submission_id, title_slug)
     return submission_result
-
-"""
-cookie = load_cookie()
-x = submit_and_get_result(cookie, "two-sum", "1", "sol.py")
-from ..parsers.submission_parser import parse_submission
-print(parse_submission(x))
-"""

@@ -1,5 +1,4 @@
 
-from ..data_fetching.graphql_data_fetchers.leetcode_problem_fetcher import LeetCodeProblemFetcher
 from ..graphics.escape_sequences import ANSI_CODES, ANSI_RESET
 from ..graphics.symbols import SYMBOLS
 
@@ -20,6 +19,7 @@ class LeetCodeProblemsetParser:
     def __init__(self, problemset_metadata):
         self.problemset_metadata = problemset_metadata
 
+        print(problemset_metadata)
         self.problemset_data = self.problemset_metadata.get("data", None)
 
         self.problemset_question_list = self.problemset_data.get("problemsetQuestionList", None)
@@ -39,22 +39,16 @@ class LeetCodeProblemsetParser:
         
         parsed_question = f"\t{self.QUESTION_STATUS_TO_COLORED_SYMBOL[status]}[{question_id}] {title} {formatted_difficulty} ({acceptance_rate} %)"
         return parsed_question
+
+    def parse_questions(self):
+        parsed_string = ""
+
+        for question in self.questions:
+            parsed_question = self._parse_question(question)
+            parsed_string += parsed_question
+            parsed_string += "\n"
+
+        return parsed_string
         
         
 
-"""
-
-tags = []
-limit = 50
-skip = 0
-category_slug = "all-code-essentials"
-problems_dict = LeetCodeProblemFetcher.fetch_problemset(tags = tags, limit = limit, skip = skip, category_slug=category_slug)
-
-l = LeetCodeProblemsetParser(problems_dict)
-questions = l.questions
-
-for i in range(len(questions)):
-    x = l._parse_question(questions[i])
-    print(x)
-
-"""

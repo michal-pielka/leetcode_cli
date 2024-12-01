@@ -21,10 +21,9 @@ ANSI_CODES = {
     # Background colors
     "GRAY_BG"       : "\033[100m",                      # Dim gray background
     "GREEN_BG"      : "\033[42m",                       # Standard green background
-    "ORANGE_BG"     : "\033[48;5;208m",                 # 256-color mode orange background
     "BABY_BLUE_BG"  : "\033[48;2;66;205;245m",         # RGB baby blue background
     "RED_BG"        : "\033[41m",                       # Standard red background
-    "ORANGE_BG"     : "\033[48;2;245;158;66]",
+    "ORANGE_BG"     : "\033[48;2;245;158;66m",
 
     # Text styles
     "BOLD"          : "\033[1m",                        # Bold text

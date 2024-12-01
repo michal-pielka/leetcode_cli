@@ -1,7 +1,7 @@
 import requests
 import json
 
-from ..graphql_data_fetchers.graphql_queries import GRAPHQL_URL, GRAPHQL_QUERIES
+from ..data_fetching.graphql_queries import GRAPHQL_URL, GRAPHQL_QUERIES
 
 # TODO: Implement code snippet builder for each language, so it doesn't waste time doing request
 
