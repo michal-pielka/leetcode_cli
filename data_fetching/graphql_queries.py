@@ -58,6 +58,9 @@ GRAPHQL_QUERIES = {
               acRate
               difficulty
               questionId
+              topicTags {
+                slug
+              }
               frontendQuestionId: questionFrontendId
               paidOnly: isPaidOnly
               status

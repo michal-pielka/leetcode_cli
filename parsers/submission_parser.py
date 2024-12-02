@@ -46,7 +46,6 @@ SUBMISSION_ANSI = {
 
 # Configure logging
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG, format='%(levelname)s: %(message)s')
 
 class SubmissionParseError(Exception):
     """Custom exception for submission parsing errors."""

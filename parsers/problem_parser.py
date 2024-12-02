@@ -11,6 +11,10 @@ class LeetCodeProblemParserError(Exception):
     """Custom exception for LeetCodeProblemParser errors."""
     pass
 
+class LeetCodePaidOnlyProblemError(Exception):
+    """Custom exception for paid-only problems when content is inaccessible."""
+    pass
+
 class LeetCodeProblemParser:
     HTML_TO_ANSI = {
         "strong": ANSI_CODES["BOLD"],
@@ -50,6 +54,7 @@ class LeetCodeProblemParser:
 
         Raises:
             LeetCodeProblemParserError: If metadata is invalid or missing.
+            LeetCodePaidOnlyProblemError: If the problem is paid-only and content is inaccessible.
         """
         if not metadata or not isinstance(metadata, dict):
             logger.error("Metadata must be a non-empty dictionary.")
@@ -57,8 +62,13 @@ class LeetCodeProblemParser:
 
         self.metadata = metadata
         self.question_data = self._extract_question_data()
-        self.question_html_content = self.question_data.get("content", "")
         self.is_paid_only = self.question_data.get("isPaidOnly", False)
+        self.question_html_content = self.question_data.get("content", "")
+
+        # Check if the problem is paid-only and content is inaccessible
+        if self.is_paid_only and not self.question_html_content:
+            logger.warning("This is a paid-only problem and the content is inaccessible.")
+            raise LeetCodePaidOnlyProblemError("This is a paid-only problem and the content is inaccessible.")
 
         # Extracted attributes
         self.question_id = self.question_data.get("frontendQuestionId", "")
@@ -86,6 +96,7 @@ class LeetCodeProblemParser:
         """
         try:
             return self.metadata["data"]["question"]
+
         except KeyError as e:
             logger.error(f"Missing key in metadata: {e}")
             raise LeetCodeProblemParserError(f"Missing key in metadata: {e}")
@@ -296,6 +307,8 @@ class LeetCodeProblemParser:
         Returns:
             str: The formatted description.
         """
+        if not self.question_description:
+            return "No description available."
         return self.html_to_ansi(self.question_description)
 
     def _format_example(self, example: dict) -> str:
