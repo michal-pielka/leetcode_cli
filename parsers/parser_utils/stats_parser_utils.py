@@ -6,7 +6,6 @@ from ...graphics.escape_sequences import ANSI_CODES
 
 logger = logging.getLogger(__name__)
 
-
 def join_and_slice_calendars(previous_year_calendar: dict, current_year_calendar: dict) -> dict:
     """
     Joins and slices the activity calendars from the previous and current years.
@@ -17,9 +16,12 @@ def join_and_slice_calendars(previous_year_calendar: dict, current_year_calendar
 
     Returns:
         dict: A dictionary with timestamps as keys and submission counts as values.
+
+    Raises:
+        Exception: If data is invalid or missing.
     """
     if not previous_year_calendar or not current_year_calendar:
-        return {}
+        raise Exception("Previous or current year calendar data is missing.")
 
     try:
         # Load activity data from JSON strings
@@ -32,11 +34,11 @@ def join_and_slice_calendars(previous_year_calendar: dict, current_year_calendar
 
     except KeyError as error:
         logger.error(f"Missing key in submission_calendar data: {error}")
-        return {}
+        raise Exception(f"Missing key in submission_calendar data: {error}")
 
     except json.JSONDecodeError as error:
         logger.error(f"JSON decoding error: {error}")
-        return {}
+        raise Exception(f"JSON decoding error: {error}")
 
     # Merge activities ensuring the combined dictionary has all timestamps
     merged_activity = {**previous_activity, **current_activity}
@@ -61,7 +63,6 @@ def join_and_slice_calendars(previous_year_calendar: dict, current_year_calendar
     }
 
     return sliced_activity
-
 
 def fill_daily_activity(daily_activity: dict) -> dict:
     """
@@ -90,7 +91,6 @@ def fill_daily_activity(daily_activity: dict) -> dict:
         current_datetime += timedelta(days=1)
 
     return filled_activity
-
 
 def calculate_color(submissions: int, max_submissions: int, min_submissions: int) -> str:
     """

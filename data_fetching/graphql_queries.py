@@ -57,20 +57,12 @@ GRAPHQL_QUERIES = {
             questions: data {
               acRate
               difficulty
-              freqBar
+              questionId
               frontendQuestionId: questionFrontendId
-              isFavor
               paidOnly: isPaidOnly
               status
               title
               titleSlug
-              topicTags {
-                name
-                id
-                slug
-              }
-              hasSolution
-              hasVideoSolution
             }
           }
         }
@@ -99,6 +91,7 @@ GRAPHQL_QUERIES = {
           }
           question(titleSlug: $titleSlug) {
             questionId
+            frontendQuestionId: questionFrontendId
             title
             titleSlug
             content

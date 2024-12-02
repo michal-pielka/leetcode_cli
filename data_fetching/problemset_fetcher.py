@@ -1,7 +1,6 @@
 import requests
 import logging
 
-from user_utils import extract_csrf_token
 
 from ..data_fetching.graphql_queries import GRAPHQL_QUERIES, GRAPHQL_URL
 
@@ -10,10 +9,7 @@ logger = logging.getLogger(__name__)
 
 def fetch_problemset(cookie=None, csrf_token=None, tags=None, difficulty=None, limit=50, skip=0, category_slug="all-code-essentials"):
     # Validate difficulty values
-    valid_difficulties = {"EASY", "MEDIUM", "HARD"}
-
-    if not isinstance(difficulty, str):
-        logger.error("difficulty is not a string")
+    valid_difficulties = {None, "EASY", "MEDIUM", "HARD"}
 
     if difficulty not in valid_difficulties:
         logger.error(f"Invalid difficulty level '{difficulty}'. Valid options are EASY, MEDIUM, HARD.")
@@ -49,7 +45,7 @@ def fetch_problemset(cookie=None, csrf_token=None, tags=None, difficulty=None, l
     # If cookie and csrf_token are set, add to headers
     if cookie and csrf_token:
         headers["Cookie"] = cookie
-        headers["x-csrftoken"] = extract_csrf_token(cookie)
+        headers["x-csrftoken"] = csrf_token 
         headers["Referer"] = f"https://leetcode.com/problemset/"
 
     try:

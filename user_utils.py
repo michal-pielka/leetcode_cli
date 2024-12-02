@@ -6,7 +6,6 @@ from typing import Dict
 
 logger = logging.getLogger(__name__)
 
-
 def get_config_path() -> str:
     """
     Determines the configuration file path based on the operating system.
@@ -22,6 +21,16 @@ def get_config_path() -> str:
         config_path = os.path.join(config_dir, "config.json")
     return config_path
 
+def get_problems_data_path() -> str:
+    """
+    Determines the path to the problems data file.
+
+    Returns:
+        str: The full path to the problems data file.
+    """
+    config_dir = os.path.dirname(get_config_path())
+    problems_path = os.path.join(config_dir, "problems_metadata.json")
+    return problems_path
 
 def _load_config() -> Dict[str, str]:
     """
@@ -39,6 +48,21 @@ def _load_config() -> Dict[str, str]:
             logger.warning("Config file is corrupted. Starting with an empty config.")
     return {}
 
+def _load_problems_data() -> dict:
+    """
+    Loads the cached problems metadata from the local JSON file.
+
+    Returns:
+        dict: The loaded problems metadata. Returns an empty dictionary if the file doesn't exist or is corrupted.
+    """
+    problems_path = get_problems_data_path()
+    if os.path.exists(problems_path):
+        try:
+            with open(problems_path, "r") as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            logger.warning("Problems data file is corrupted. Starting with an empty problems data.")
+    return {}
 
 def _save_config(config: Dict[str, str]) -> None:
     """
@@ -57,7 +81,6 @@ def _save_config(config: Dict[str, str]) -> None:
     except OSError as e:
         logger.error(f"Failed to save configuration: {e}")
 
-
 def set_cookie(cookie: str) -> None:
     """
     Sets the user's cookie in the configuration file.
@@ -68,7 +91,6 @@ def set_cookie(cookie: str) -> None:
     config = _load_config()
     config["cookie"] = cookie
     _save_config(config)
-
 
 def set_username(username: str) -> None:
     """
@@ -81,7 +103,6 @@ def set_username(username: str) -> None:
     config["username"] = username
     _save_config(config)
 
-
 def set_language(language: str) -> None:
     """
     Sets the user's preferred programming language in the configuration file.
@@ -93,6 +114,16 @@ def set_language(language: str) -> None:
     config["language"] = language
     _save_config(config)
 
+def set_chosen_problem(title_slug: str) -> None:
+    """
+    Sets the solution file path in the configuration file.
+
+    Args:
+        file_path (str): The solution file path to save.
+    """
+    config = _load_config()
+    config["chosen_problem"] = title_slug
+    _save_config(config)
 
 def extract_csrf_token(cookie: str) -> str:
     """
@@ -112,44 +143,79 @@ def extract_csrf_token(cookie: str) -> str:
         logger.error("CSRF token not found in the cookie.")
         return ""
 
-
-def get_cookie() -> str:
-    """
-    Loads the user's cookie from the configuration file.
-
-    Returns:
-        str: The cookie string if found, else an empty string.
-    """
+def get_cookie():
     config = _load_config()
-    cookie = config.get("cookie", "")
+    cookie = config.get("cookie", None)
+
     if not cookie:
         logger.error("Cookie not found in configuration.")
+
     return cookie
 
-
-def get_username() -> str:
-    """
-    Loads the user's username from the configuration file.
-
-    Returns:
-        str: The username string if found, else an empty string.
-    """
+def get_username():
     config = _load_config()
-    username = config.get("username", "")
+    username = config.get("username", None)
+
     if not username:
         logger.error("Username not found in configuration.")
+        
     return username
 
-
-def get_language() -> str:
-    """
-    Loads the user's preferred language from the configuration file.
-
-    Returns:
-        str: The language string if found, else an empty string.
-    """
+def get_language():
     config = _load_config()
-    language = config.get("language", "")
+    language = config.get("language", None)
+
     if not language:
         logger.error("Language not found in configuration.")
+
     return language
+
+def get_chosen_problem():
+    config = _load_config()
+    chosen_problem = config.get("chosen_problem", None)
+
+    if not chosen_problem:
+        logger.error("Solution file path not found in configuration.")
+
+    return chosen_problem
+
+# New functions for handling problems data
+
+def save_problems_data(data: dict) -> None:
+    """
+    Saves the problems metadata to a local JSON file.
+
+    Args:
+        data (dict): The problems metadata to save.
+    """
+    problems_path = get_problems_data_path()
+    try:
+        os.makedirs(os.path.dirname(problems_path), exist_ok=True)
+        with open(problems_path, "w") as f:
+            json.dump(data, f, indent=4)
+        logger.info(f"Problems data saved to {problems_path}")
+    except OSError as e:
+        logger.error(f"Failed to save problems data: {e}")
+
+
+
+def get_problem_by_key_value(key: str, value) -> dict:
+    """
+    Retrieves problem data from the cached problems metadata based on a key and value.
+
+    Args:
+        key (str): The key to search by (e.g., 'titleSlug', 'questionId').
+        value: The value to match.
+
+    Returns:
+        dict: The problem data if found, else an empty dictionary.
+    """
+    problems_data = _load_problems_data()
+    questions = problems_data.get('data', {}).get('problemsetQuestionList', {}).get('questions', [])
+
+    for problem in questions:
+        if str(problem.get(key, "")).lower() == str(value).lower():
+            return problem
+    logger.warning(f"Problem with {key}='{value}' not found in cached data.")
+
+    return None 

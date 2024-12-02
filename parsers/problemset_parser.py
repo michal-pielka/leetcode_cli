@@ -4,6 +4,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+class LeetCodeProblemsetParserError(Exception):
+    """Custom exception for LeetCodeProblemsetParser errors."""
+    pass
+
 class LeetCodeProblemsetParser:
     DIFFICULTY_TO_ANSI = {
         "Easy": ANSI_CODES["GREEN"],
@@ -42,11 +46,23 @@ class LeetCodeProblemsetParser:
         return parsed_question
 
     def get_formatted_questions(self):
-        parsed_string = ""
+        """
+        Formats the list of questions.
+
+        Returns:
+            str: A formatted string of questions.
+
+        Raises:
+            LeetCodeProblemsetParserError: If questions data is invalid.
+        """
+        if not self.questions:
+            logger.error("No questions available to parse.")
+            raise LeetCodeProblemsetParserError("No questions available to parse.")
+
+        parsed_list = []
 
         for question in self.questions:
             parsed_question = self._parse_question(question)
-            parsed_string += parsed_question
-            parsed_string += "\n"
+            parsed_list.append(parsed_question)
 
-        return parsed_string
+        return "\n".join(parsed_list)

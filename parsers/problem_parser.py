@@ -7,6 +7,10 @@ from ..graphics.symbols import SYMBOLS
 
 logger = logging.getLogger(__name__)
 
+class LeetCodeProblemParserError(Exception):
+    """Custom exception for LeetCodeProblemParser errors."""
+    pass
+
 class LeetCodeProblemParser:
     HTML_TO_ANSI = {
         "strong": ANSI_CODES["BOLD"],
@@ -43,10 +47,13 @@ class LeetCodeProblemParser:
 
         Args:
             metadata (dict): The raw problem metadata fetched from LeetCode API.
+
+        Raises:
+            LeetCodeProblemParserError: If metadata is invalid or missing.
         """
         if not metadata or not isinstance(metadata, dict):
             logger.error("Metadata must be a non-empty dictionary.")
-            raise ValueError("Metadata must be a non-empty dictionary.")
+            raise LeetCodeProblemParserError("Metadata must be a non-empty dictionary.")
 
         self.metadata = metadata
         self.question_data = self._extract_question_data()
@@ -54,7 +61,7 @@ class LeetCodeProblemParser:
         self.is_paid_only = self.question_data.get("isPaidOnly", False)
 
         # Extracted attributes
-        self.question_id = self.question_data.get("questionId", "")
+        self.question_id = self.question_data.get("frontendQuestionId", "")
         self.question_title = self.question_data.get("title", "")
         self.question_description = self._extract_question_description()
         self.question_examples = self._extract_question_examples()
@@ -73,12 +80,15 @@ class LeetCodeProblemParser:
 
         Returns:
             dict: The question data.
+
+        Raises:
+            LeetCodeProblemParserError: If required data is missing.
         """
         try:
             return self.metadata["data"]["question"]
         except KeyError as e:
             logger.error(f"Missing key in metadata: {e}")
-            raise KeyError(f"Missing key in metadata: {e}")
+            raise LeetCodeProblemParserError(f"Missing key in metadata: {e}")
 
     def _extract_question_description(self) -> str:
         """
@@ -146,11 +156,14 @@ class LeetCodeProblemParser:
         soup = BeautifulSoup(html_content, "html.parser")
         content_text = soup.get_text(separator="\n").strip()
         example_dict = {}
-        input_match = re.search(r'Input:\s*(.*)', content_text)
-        output_match = re.search(r'Output:\s*(.*)', content_text)
+
+        # Use regular expressions to capture 'Input', 'Output', and 'Explanation' sections
+        input_match = re.search(r'Input:\s*(.*?)(?:\nOutput:|\Z)', content_text, re.DOTALL)
+        output_match = re.search(r'Output:\s*(.*?)(?:\nExplanation:|\Z)', content_text, re.DOTALL)
         explanation_match = re.search(r'Explanation:\s*(.*)', content_text, re.DOTALL)
+
         if input_match:
-            example_dict['input'] = self._parse_input(input_match.group(1))
+            example_dict['input'] = input_match.group(1).strip()
         if output_match:
             example_dict['output'] = output_match.group(1).strip()
         if explanation_match:
@@ -159,7 +172,7 @@ class LeetCodeProblemParser:
 
     def _parse_input(self, input_str: str) -> dict:
         """
-        Parses the input string of an example.
+        Parses the input string of an example, correctly handling nested lists.
 
         Args:
             input_str (str): The input string.
@@ -168,13 +181,13 @@ class LeetCodeProblemParser:
             dict: A dictionary of input parameters.
         """
         input_dict = {}
-        parts = re.split(r',\s*(?![^[]*\])', input_str)
-        for part in parts:
-            if '=' in part:
-                key, value = part.split('=', 1)
-                input_dict[key.strip()] = value.strip()
-            else:
-                input_dict['value'] = part.strip()
+        # Pattern to match key = value, where value can be anything until the next comma at the top level
+        pattern = r'(\w+)\s*=\s*([\s\S]+?)(?:(?<=\])|(?<=\})|(?<=\")|(?<=\')|$)(?:,|$)'
+        matches = re.finditer(pattern, input_str)
+        for match in matches:
+            key = match.group(1).strip()
+            value = match.group(2).strip()
+            input_dict[key] = value
         return input_dict
 
     def _extract_question_constraints(self) -> list:
@@ -256,7 +269,7 @@ class LeetCodeProblemParser:
         Returns:
             str: A formatted string of languages
         """
-        formatted_languages = ["Langs:"]
+        formatted_languages = ["Languages:"]
 
         for language in self.question_languages:
             language_name = " " + language["name"] + " "
@@ -272,7 +285,8 @@ class LeetCodeProblemParser:
         Returns:
             str: The formatted title.
         """
-        title = f"[{self.question_id}] {self.question_title} {self.HTML_TO_ANSI[self.question_difficulty]} [{self.question_difficulty}] {ANSI_RESET}"
+        difficulty_color = self.HTML_TO_ANSI.get(self.question_difficulty, "")
+        title = f"[{self.question_id}] {self.question_title} {difficulty_color}[{self.question_difficulty}]{ANSI_RESET}"
         return f"{self.HTML_TO_ANSI['title']}{title}{ANSI_RESET}"
 
     def get_formatted_description(self) -> str:
@@ -296,8 +310,7 @@ class LeetCodeProblemParser:
         """
         parts = []
         parts.append(f"{self.HTML_TO_ANSI['example_title']}{example['title']}{ANSI_RESET}\n\n")
-        input_str = ', '.join(f"{k} = {v}" for k, v in example['input'].items())
-        parts.append(f"| {self.HTML_TO_ANSI['example_input_string']}Input: {ANSI_RESET}{self.HTML_TO_ANSI['example_input_data']}{input_str}{ANSI_RESET}\n")
+        parts.append(f"| {self.HTML_TO_ANSI['example_input_string']}Input: {ANSI_RESET}{self.HTML_TO_ANSI['example_input_data']}{example['input']}{ANSI_RESET}\n")
         parts.append(f"| {self.HTML_TO_ANSI['example_output_string']}Output: {ANSI_RESET}{self.HTML_TO_ANSI['example_output_data']}{example['output']}{ANSI_RESET}")
         if 'explanation' in example:
             explanation = example['explanation'].replace("\n", f"{ANSI_RESET}\n| {self.HTML_TO_ANSI['example_explanation_data']}")

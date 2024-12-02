@@ -3,13 +3,17 @@ import logging
 
 from ..graphics.symbols import SYMBOLS
 from ..graphics.escape_sequences import ANSI_CODES, ANSI_RESET
-from ..parsers.parser_utils.leetcode_stats_parser import (
+from .parser_utils.stats_parser_utils import (
     join_and_slice_calendars,
     fill_daily_activity,
     calculate_color,
 )
 
 logger = logging.getLogger(__name__)
+
+class LeetCodeStatsParserError(Exception):
+    """Custom exception for LeetCodeStatsParser errors."""
+    pass
 
 RECTANGLES_TOTAL = 66
 DIFFICULTIES = ["EASY", "MEDIUM", "HARD"]
@@ -19,7 +23,6 @@ MONTH_NAMES = [
 ]
 MONTH_SEPARATION = 3
 COLUMNS = 100
-
 
 def get_formatted_leetcode_stats(data: dict) -> str:
     try:
@@ -58,14 +61,11 @@ def get_formatted_leetcode_stats(data: dict) -> str:
                 percentage = (passed / total) * 100
 
             # Calculate filled rectangles
-            if total > 0:
-                progress_ratio = passed / total
-            else:
-                progress_ratio = 0.0
+            progress_ratio = passed / total if total > 0 else 0.0
             filled = int(round(progress_ratio * RECTANGLES_TOTAL))
             filled = max(0, min(filled, RECTANGLES_TOTAL))  # Clamp between 0 and RECTANGLES_TOTAL
 
-            # Create progress bar with filled and empty rectangles (without coloring the symbols)
+            # Create progress bar
             filled_bar = SYMBOLS['FILLED_SQUARE'] * filled
             empty_bar = SYMBOLS['EMPTY_SQUARE'] * (RECTANGLES_TOTAL - filled)
             progress_bar = filled_bar + empty_bar
@@ -85,8 +85,7 @@ def get_formatted_leetcode_stats(data: dict) -> str:
 
     except (KeyError, TypeError, ZeroDivisionError) as error:
         logger.error(f"Error parsing LeetCode stats: {error}")
-        return ""
-
+        raise LeetCodeStatsParserError(f"Error parsing LeetCode stats: {error}")
 
 def get_formatted_daily_activity(filled_activity: dict) -> str:
     """
@@ -97,10 +96,13 @@ def get_formatted_daily_activity(filled_activity: dict) -> str:
 
     Returns:
         str: A formatted string representing the activity calendar.
+
+    Raises:
+        LeetCodeStatsParserError: If activity data is invalid.
     """
     if not filled_activity:
         logger.error("No daily activity data available")
-        return ""
+        raise LeetCodeStatsParserError("No daily activity data available")
 
     # Initialize output: 7 rows for days of the week, COLUMNS weeks
     output = [[' ' for _ in range(COLUMNS)] for _ in range(7)]
@@ -116,7 +118,7 @@ def get_formatted_daily_activity(filled_activity: dict) -> str:
 
     if not date_counts:
         logger.error("No valid daily activity data available")
-        return ""
+        raise LeetCodeStatsParserError("No valid daily activity data available")
 
     months_starting_indexes = []
 
