@@ -216,65 +216,74 @@ def get_problem_by_key_value(key, value):
     for problem in questions:
         if str(problem.get(key, "")).lower() == str(value).lower():
             return problem
+
     logger.warning(f"Problem with {key}='{value}' not found in cached data.")
 
     return None 
 
-def get_random_problem(difficulty=None, tags=None):
+def filter_problems(problems_data, difficulty=None, tags=None):
     """
-    Fetches a random problem that matches the specified difficulty and includes all the specified tags.
+    Filters the given problems data based on difficulty and tags.
 
     Args:
+        problems_data (dict): The problems metadata.
         difficulty (str, optional): The difficulty level ('Easy', 'Medium', 'Hard'). Defaults to None.
         tags (list of str, optional): A list of tag slugs to filter by. Defaults to None.
 
     Returns:
-        dict: The randomly selected problem's data, or None if no problem matches or an error occurs.
+        list: The list of filtered problems.
     """
-    # Load the problems data
-    problems_data = _load_problems_data()
-    
-    if not problems_data:
-        logger.error("Problems data is empty or failed to load.")
-        return None
-
     # Extract the list of questions
     questions = problems_data.get('data', {}).get('problemsetQuestionList', {}).get('questions', [])
     
     if not questions:
         logger.error("No questions found in problems data.")
-        return None
+        return []
 
     # Apply difficulty filter if specified
     if difficulty:
-        difficulty_lower = difficulty.lower()
-        questions = [q for q in questions if q.get('difficulty', '').lower() == difficulty_lower]
+        difficulty_capitalize = difficulty.capitalize()
+
+        questions = [q for q in questions if q.get('difficulty', '').capitalize() == difficulty_capitalize]
         if not questions:
             logger.warning(f"No problems found with difficulty '{difficulty}'.")
-            return None
+            return []
 
     # Apply tags filter if specified
     if tags:
-        # Ensure tags are in lowercase for case-insensitive comparison
-        tags_lower = [tag.lower() for tag in tags]
+        tags_lower = set(tag.lower() for tag in tags)
         filtered_questions = []
         for q in questions:
             problem_tags = q.get('topicTags', [])
-
             if not problem_tags:
                 continue 
 
-            problem_tags = [tag["slug"] for tag in problem_tags]
-            if all(tag in problem_tags for tag in tags_lower):
+            problem_tags_slugs = set(tag['slug'].lower() for tag in problem_tags)
+            if tags_lower.issubset(problem_tags_slugs):
                 filtered_questions.append(q)
 
         questions = filtered_questions
         if not questions:
             logger.warning(f"No problems found with tags {', '.join(tags)}.")
-            return None
+            return []
 
-    # Select a random problem from the filtered list
+    return questions
+
+def select_random_problem(questions):
+    """
+    Selects a random problem from the given list of questions.
+
+    Args:
+        questions (list): List of problem metadata dictionaries.
+
+    Returns:
+        dict: The randomly selected problem's data, or None if the list is empty.
+    """
+    if not questions:
+        return None
+
+    import random
+
     selected_problem = random.choice(questions)
     logger.info(f"Random problem selected: {selected_problem.get('title', 'Unknown Title')} (Slug: {selected_problem.get('titleSlug', 'N/A')})")
-
     return selected_problem

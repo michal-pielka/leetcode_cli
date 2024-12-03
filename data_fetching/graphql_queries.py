@@ -110,6 +110,13 @@ GRAPHQL_QUERIES = {
             isPaidOnly
           }
         }
-        """
+        """,
 
+      "problem_testcases": """
+        query questionData($titleSlug: String!) {
+          question(titleSlug: $titleSlug) {
+            exampleTestcases
+          }
+        }
+      """
 }

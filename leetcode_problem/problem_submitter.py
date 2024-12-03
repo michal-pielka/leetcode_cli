@@ -80,6 +80,66 @@ def map_extension_to_language(file_extension):
     return lang_slug
 
 
+def interpret_solution(cookie: str, csrf_token: str, file_path: str, data_input: str) -> str:
+    try:
+        frontend_question_id, title_slug, file_extension = extract_submission_details(file_path)
+        question_id = get_problem_by_key_value("titleSlug", title_slug)["questionId"]
+
+    except SubmissionError as e:
+        raise SubmissionError(f"Error extracting submission details: {e}")
+
+    submit_url = f"https://leetcode.com/problems/{title_slug}/interpret_solution/"
+
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            code = file.read()
+
+    except IOError as e:
+        raise SubmissionError(f"Error reading solution file: {e}")
+
+    # Map file extension to language slug
+    try:
+        language = map_extension_to_language(file_extension)
+
+    except SubmissionError as e:
+        raise SubmissionError(e)
+
+    # Create submission payload
+    payload = {
+        "data_input": data_input,
+        "lang": language,
+        "question_id": str(question_id),
+        "typed_code": code,
+    }
+
+    # Set headers
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0",
+        "Cookie": cookie,
+        "x-csrftoken": csrf_token,
+        "Referer": f"https://leetcode.com/problems/{title_slug}/",
+    }
+
+    # Submit code
+    try:
+        response = requests.post(submit_url, json=payload, headers=headers)
+        response.raise_for_status()
+        submission = response.json()
+
+    except requests.RequestException as e:
+        raise SubmissionError(f"Submission failed: {e}")
+
+    except ValueError:
+        raise SubmissionError("Invalid response format received from LeetCode.")
+
+    interpret_id = submission.get('interpret_id')
+    if not interpret_id:
+        raise SubmissionError("Submission ID not received.")
+
+    return interpret_id
+
+
 def submit_solution(cookie: str, csrf_token: str, file_path: str) -> str:
     """
     Submits the solution code to LeetCode.
@@ -188,6 +248,20 @@ def check_submission(cookie: str, csrf_token: str, submission_id: str, title_slu
             return submission_result
 
         time.sleep(0.25)  # Sleep for 250ms before the next check
+
+def interpret_and_get_result(cookie: str, csrf_token: str, file_path: str, data_input: str) -> dict:
+    interpret_id = interpret_solution(cookie, csrf_token, file_path, data_input)
+
+    # Extract title_slug from file_path for checking submission
+    try:
+        _, title_slug, _ = extract_submission_details(file_path)
+
+    except SubmissionError as e:
+        raise SubmissionError(f"Error extracting title_slug for checking submission: {e}")
+
+    # Check the submission status
+    interpret_result = check_submission(cookie, csrf_token, interpret_id, title_slug)
+    return interpret_result
 
 def submit_and_get_result(cookie: str, csrf_token: str, file_path: str) -> dict:
     """
