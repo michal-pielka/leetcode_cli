@@ -889,6 +889,6 @@ def test1():
                 
 
 
-if __name__ == '__main__':
+def main():
     configure_logging()
     cli()

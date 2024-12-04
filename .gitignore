@@ -1,6 +1,25 @@
-# Python bytecode
-**/__pycache__/
+# Byte-compiled / optimized / DLL files
+__pycache__/
 *.py[cod]
+*$py.class
 
-# OS-specific files
+# macOS-specific files
 .DS_Store
+.AppleDouble
+.LSOverride
+
+# Virtual environments
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+.Python
+.installed.cfg
+MANIFEST

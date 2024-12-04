@@ -141,7 +141,7 @@ def extract_csrf_token(cookie: str) -> str:
         return match.group(1)
     else:
         logger.error("CSRF token not found in the cookie.")
-        return ""
+        return None
 
 def get_cookie():
     config = _load_config()
@@ -199,7 +199,7 @@ def save_problems_data(data: dict) -> None:
 
 
 
-def get_problem_by_key_value(key, value):
+def get_problem_by_key_value(problems_data, key, value):
     """
     Retrieves problem data from the cached problems metadata based on a key and value.
 
@@ -210,7 +210,6 @@ def get_problem_by_key_value(key, value):
     Returns:
         dict: The problem data if found, else an empty dictionary.
     """
-    problems_data = _load_problems_data()
     questions = problems_data.get('data', {}).get('problemsetQuestionList', {}).get('questions', [])
 
     for problem in questions:
@@ -238,7 +237,7 @@ def filter_problems(problems_data, difficulty=None, tags=None):
     
     if not questions:
         logger.error("No questions found in problems data.")
-        return []
+        return None
 
     # Apply difficulty filter if specified
     if difficulty:
@@ -247,7 +246,7 @@ def filter_problems(problems_data, difficulty=None, tags=None):
         questions = [q for q in questions if q.get('difficulty', '').capitalize() == difficulty_capitalize]
         if not questions:
             logger.warning(f"No problems found with difficulty '{difficulty}'.")
-            return []
+            return None
 
     # Apply tags filter if specified
     if tags:
@@ -265,7 +264,7 @@ def filter_problems(problems_data, difficulty=None, tags=None):
         questions = filtered_questions
         if not questions:
             logger.warning(f"No problems found with tags {', '.join(tags)}.")
-            return []
+            return None
 
     return questions
 

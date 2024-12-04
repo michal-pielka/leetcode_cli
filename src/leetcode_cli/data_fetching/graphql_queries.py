@@ -93,7 +93,6 @@ GRAPHQL_QUERIES = {
             verboseName
           }
           question(titleSlug: $titleSlug) {
-            questionId
             frontendQuestionId: questionFrontendId
             title
             titleSlug
