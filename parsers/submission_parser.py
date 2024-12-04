@@ -24,13 +24,24 @@ class SubmissionParseError(Exception):
 
 
 def get_formatted_interpretation(submission, testcases):
+    status_code = submission.get("status_code", "unknow")   
+
+    status_msg = submission.get("status_msg", "unknown")
+    lang = submission.get("pretty_lang", None)
+
     total_testcases = submission.get("total_testcases", None)
 
     testcases_split = testcases.split("\n")
     parameters_in_testcase = len(testcases_split) // total_testcases
-    expected_outputs = submission.get("expected_code_answer", None)
-    code_outputs = submission.get("code_answer", None) # ["\"returning\"","\"returning\"","\"returning\"",""] 
-    std_outputs = submission.get("std_output_list", None)
+
+    expected_outputs = submission.get("expected_code_answer", [])
+    code_outputs = submission.get("code_answer", []) # ["\"returning\"","\"returning\"","\"returning\"",""] 
+    std_outputs = submission.get("std_output_list", [])
+
+    error_msg1 = submission.get("runtime_error", None)
+    error_msg2 = submission.get("compile_error", None)
+    full_error_msg1 = submission.get("full_runtime_error")
+    full_error_msg2 = submission.get("full_compile_error", None)
 
     parsed_result = ""
 
@@ -40,23 +51,56 @@ def get_formatted_interpretation(submission, testcases):
             break
 
         testcase = testcases_split[i * parameters_in_testcase : i * parameters_in_testcase + parameters_in_testcase]
-        code_output = code_outputs[i]
-        std_output = std_outputs[i]
 
-        if expected_output == code_output:
-            parsed_result += f"\n  {SUBMISSION_ANSI["Accepted"]} Accepted {ANSI_RESET}\n"
+        if i < len(code_outputs):
+            code_output = code_outputs[i]
         else:
-            parsed_result += f"\n  {SUBMISSION_ANSI["Wrong Answer"]} Wrong Answer {ANSI_RESET}\n"
+            code_output = None
 
-        parsed_result += f"{_format_field('Testcase:', ", ".join(testcase))}"
-        parsed_result += f"{_format_field('Expected:', expected_output)}"
-        parsed_result += f"{_format_field('Your Output:', code_output)}"
+        if i < len(std_outputs):
+            std_output = std_outputs[i]
+        else:
+            std_output = None
+
+
+        if status_code == 10:
+            if code_output == expected_output:
+                parsed_result += f"\n  {SUBMISSION_ANSI["Accepted"]} Accepted {ANSI_RESET}\n"
+            else:
+                parsed_result += f"\n  {SUBMISSION_ANSI["Wrong Answer"]} Wrong Answer {ANSI_RESET}\n"
+        else:
+            parsed_result += f"\n  {SUBMISSION_ANSI[status_msg]} {status_msg} {ANSI_RESET}\n"
+
+        parsed_result += f"{_format_field('Language:', lang)}"
+
+
+        if testcase:
+            parsed_result += f"{_format_field('Testcase:', ", ".join(testcase))}"
+
+        if expected_output:
+            parsed_result += f"{_format_field('Expected Output:', expected_output)}"
+
+        if code_output:
+            parsed_result += f"{_format_field('Your Output:', code_output)}"
 
         if std_output:
             parsed_result += f"{_format_field('Stdout:', std_output)}"
 
-    return parsed_result
+        if error_msg1 != None:
+            parsed_result += f"{_format_field("Error Message:", error_msg1)}"
 
+        if full_error_msg1 != None:
+            parsed_result += f"{_format_field("Detailed Error:", full_error_msg1)}"
+
+        if error_msg2 != None:
+            parsed_result += f"{_format_field("Error Message:", error_msg2)}"
+
+        if full_error_msg2 != None:
+            parsed_result += f"{_format_field("Detailed Error:", full_error_msg2)}"
+
+
+
+    return parsed_result
 
 def get_formatted_submission(submission):
     status_msg = submission.get("status_msg", "unknown")
@@ -75,8 +119,10 @@ def get_formatted_submission(submission):
     code_output = submission.get("code_output", None)
     std_output = submission.get("std_output", None)
 
-    error_msg = submission.get("compile_error", None)
-    full_error_msg = submission.get("full_compile_error", None)
+    error_msg1 = submission.get("runtime_error", None)
+    error_msg2 = submission.get("compile_error", None)
+    full_error_msg1 = submission.get("full_runtime_error")
+    full_error_msg2 = submission.get("full_compile_error", None)
 
     parsed_result = f"\n  {SUBMISSION_ANSI[status_msg]} {status_msg} {ANSI_RESET}\n"
 
@@ -94,7 +140,7 @@ def get_formatted_submission(submission):
         parsed_result += f"{_format_field('Memory Usage:', f'{memory_size} (Beats: {formatted_memory_beats})')}"
 
     if last_testcase:
-        parsed_result += f"{_format_field('Failed Testcase:', last_testcase)}"
+        parsed_result += f"{_format_field('Failed Testcase:', last_testcase.replace("\n", ", "))}"
 
     if expected_output:
         parsed_result += f"{_format_field('Expected Output:', expected_output)}"
@@ -105,11 +151,17 @@ def get_formatted_submission(submission):
     if std_output:
         parsed_result += f"{_format_field("Stdout", std_output)}"
 
-    if error_msg != None:
-        parsed_result += f"{_format_field("Error Message:", error_msg)}"
+    if error_msg1 != None:
+        parsed_result += f"{_format_field("Error Message:", error_msg1)}"
 
-    if full_error_msg != None:
-        parsed_result += f"{_format_field("Detailed Error:", full_error_msg)}"
+    if full_error_msg1 != None:
+        parsed_result += f"{_format_field("Detailed Error:", full_error_msg1)}"
+
+    if error_msg2 != None:
+        parsed_result += f"{_format_field("Error Message:", error_msg2)}"
+
+    if full_error_msg2 != None:
+        parsed_result += f"{_format_field("Detailed Error:", full_error_msg2)}"
 
     return parsed_result
 

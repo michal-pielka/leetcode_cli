@@ -828,7 +828,7 @@ def download_problems():
         logger.error(f"An error occurred while downloading problems metadata: {e}", exc_info=True)
         click.echo(f"Error: An error occurred while downloading problems metadata. {e}")
 
-"""
+
 @cli.command(short_help="TEST SOME CODE // REMOVE LATER")
 def test1():
     def test_every_submission_parse():
@@ -852,13 +852,16 @@ def test1():
 
         for result_name, result in results_possible.items():
             click.echo("\n\n")
+            click.echo(result)
             click.echo("\n\n")
             if result:
                 formatted_result = get_formatted_submission(result)
                 click.echo(formatted_result)
 
                 click.echo("\n\n")
-                """
+
+    test_every_submission_parse()
+                
 
 
 if __name__ == '__main__':
