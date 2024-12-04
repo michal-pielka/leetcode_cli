@@ -175,18 +175,6 @@ def extract_question_info(problem_data):
         raise Exception(f"Invalid problem data structure received: missing key {e}")
 
 
-def resolve_title_slug(title_slug_or_id):
-    if title_slug_or_id.isdigit():
-        # Fetch title_slug from problems metadata using question ID
-        problem = get_problem_by_key_value('frontendQuestionId', title_slug_or_id)
-        if not problem:
-            click.echo(f"Error: Problem with ID '{title_slug_or_id}' not found in cached data. Please run 'leetcode download-problems' to update the cache or use leetcode show TITLE_SLUG.")
-            return None
-        return problem['titleSlug']
-    else:
-        return title_slug_or_id
-
-
 def load_problems_metadata():
     """
     Loads the problems metadata from the local JSON file.
@@ -239,7 +227,8 @@ def cli(ctx):
 @click.argument('key')
 @click.argument('value')
 def config(key, value):
-    """Configure user settings.
+    """
+    Configure user settings.
 
     KEY can be 'cookie', 'username', or 'language'.
     """
@@ -273,6 +262,17 @@ def config(key, value):
         click.echo(f"Preferred language set to {ANSI_CODES['ITALIC']}{value}{ANSI_RESET}.")
 
 
+
+
+def validate_limit(ctx, param, value):
+    if value <= 0:
+        raise click.BadParameter('Limit must be greater than 0.')
+    return value
+
+
+
+
+
 @cli.command(short_help='List problems')
 @click.option(
     '--difficulty',
@@ -289,7 +289,8 @@ def config(key, value):
     '--limit',
     type=int,
     default=50,
-    help='Limit the number of results (default: 50)'
+    help='Limit the number of results (default: 50)',
+    callback=validate_limit
 )
 @click.option(
     '--page',
@@ -324,6 +325,10 @@ def list(difficulty, tag, limit, page, use_downloaded):
             click.echo("Error: No problems found with the specified filters.")
             return
 
+        if skip >= len(filtered_problems):
+            click.echo("Error: No problems at this page, try using a lower value.")
+            return
+
         problems_list = filtered_problems[skip:skip+limit]
 
         # Prepare data for the parser
@@ -335,11 +340,10 @@ def list(difficulty, tag, limit, page, use_downloaded):
             }
         }
 
-
     else:
         # Fetch cookie and CSRF token
         cookie = get_cookie()
-        csrf_token = extract_csrf_token(cookie) if cookie else None
+        csrf_token = extract_csrf_token(cookie)
 
         # Fetch problemset
         problems_dict = fetch_problemset(
@@ -357,11 +361,58 @@ def list(difficulty, tag, limit, page, use_downloaded):
             click.echo(f"Error: Failed to fetch problem list.")
             return
 
+
+    if not problems_dict['data']['problemsetQuestionList']['questions']:
+        click.echo("Error: No problems found with the specified filters.")
+        return
+
     parser = LeetCodeProblemsetParser(problems_dict)
     formatted_problems = parser.get_formatted_questions()
-    click.echo()
     click.echo(formatted_problems)
     click.echo()
+
+
+"""
+def validate_bounds(ctx, param, value):
+    if value <= 0:
+        raise click.BadParameter('Limit must be greater than 0.')
+    return value
+"""
+
+"""
+maybe implement this??
+
+@click.option(
+    '--lower',
+    type=int,
+    default=0,
+    help='Set the lower questionID bound when showing random problem (Requires --random).',
+    callback=validate_bounds
+)
+@click.option(
+    '--upper',
+    type=int,
+    default=0,
+    help='Set the lower questionID bound when showing random problem (Requires --random).',
+    callback=validate_bounds
+)
+"""
+
+
+
+def problem_data_from_path(filepath):
+    filename = os.path.basename(filepath)
+    # Split the filename by the dots to extract parts
+    parts = filename.split('.')
+    if len(parts) != 3:
+        raise ValueError("Invalid filepath format. Expected {question_id}.{title_slug}.{file_extension}")
+    
+    # Extract parts
+    frontend_id = parts[0]
+    title_slug = '.'.join(parts[1:-1])  # Join middle parts as the title_slug can have dots
+    file_extension = parts[-1]
+    
+    return frontend_id, title_slug, file_extension
 
 
 @cli.command(short_help='Show problem details')
@@ -382,7 +433,7 @@ def list(difficulty, tag, limit, page, use_downloaded):
 )
 @click.option(
     '--difficulty',
-    type=click.Choice(["Easy", "Medium", "Hard"], case_sensitive=False),
+    type=click.Choice(["EASY", "MEDIUM", "HARD"], case_sensitive=False),
     help='Filter random problems by difficulty (Requires --random)'
 )
 @click.option(
@@ -397,113 +448,90 @@ def list(difficulty, tag, limit, page, use_downloaded):
     help='Use downloaded problems metadata from local storage'
 )
 def show(title_slug_or_id, include, random, difficulty, tag, use_downloaded):
-    """
-    Show problem details for the given TITLE_SLUG_OR_ID or a random problem.
+    problem_data = None
+    title_slug = None
 
-    TITLE_SLUG_OR_ID can be either the problem's slug or its numerical ID.
-    """
-    try:
-        problem_data = {}
-        title_slug = None
+    # Enforce that --difficulty and --tag can only be used with --random
+    if (difficulty or tag) and not random:
+        click.echo(f"Error: {ANSI_CODES['ITALIC']}--difficulty{ANSI_RESET}, {ANSI_CODES['ITALIC']}--tag{ANSI_RESET}, {ANSI_CODES['ITALIC']}--lower{ANSI_RESET} and {ANSI_CODES['ITALIC']}--upper{ANSI_RESET}  options can only be used with {ANSI_CODES['ITALIC']}--random{ANSI_RESET}.")
+        return
 
-        # Enforce that --difficulty and --tag can only be used with --random
-        if (difficulty or tag) and not random:
-            click.echo(f"Error: {ANSI_CODES['ITALIC']}--difficulty{ANSI_RESET} and {ANSI_CODES['ITALIC']}--tag{ANSI_RESET} options can only be used with {ANSI_CODES['ITALIC']}--random{ANSI_RESET}.")
-            return
 
-        if random:
-            if use_downloaded:
-                problems_data = load_problems_metadata()
-                if not problems_data:
-                    return
+    if random:
+        if use_downloaded:
+            problems_data = load_problems_metadata()
 
-                # Filter problems
-                filtered_problems = filter_problems(problems_data, difficulty, tag)
-                if not filtered_problems:
-                    click.echo("Error: No matching problem found with the specified filters.")
-                    return
-
-                # Select a random problem
-                selected_problem = select_random_problem(filtered_problems)
-                if not selected_problem:
-                    click.echo("Error: No problems available after filtering.")
-                    return
-
-                selected_problem_slug = selected_problem.get('titleSlug')
-                if not selected_problem_slug:
-                    click.echo("Error: Selected problem does not have a 'titleSlug'.")
-                    return
-
-                title_slug_or_id = selected_problem_slug
-            else:
-                # Fetch problems from LeetCode API
-                cookie = get_cookie()
-                csrf_token = extract_csrf_token(cookie) if cookie else None
-
-                # Fetch problemset
-                problems_data = fetch_problemset(
-                    cookie=cookie,
-                    csrf_token=csrf_token,
-                    tags=tag,
-                    difficulty=difficulty,
-                    limit=100000,
-                    skip=0,
-                )
-
-                if not problems_data:
-                    click.echo(f"Error: Failed to fetch problem list.")
-                    return
-
-                # Filter problems
-                filtered_problems = filter_problems(problems_data)
-                if not filtered_problems:
-                    click.echo("Error: No matching problem found with the specified filters.")
-                    return
-
-                # Select a random problem
-                selected_problem = select_random_problem(filtered_problems)
-                if not selected_problem:
-                    click.echo("Error: No problems available after filtering.")
-                    return
-
-                selected_problem_slug = selected_problem.get('titleSlug')
-                if not selected_problem_slug:
-                    click.echo("Error: Selected problem does not have a 'titleSlug'.")
-                    return
-
-                title_slug_or_id = selected_problem_slug
-
-        if not title_slug_or_id:
-            click.echo("Error: Please provide a TITLE_SLUG_OR_ID or use the --random flag.")
-            return
-
-        if title_slug_or_id.isdigit():
-            if use_downloaded:
-                problems_data = load_problems_metadata()
-                if not problems_data:
-                    return
-
-                # Find problem by frontendQuestionId
-                problem_data = find_problem_by_id(problems_data, title_slug_or_id)
-                if not problem_data:
-                    click.echo(f"Error: Problem with ID '{title_slug_or_id}' not found in cached data.")
-                    return
-                title_slug = problem_data['titleSlug']
-            else:
-                click.echo("Error: Fetching problem by ID requires using downloaded metadata. Please use '--use-downloaded' or provide a title slug.")
+            if not problems_data:
+                click.echo(f"Error: Failed to fetch problem list.")
                 return
+
+            filtered_problems = filter_problems(problems_data, difficulty, tag)
         else:
-            title_slug = title_slug_or_id
+            # Fetch problems from LeetCode API
+            cookie = get_cookie()
+            csrf_token = extract_csrf_token(cookie)
 
-        metadata = fetch_problem_data(title_slug)
+            # Fetch problemset
+            filtered_problems_data = fetch_problemset(
+                cookie=cookie,
+                csrf_token=csrf_token,
+                tags=tag,
+                difficulty=difficulty,
+                limit=100000,
+                skip=0,
+            )
 
-        if not metadata or not metadata['data']['question']:
-            click.echo(f"Error: Can't fetch problem: {title_slug_or_id}")
+            filtered_problems = filtered_problems_data.get('data', {}).get('problemsetQuestionList', {}).get('questions', {})
+            
+
+        if not filtered_problems:
+            click.echo("Error: No matching problem found with the specified filters.")
             return
 
-        # Update the config file
-        set_chosen_problem(title_slug)
+        # Select a random problem
+        problem_data = select_random_problem(filtered_problems)
 
+        title_slug = problem_data.get('titleSlug')
+        if not title_slug:
+            click.echo("Error: Selected problem does not have a 'titleSlug'.")
+            return
+
+
+    else:
+        if use_downloaded:
+            problems_data = load_problems_metadata()
+
+            # Assume user provided title-slug
+            problem_data = get_problem_by_key_value(problems_data, "titleSlug", title_slug_or_id)
+
+            if not problem_data:
+                # Assumption was wrong, user provided ID
+                problem_data = get_problem_by_key_value(problems_data, "frontendQuestionId", title_slug_or_id)
+
+            if not problem_data:
+                click.echo(f"Error: Problem with titleSlug or questionID '{title_slug_or_id}' not found in cached data.")
+                return
+
+            title_slug = problem_data.get('titleSlug', None)
+
+        else:
+            if title_slug_or_id.isdigit():
+                click.echo("Error: Problems' metadata not found. Please use leetcode download-problems or use title slug instead of ID.")
+                return
+
+            else:
+                title_slug = title_slug_or_id
+
+    metadata = fetch_problem_data(title_slug)
+
+    if not metadata or not metadata['data']['question']:
+        click.echo(f"Error: Can't fetch problem: {title_slug_or_id}")
+        return
+
+    # Update the config file
+    set_chosen_problem(title_slug)
+
+    try:
         parser = LeetCodeProblemParser(metadata)
         all_sections = {
             'title': parser.get_formatted_title,
@@ -529,10 +557,6 @@ def show(title_slug_or_id, include, random, difficulty, tag, use_downloaded):
     except LeetCodePaidOnlyProblemError as e:
         click.echo("Error: This is a paid-only problem and cannot be viewed without a premium subscription.")
         return
-
-    except Exception as e:
-        logger.error(f"An error occurred while showing problem details: {e}", exc_info=True)
-        click.echo(f"Error: An error occurred while showing problem details. {e}")
 
 
 @cli.command(short_help='Display user stats')
@@ -701,6 +725,7 @@ def create(title_slug_or_id):
 
 @cli.command(short_help='Test a solution file')
 @click.argument('file_path', required=True, type=click.Path(exists=True))
+
 def test(file_path):
     try:
         # Extract the filename from the path
