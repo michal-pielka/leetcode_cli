@@ -1,11 +1,9 @@
 from datetime import datetime, timedelta, timezone
 import logging
 
-from ..graphics.symbols import SYMBOLS
-from ..graphics.escape_sequences import ANSI_CODES, ANSI_RESET
-from .parser_utils.stats_parser_utils import (
-    join_and_slice_calendars,
-    fill_daily_activity,
+from leetcode_cli.graphics.symbols import SYMBOLS
+from leetcode_cli.graphics.escape_sequences import ANSI_CODES, ANSI_RESET
+from leetcode_cli.parsers.parser_utils.stats_parser_utils import (
     calculate_color,
 )
 

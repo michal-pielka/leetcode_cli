@@ -1,9 +1,12 @@
 import time
+from leetcode_cli.cli import problem_data_from_path
 import requests
 import logging
 import os
 
-from ..user_utils import get_problem_by_key_value
+from leetcode_cli.user_utils import get_problem_by_key_value
+from leetcode_cli.user_utils import problem_data_from_path
+from leetcode_cli.user_utils import load_problems_metadata
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +86,8 @@ def map_extension_to_language(file_extension):
 def interpret_solution(cookie: str, csrf_token: str, file_path: str, data_input: str) -> str:
     try:
         frontend_question_id, title_slug, file_extension = extract_submission_details(file_path)
-        question_id = get_problem_by_key_value("titleSlug", title_slug)["questionId"]
+        problems_data = load_problems_metadata()
+        question_id = get_problem_by_key_value(problems_data, "titleSlug", title_slug)["questionId"]
 
     except SubmissionError as e:
         raise SubmissionError(f"Error extracting submission details: {e}")
@@ -157,7 +161,8 @@ def submit_solution(cookie: str, csrf_token: str, file_path: str) -> str:
     """
     try:
         frontend_question_id, title_slug, file_extension = extract_submission_details(file_path)
-        question_id = get_problem_by_key_value("titleSlug", title_slug)["questionId"]
+        problems_data = load_problems_metadata()
+        question_id = get_problem_by_key_value(problems_data, "titleSlug", title_slug)["questionId"]
 
     except SubmissionError as e:
         raise SubmissionError(f"Error extracting submission details: {e}")
@@ -254,7 +259,7 @@ def interpret_and_get_result(cookie: str, csrf_token: str, file_path: str, data_
 
     # Extract title_slug from file_path for checking submission
     try:
-        _, title_slug, _ = extract_submission_details(file_path)
+        _, title_slug, _ = problem_data_from_path(file_path)
 
     except SubmissionError as e:
         raise SubmissionError(f"Error extracting title_slug for checking submission: {e}")

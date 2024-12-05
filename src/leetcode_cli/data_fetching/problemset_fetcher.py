@@ -2,7 +2,7 @@ import requests
 import logging
 
 
-from ..data_fetching.graphql_queries import GRAPHQL_QUERIES, GRAPHQL_URL
+from leetcode_cli.data_fetching.graphql_queries import GRAPHQL_QUERIES, GRAPHQL_URL
 
 logger = logging.getLogger(__name__)
 

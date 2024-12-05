@@ -6,16 +6,16 @@ import logging
 import os
 from datetime import datetime
 
-from .graphics.symbols import SYMBOLS
-from .graphics.escape_sequences import ANSI_RESET, ANSI_CODES
+from leetcode_cli.graphics.symbols import SYMBOLS
+from leetcode_cli.graphics.escape_sequences import ANSI_RESET, ANSI_CODES
 
-from .parsers.submission_parser import get_formatted_interpretation, get_formatted_submission, SubmissionParseError
-from .parsers.problem_parser import LeetCodeProblemParser, LeetCodePaidOnlyProblemError
-from .parsers.problemset_parser import LeetCodeProblemsetParser
-from .parsers.stats_parser import get_formatted_leetcode_stats, get_formatted_daily_activity
-from .parsers.parser_utils.stats_parser_utils import *
+from leetcode_cli.parsers.submission_parser import get_formatted_submission, get_formatted_interpretation, SubmissionParseError
+from leetcode_cli.parsers.problem_parser import LeetCodeProblemParser, LeetCodePaidOnlyProblemError
+from leetcode_cli.parsers.problemset_parser import LeetCodeProblemsetParser
+from leetcode_cli.parsers.stats_parser import get_formatted_leetcode_stats, get_formatted_daily_activity
+from leetcode_cli.parsers.parser_utils.stats_parser_utils import *
 
-from .user_utils import (
+from leetcode_cli.user_utils import (
     get_problem_by_key_value,
     set_chosen_problem,
     get_chosen_problem,
@@ -28,17 +28,19 @@ from .user_utils import (
     extract_csrf_token,
     set_cookie,
     set_username,
-    set_language
+    set_language,
+    problem_data_from_path,
+    load_problems_metadata
 )
 
-from .data_fetching.stats_fetcher import fetch_user_stats, fetch_user_activity
-from .data_fetching.problem_fetcher import fetch_problem_data, fetch_problem_testcases
-from .data_fetching.problemset_fetcher import fetch_problemset
-from .data_fetching.code_snippet_fetcher import CodeSnippetFetchError
+from leetcode_cli.data_fetching.stats_fetcher import fetch_user_stats, fetch_user_activity
+from leetcode_cli.data_fetching.problem_fetcher import fetch_problem_data, fetch_problem_testcases
+from leetcode_cli.data_fetching.problemset_fetcher import fetch_problemset
+from leetcode_cli.data_fetching.code_snippet_fetcher import CodeSnippetFetchError
 
-from .leetcode_problem.problem_submitter import interpret_and_get_result, interpret_solution
-from .leetcode_problem.problem_submitter import submit_and_get_result, SubmissionError
-from .leetcode_problem.solution_file_creator import create_solution_file
+from leetcode_cli.leetcode_problem.problem_submitter import interpret_and_get_result, interpret_solution
+from leetcode_cli.leetcode_problem.problem_submitter import submit_and_get_result, SubmissionError
+from leetcode_cli.leetcode_problem.solution_file_creator import create_solution_file
 
 # Configure logging
 def configure_logging():
@@ -175,25 +177,6 @@ def extract_question_info(problem_data):
         raise Exception(f"Invalid problem data structure received: missing key {e}")
 
 
-def load_problems_metadata():
-    """
-    Loads the problems metadata from the local JSON file.
-
-    Returns:
-        dict: The problems data if loaded successfully, None otherwise.
-    """
-    problems_metadata_path = get_problems_data_path()
-    if not os.path.exists(problems_metadata_path):
-        click.echo(f"Error: {ANSI_CODES['ITALIC']}problems_metadata.json{ANSI_RESET} file not found. Please download it first using {ANSI_CODES['ITALIC']}leetcode download-problems{ANSI_RESET}.")
-        return None
-
-    try:
-        with open(problems_metadata_path, 'r') as f:
-            problems_data = json.load(f)
-        return problems_data
-    except Exception as e:
-        click.echo(f"Error: Failed to load problems metadata. {e}")
-        return None
 
 
 def find_problem_by_id(problems_data, problem_id):
@@ -264,7 +247,7 @@ def config(key, value):
 
 
 
-def validate_limit(ctx, param, value):
+def validate_integer(ctx, param, value):
     if value <= 0:
         raise click.BadParameter('Limit must be greater than 0.')
     return value
@@ -290,13 +273,14 @@ def validate_limit(ctx, param, value):
     type=int,
     default=50,
     help='Limit the number of results (default: 50)',
-    callback=validate_limit
+    callback=validate_integer
 )
 @click.option(
     '--page',
     type=int,
     default=1,
-    help='Display a specific page (default: 1)'
+    help='Display a specific page (default: 1)',
+    callback=validate_integer
 )
 @click.option(
     '--use-downloaded',
@@ -357,12 +341,7 @@ def list(difficulty, tag, limit, page, use_downloaded):
 
         logger.debug(f"Fetched Problems: {problems_dict}")
 
-        if not problems_dict:
-            click.echo(f"Error: Failed to fetch problem list.")
-            return
-
-
-    if not problems_dict['data']['problemsetQuestionList']['questions']:
+    if not problems_dict or not problems_dict['data']['problemsetQuestionList']['questions']:
         click.echo("Error: No problems found with the specified filters.")
         return
 
@@ -400,19 +379,6 @@ maybe implement this??
 
 
 
-def problem_data_from_path(filepath):
-    filename = os.path.basename(filepath)
-    # Split the filename by the dots to extract parts
-    parts = filename.split('.')
-    if len(parts) != 3:
-        raise ValueError("Invalid filepath format. Expected {question_id}.{title_slug}.{file_extension}")
-    
-    # Extract parts
-    frontend_id = parts[0]
-    title_slug = '.'.join(parts[1:-1])  # Join middle parts as the title_slug can have dots
-    file_extension = parts[-1]
-    
-    return frontend_id, title_slug, file_extension
 
 
 @cli.command(short_help='Show problem details')
@@ -673,7 +639,7 @@ def create(title_slug_or_id):
                 if not lang_slug:
                     return
 
-                title_slug = resolve_title_slug(title_slug_part)
+                title_slug = None
                 if not title_slug:
                     return
 
@@ -683,7 +649,7 @@ def create(title_slug_or_id):
                 if not lang_slug:
                     return
 
-                title_slug = resolve_title_slug(title_slug_or_id)
+                title_slug = None
                 if not title_slug:
                     return
         else:

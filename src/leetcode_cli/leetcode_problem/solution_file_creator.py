@@ -1,6 +1,5 @@
 import logging
-from ..data_fetching.code_snippet_fetcher import fetch_code_snippet, CodeSnippetFetchError
-from ..data_fetching.problem_fetcher import fetch_problem_data
+from leetcode_cli.data_fetching.code_snippet_fetcher import fetch_code_snippet
 
 logger = logging.getLogger(__name__)
 

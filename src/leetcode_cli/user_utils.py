@@ -2,7 +2,6 @@ import json
 import os
 import platform
 import logging
-import random
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +47,8 @@ def _load_config():
             logger.warning("Config file is corrupted. Starting with an empty config.")
     return {}
 
-def _load_problems_data() -> dict:
+
+def load_problems_metadata() -> dict:
     """
     Loads the cached problems metadata from the local JSON file.
 
@@ -136,7 +136,12 @@ def extract_csrf_token(cookie: str) -> str:
         str: The CSRF token if found, else an empty string.
     """
     import re
-    match = re.search(r'csrftoken=([^;]+)', cookie)
+    try:
+        match = re.search(r'csrftoken=([^;]+)', cookie)
+
+    except Exception as e:
+        return None
+
     if match:
         return match.group(1)
     else:
@@ -286,3 +291,17 @@ def select_random_problem(questions):
     selected_problem = random.choice(questions)
     logger.info(f"Random problem selected: {selected_problem.get('title', 'Unknown Title')} (Slug: {selected_problem.get('titleSlug', 'N/A')})")
     return selected_problem
+
+def problem_data_from_path(filepath):
+    filename = os.path.basename(filepath)
+    # Split the filename by the dots to extract parts
+    parts = filename.split('.')
+    if len(parts) != 3:
+        raise ValueError("Invalid filepath format. Expected {question_id}.{title_slug}.{file_extension}")
+    
+    # Extract parts
+    frontend_id = parts[0]
+    title_slug = '.'.join(parts[1:-1])  # Join middle parts as the title_slug can have dots
+    file_extension = parts[-1]
+    
+    return frontend_id, title_slug, file_extension

@@ -1,6 +1,6 @@
 import logging
-from ..graphics.escape_sequences import ANSI_CODES, ANSI_RESET
-from ..graphics.symbols import SYMBOLS
+from leetcode_cli.graphics.escape_sequences import ANSI_CODES, ANSI_RESET
+from leetcode_cli.graphics.symbols import SYMBOLS
 
 # Define ANSI formatting for different submission statuses
 SUBMISSION_ANSI = {
