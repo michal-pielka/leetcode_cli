@@ -71,14 +71,14 @@ class LeetCodeProblemParser:
             raise LeetCodePaidOnlyProblemError("This is a paid-only problem and the content is inaccessible.")
 
         # Extracted attributes
-        self.question_id = self.question_data.get("frontendQuestionId", "")
+        self.question_id = self.question_data.get("questionFrontendId", "")
         self.question_title = self.question_data.get("title", "")
         self.question_description = self._extract_question_description()
         self.question_examples = self._extract_question_examples()
         self.question_constraints = self._extract_question_constraints()
         self.question_hints = self.question_data.get("hints", [])
         self.question_topic_tags = self.question_data.get("topicTags", [])
-        self.question_languages = self.metadata.get("data", {}).get("submittableLanguageList", [])
+        self.question_languages = self._extract_languages()
         self.question_difficulty = self.question_data.get("difficulty", "")
         self.question_likes = self.question_data.get("likes", 0)
         self.question_dislikes = self.question_data.get("dislikes", 0)
@@ -132,6 +132,17 @@ class LeetCodeProblemParser:
             if example:
                 examples.append(example)
         return examples
+
+    def _extract_languages(self):
+        languages = []
+
+        for language_data in self.question_data.get("codeSnippets", []):
+            lang = language_data.get("lang", None)
+
+            if lang:
+                languages.append(lang)
+
+        return languages
 
     def _parse_example_section(self, header) -> dict:
         """
@@ -283,8 +294,7 @@ class LeetCodeProblemParser:
         formatted_languages = ["Languages:"]
 
         for language in self.question_languages:
-            language_name = " " + language["name"] + " "
-            formatted_language = f"{self.HTML_TO_ANSI['language']}{language_name}{ANSI_RESET}"
+            formatted_language = f"{self.HTML_TO_ANSI['language']} {language} {ANSI_RESET}"
             formatted_languages.append(formatted_language)
 
         return " ".join(formatted_languages)

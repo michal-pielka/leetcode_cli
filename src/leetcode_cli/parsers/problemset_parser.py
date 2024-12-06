@@ -21,15 +21,8 @@ class LeetCodeProblemsetParser:
         None: " "
     }
 
-    def __init__(self, problemset_metadata):
-        self.problemset_metadata = problemset_metadata
-
-        logger.debug(problemset_metadata)
-        self.problemset_data = self.problemset_metadata.get("data", {})
-
-        self.problemset_question_list = self.problemset_data.get("problemsetQuestionList", {})
-        self.total_problems = self.problemset_question_list.get("total", 0)
-        self.questions = self.problemset_question_list.get("questions", [])
+    def __init__(self, questions_data):
+        self.questions_data = questions_data
 
     def _parse_question(self, question_data):
         title = question_data.get("title", "").ljust(79)  # Adjust width for title alignment
@@ -55,13 +48,13 @@ class LeetCodeProblemsetParser:
         Raises:
             LeetCodeProblemsetParserError: If questions data is invalid.
         """
-        if not self.questions:
+        if not self.questions_data:
             logger.error("No questions available to parse.")
             raise LeetCodeProblemsetParserError("No questions available to parse.")
 
         parsed_list = []
 
-        for question in self.questions:
+        for question in self.questions_data:
             parsed_question = self._parse_question(question)
             parsed_list.append(parsed_question)
 

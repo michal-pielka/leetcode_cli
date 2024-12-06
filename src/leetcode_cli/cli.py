@@ -1,6 +1,4 @@
-from os.path import exists
 import click
-import time
 import json
 import logging
 import os
@@ -34,7 +32,7 @@ from leetcode_cli.user_utils import (
 )
 
 from leetcode_cli.data_fetching.stats_fetcher import fetch_user_stats, fetch_user_activity
-from leetcode_cli.data_fetching.problem_fetcher import fetch_problem_data, fetch_problem_testcases
+from leetcode_cli.data_fetching.problem_fetcher import fetch_problem_data, fetch_problem_testcases, fetch_problem_id
 from leetcode_cli.data_fetching.problemset_fetcher import fetch_problemset
 from leetcode_cli.data_fetching.code_snippet_fetcher import CodeSnippetFetchError
 
@@ -177,24 +175,6 @@ def extract_question_info(problem_data):
         raise Exception(f"Invalid problem data structure received: missing key {e}")
 
 
-
-
-def find_problem_by_id(problems_data, problem_id):
-    """
-    Finds a problem by its frontendQuestionId in the problems data.
-
-    Args:
-        problems_data (dict): The problems metadata.
-        problem_id (str): The problem's frontendQuestionId.
-
-    Returns:
-        dict: The problem data if found, None otherwise.
-    """
-    questions = problems_data.get('data', {}).get('problemsetQuestionList', {}).get('questions', [])
-    problem_data = next((q for q in questions if q.get('frontendQuestionId') == problem_id), None)
-    return problem_data
-
-
 @click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
 @click.pass_context
 def cli(ctx):
@@ -247,9 +227,10 @@ def config(key, value):
 
 
 
-def validate_integer(ctx, param, value):
+def validate_positive_integer(ctx, param, value):
     if value <= 0:
         raise click.BadParameter('Limit must be greater than 0.')
+
     return value
 
 
@@ -273,14 +254,14 @@ def validate_integer(ctx, param, value):
     type=int,
     default=50,
     help='Limit the number of results (default: 50)',
-    callback=validate_integer
+    callback=validate_positive_integer
 )
 @click.option(
     '--page',
     type=int,
     default=1,
     help='Display a specific page (default: 1)',
-    callback=validate_integer
+    callback=validate_positive_integer
 )
 @click.option(
     '--use-downloaded',
@@ -313,16 +294,7 @@ def list(difficulty, tag, limit, page, use_downloaded):
             click.echo("Error: No problems at this page, try using a lower value.")
             return
 
-        problems_list = filtered_problems[skip:skip+limit]
-
-        # Prepare data for the parser
-        problems_dict = {
-            'data': {
-                'problemsetQuestionList': {
-                    'questions': problems_list
-                }
-            }
-        }
+        filtered_problems = filtered_problems[skip:skip+limit]
 
     else:
         # Fetch cookie and CSRF token
@@ -330,7 +302,7 @@ def list(difficulty, tag, limit, page, use_downloaded):
         csrf_token = extract_csrf_token(cookie)
 
         # Fetch problemset
-        problems_dict = fetch_problemset(
+        filtered_problems = fetch_problemset(
             cookie=cookie,
             csrf_token=csrf_token,
             tags=tag,
@@ -339,14 +311,17 @@ def list(difficulty, tag, limit, page, use_downloaded):
             skip=skip,
         )
 
-        logger.debug(f"Fetched Problems: {problems_dict}")
+        logger.debug(f"Fetched Problems: {filtered_problems}")
 
-    if not problems_dict or not problems_dict['data']['problemsetQuestionList']['questions']:
+    if not filtered_problems:
         click.echo("Error: No problems found with the specified filters.")
         return
 
-    parser = LeetCodeProblemsetParser(problems_dict)
+    parser = LeetCodeProblemsetParser(filtered_problems)
     formatted_problems = parser.get_formatted_questions()
+
+    # Print the parsed problems
+    click.echo()
     click.echo(formatted_problems)
     click.echo()
 
@@ -378,7 +353,8 @@ maybe implement this??
 """
 
 
-
+def is_title_slug(title_slug_or_id):
+    return not title_slug_or_id.isdigit()
 
 
 @cli.command(short_help='Show problem details')
@@ -414,24 +390,115 @@ maybe implement this??
     help='Use downloaded problems metadata from local storage'
 )
 def show(title_slug_or_id, include, random, difficulty, tag, use_downloaded):
-    problem_data = None
-    title_slug = None
-
-    # Enforce that --difficulty and --tag can only be used with --random
-    if (difficulty or tag) and not random:
-        click.echo(f"Error: {ANSI_CODES['ITALIC']}--difficulty{ANSI_RESET}, {ANSI_CODES['ITALIC']}--tag{ANSI_RESET}, {ANSI_CODES['ITALIC']}--lower{ANSI_RESET} and {ANSI_CODES['ITALIC']}--upper{ANSI_RESET}  options can only be used with {ANSI_CODES['ITALIC']}--random{ANSI_RESET}.")
-        return
-
-
     if random:
         if use_downloaded:
             problems_data = load_problems_metadata()
+            filtered_problems = filter_problems(problems_data, difficulty, tag)
+            problem_data = select_random_problem(filtered_problems)
+            title_slug = problem_data.get("titleSlug", None)
+        else:
+            click.echo("Error: In order to show a random problem you need to use --use-downloaded flag.")
+            return
 
-            if not problems_data:
-                click.echo(f"Error: Failed to fetch problem list.")
+    else:
+        if difficulty or tag:
+            click.echo("Error: --difficulty and --tag options only work when showing a random problem.")
+            return
+
+        if not title_slug_or_id:
+            click.echo("Error: title_slug_or_id value is None.")
+            return
+
+        if is_title_slug(title_slug_or_id):
+            title_slug = title_slug_or_id
+
+        else:
+            if not use_downloaded:
+                click.echo("Error: In order to show problems by ID you need to use --use-downloaded flag.")
                 return
 
+            problems_data = load_problems_metadata()
+            problem_data = get_problem_by_key_value(problems_data, "frontendQuestionId", title_slug_or_id)
+            title_slug = problem_data.get("titleSlug", None)
+
+        if not title_slug:
+            click.echo("Error: Couldn't fetch problem data")
+            return
+
+
+    metadata = fetch_problem_data(title_slug)
+
+    if not metadata or not metadata['data']['question']:
+        click.echo(f"Error: Can't fetch problem: {title_slug_or_id}")
+        return
+
+    # Update the config file for easier file creation
+    set_chosen_problem(title_slug)
+
+    try:
+        parser = LeetCodeProblemParser(metadata)
+        all_sections = {
+            'title': parser.get_formatted_title,
+            'tags': parser.get_formatted_topic_tags,
+            'langs': parser.get_formatted_languages,
+            'description': parser.get_formatted_description,
+            'examples': parser.get_formatted_examples,
+            'constraints': parser.get_formatted_constraints
+        }
+
+        if not include:
+            sections_to_display = all_sections.keys()
+        else:
+            sections_to_display = include
+
+        click.echo()
+        for section in sections_to_display:
+            if section in all_sections:
+                content = all_sections[section]()
+                if content:
+                    click.echo(content)
+                    click.echo()
+
+    except LeetCodePaidOnlyProblemError as e:
+        click.echo("Error: This is a paid-only problem and cannot be viewed without a premium subscription.")
+        return
+
+
+
+
+"""
+def show(title_slug_or_id, include, random, difficulty, tag, use_downloaded):
+    problems_data = None
+    problem_data = None
+    title_slug = None
+
+    if not random:
+        if not title_slug_or_id:
+            click.echo("Error: title_slug_or_id is None")
+            return
+
+        if difficulty or tag:
+            click.echo(f"Error: {ANSI_CODES['ITALIC']}--difficulty{ANSI_RESET}, {ANSI_CODES['ITALIC']}--tag{ANSI_RESET}, {ANSI_CODES['ITALIC']}--lower{ANSI_RESET} and {ANSI_CODES['ITALIC']}--upper{ANSI_RESET}  options can only be used with {ANSI_CODES['ITALIC']}--random{ANSI_RESET}.")
+            return
+
+    if use_downloaded:
+        problems_data = load_problems_metadata()
+
+        if not problems_data:
+            click.echo("Error: Problems' metadata not found, use leetcode problems-download")
+            return
+
+    if title_slug_or_id and title_slug_or_id.isdigit():
+        problems_data = load_problems_metadata()
+
+        if not problems_data:
+            click.echo("Error: In order to show problem by ID you have to have problems' metadata downloaded")
+        
+
+    if random:
+        if use_downloaded:
             filtered_problems = filter_problems(problems_data, difficulty, tag)
+
         else:
             # Fetch problems from LeetCode API
             cookie = get_cookie()
@@ -462,17 +529,13 @@ def show(title_slug_or_id, include, random, difficulty, tag, use_downloaded):
             click.echo("Error: Selected problem does not have a 'titleSlug'.")
             return
 
-
     else:
-        if use_downloaded:
-            problems_data = load_problems_metadata()
-
-            # Assume user provided title-slug
-            problem_data = get_problem_by_key_value(problems_data, "titleSlug", title_slug_or_id)
-
-            if not problem_data:
-                # Assumption was wrong, user provided ID
+        if use_downloaded or title_slug_or_id.isdigit(): 
+            if title_slug_or_id.isdigit():
                 problem_data = get_problem_by_key_value(problems_data, "frontendQuestionId", title_slug_or_id)
+
+            else:
+                problem_data = get_problem_by_key_value(problems_data, "titleSlug", title_slug_or_id)
 
             if not problem_data:
                 click.echo(f"Error: Problem with titleSlug or questionID '{title_slug_or_id}' not found in cached data.")
@@ -481,12 +544,8 @@ def show(title_slug_or_id, include, random, difficulty, tag, use_downloaded):
             title_slug = problem_data.get('titleSlug', None)
 
         else:
-            if title_slug_or_id.isdigit():
-                click.echo("Error: Problems' metadata not found. Please use leetcode download-problems or use title slug instead of ID.")
-                return
+            title_slug = title_slug_or_id
 
-            else:
-                title_slug = title_slug_or_id
 
     metadata = fetch_problem_data(title_slug)
 
@@ -523,7 +582,7 @@ def show(title_slug_or_id, include, random, difficulty, tag, use_downloaded):
     except LeetCodePaidOnlyProblemError as e:
         click.echo("Error: This is a paid-only problem and cannot be viewed without a premium subscription.")
         return
-
+"""
 
 @cli.command(short_help='Display user stats')
 @click.argument('username', required=False, default=get_username())
@@ -543,53 +602,48 @@ def stats(username, include):
     """
     VALID_SECTIONS = ["stats", "calendar"]
 
-    try:
-        if not username:
-            click.echo(f"Error: Username was not specified and is not set. Use {ANSI_CODES['ITALIC']}leetcode config username USERNAME{ANSI_RESET} to set it or {ANSI_CODES['ITALIC']}leetcode stats USERNAME{ANSI_RESET}.")
-            return
+    if not username:
+        click.echo(f"Error: Username was not specified and is not set. Use {ANSI_CODES['ITALIC']}leetcode config username USERNAME{ANSI_RESET} to set it or {ANSI_CODES['ITALIC']}leetcode stats USERNAME{ANSI_RESET}.")
+        return
 
-        if not include:
-            include = VALID_SECTIONS
+    if not include:
+        include = VALID_SECTIONS
 
-        formatted_stats = None
-        formatted_activity = None
+    formatted_stats = None
+    formatted_activity = None
 
-        if 'stats' in include:
-            stats_data = fetch_user_stats(username)
+    if 'stats' in include:
+        stats_data = fetch_user_stats(username)
 
-            if stats_data:
-                formatted_stats = get_formatted_leetcode_stats(stats_data)
-            else:
-                click.echo("Error: Failed to fetch stats data.")
+        if stats_data:
+            formatted_stats = get_formatted_leetcode_stats(stats_data)
+        else:
+            click.echo("Error: Failed to fetch stats data.")
 
-        if 'calendar' in include:
-            current_year = datetime.now().year
-            previous_year = current_year - 1
+    if 'calendar' in include:
+        current_year = datetime.now().year
+        previous_year = current_year - 1
 
-            activity_current = fetch_user_activity(username, current_year)
-            activity_previous = fetch_user_activity(username, previous_year)
+        activity_current = fetch_user_activity(username, current_year)
+        activity_previous = fetch_user_activity(username, previous_year)
 
-            if activity_current and activity_previous:
-                joined_activity = join_and_slice_calendars(activity_previous, activity_current)
-                filled_activity = fill_daily_activity(joined_activity)
-                formatted_activity = get_formatted_daily_activity(filled_activity)
-            else:
-                click.echo("Error: Failed to fetch activity data.")
+        if activity_current and activity_previous:
+            joined_activity = join_and_slice_calendars(activity_previous, activity_current)
+            filled_activity = fill_daily_activity(joined_activity)
+            formatted_activity = get_formatted_daily_activity(filled_activity)
+        else:
+            click.echo("Error: Failed to fetch activity data.")
 
-        # Display the fetched and formatted data
-        if formatted_stats:
-            click.echo()
-            click.echo(formatted_stats)
-            click.echo()
+    # Display the fetched and formatted data
+    if formatted_stats:
+        click.echo()
+        click.echo(formatted_stats)
+        click.echo()
 
-        if formatted_activity:
-            click.echo()
-            click.echo(formatted_activity)
-            click.echo()
-
-    except Exception as e:
-        logger.error(f"An error occurred while fetching stats: {e}", exc_info=True)
-        click.echo(f"Error: An error occurred while fetching stats. {e}")
+    if formatted_activity:
+        click.echo()
+        click.echo(formatted_activity)
+        click.echo()
 
 
 
@@ -612,80 +666,65 @@ def create(title_slug_or_id):
     """
     logger.debug(f"Received title_slug_or_id argument: '{title_slug_or_id}'")
 
-    try:
-        if title_slug_or_id:
-            if title_slug_or_id.startswith('.'):
-                # **Usage:** leetcode create .cpp
-                file_extension = title_slug_or_id.lstrip('.').lower()
-                logger.debug(f"Extracted file_extension: '{file_extension}'")
+    if title_slug_or_id:
+        if title_slug_or_id.startswith('.'):
+            file_extension = title_slug_or_id.lstrip('.').lower()
 
-                lang_slug, file_extension = get_language_and_extension(file_extension)
-                if not lang_slug:
-                    return
+            lang_slug, file_extension = get_language_and_extension(file_extension)
+            if not lang_slug:
+                return
 
-                # Fetch the chosen problem from config
-                title_slug = get_chosen_problem()
-                if not title_slug:
-                    click.echo("Error: No chosen problem found in config. Please specify a problem or use 'leetcode show' to select one.")
-                    return
-
-            elif '.' in title_slug_or_id:
-                # **Usage:** leetcode create two-sum.py or leetcode create 1.py
-                title_slug_part, file_extension = title_slug_or_id.rsplit('.', 1)
-                file_extension = file_extension.lower()
-                logger.debug(f"Extracted title_slug_or_id: '{title_slug_part}', file_extension: '{file_extension}'")
-
-                lang_slug, file_extension = get_language_and_extension(file_extension)
-                if not lang_slug:
-                    return
-
-                title_slug = None
-                if not title_slug:
-                    return
-
-            else:
-                # **Usage:** leetcode create two-sum or leetcode create 1
-                lang_slug, file_extension = get_language_and_extension()
-                if not lang_slug:
-                    return
-
-                title_slug = None
-                if not title_slug:
-                    return
-        else:
-            # **Usage:** leetcode create
             # Fetch the chosen problem from config
             title_slug = get_chosen_problem()
             if not title_slug:
-                click.echo("Error: No chosen problem found in config. Please specify a problem or use 'leetcode show' to select one.")
+                click.echo(f"Error: No chosen problem found in config. Please specify a problem or use 'leetcode show .{file_extension}' to select one.")
                 return
 
-            # Get default language and file extension
+        elif '.' in title_slug_or_id:
+            # **Usage:** leetcode create two-sum.py or leetcode create 1.py
+            title_slug_part, file_extension = title_slug_or_id.rsplit('.', 1)
+            file_extension = file_extension.lower()
+            logger.debug(f"Extracted title_slug_or_id: '{title_slug_part}', file_extension: '{file_extension}'")
+
+            lang_slug, file_extension = get_language_and_extension(file_extension)
+            if not lang_slug:
+                return
+
+            title_slug = None
+            if not title_slug:
+                return
+
+        else:
+            # **Usage:** leetcode create two-sum or leetcode create 1
             lang_slug, file_extension = get_language_and_extension()
             if not lang_slug:
                 return
 
-        # Fetch problem data using the title_slug
-        problem_data = fetch_problem_data(title_slug)
-        if not problem_data:
-            raise CodeSnippetFetchError(f"Problem data for '{title_slug}' could not be fetched.")
+            title_slug = None
+            if not title_slug:
+                return
+    else:
+        # **Usage:** leetcode create
+        # Fetch the chosen problem from config
+        title_slug = get_chosen_problem()
+        if not title_slug:
+            click.echo("Error: No chosen problem found in config. Please specify a problem or use 'leetcode show' to select one.")
+            return
 
-        # Extract question info
-        question_id_fetched, title_slug_fetched = extract_question_info(problem_data)
+        # Get default language and file extension
+        lang_slug, file_extension = get_language_and_extension()
+        if not lang_slug:
+            return
 
-        # Call create_solution_file with all required parameters
-        create_solution_file(question_id_fetched, title_slug_fetched, lang_slug, file_extension)
+    # Extract question info
+    question_id = fetch_problem_id(title_slug)
 
-        # Define the filename based on question_id, title_slug, and file_extension
-        file_name = f"{question_id_fetched}.{title_slug_fetched}.{file_extension}"
-        click.echo(f"Solution file '{file_name}' has been created successfully.")
+    # Call create_solution_file with all required parameters
+    create_solution_file(question_id, title_slug, lang_slug, file_extension)
 
-    except CodeSnippetFetchError as e:
-        logger.error(f"CodeSnippetFetchError: {e}")
-        click.echo(f"Error: {e}")
-    except Exception as e:
-        logger.error(f"An unexpected error occurred: {e}")
-        click.echo(f"Error: {e}")
+    # Define the filename based on question_id, title_slug, and file_extension
+    file_name = f"{question_id}.{title_slug}.{file_extension}"
+    click.echo(f"Solution file '{file_name}' has been created successfully.")
 
 
 
@@ -851,7 +890,37 @@ def test1():
 
                 click.echo("\n\n")
 
-    test_every_submission_parse()
+    #test_every_submission_parse()
+    def fetch_problem_data(title_slug):
+        from leetcode_cli.data_fetching.graphql_queries import GRAPHQL_QUERIES, GRAPHQL_URL
+        import requests
+        query = GRAPHQL_QUERIES['problem_data']
+
+        payload_title_slug = {
+            "query": query,
+            "variables": {
+                "titleSlug": title_slug
+            },
+            "operationName": "questionData"
+        }
+
+        payload_frontID = {
+            "query": query,
+            "variables": {
+                "questionId": 1
+            },
+            "operationName": "questionData"
+        }
+
+        response = requests.post(GRAPHQL_URL, json=payload_title_slug)
+        response.raise_for_status()
+        result = response.json()
+
+        return result
+
+    print(fetch_problem_data("two-sum"))
+
+
                 
 
 

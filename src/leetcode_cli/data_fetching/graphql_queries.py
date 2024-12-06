@@ -1,7 +1,7 @@
 GRAPHQL_URL = "https://leetcode.com/graphql"
 
 GRAPHQL_QUERIES = {
-    'problem_stats': """
+    "problem_stats": """
         query userProfileUserQuestionProgressV2($userSlug: String!) {
           userProfileUserQuestionProgressV2(userSlug: $userSlug) {
             numAcceptedQuestions {
@@ -25,7 +25,7 @@ GRAPHQL_QUERIES = {
         }
     """,
 
-    'user_calendar': """
+    "user_calendar": """
         query userProfileCalendar($username: String!, $year: Int) {
           matchedUser(username: $username) {
             userCalendar(year: $year) {
@@ -45,7 +45,7 @@ GRAPHQL_QUERIES = {
         }
     """,
 
-    'problemset_data': """
+    "problemset_data": """
         query problemsetQuestionList($categorySlug: String, $limit: Int, $skip: Int, $filters: QuestionListFilterInput) {
           problemsetQuestionList: questionList(
             categorySlug: $categorySlug
@@ -71,51 +71,64 @@ GRAPHQL_QUERIES = {
         }
     """,
 
-    'code_snippets': """
+    "code_snippets": """
         query getQuestionDetail($titleSlug: String!) {
-            question(titleSlug: $titleSlug) {
-                questionId
-                titleSlug
-                codeSnippets {
-                    lang
-                    langSlug
-                    code
-                }
-            }
-        }
-        """,
-
-    'problem_data': """
-        query questionData($titleSlug: String!) {
-          submittableLanguageList {
-            id
-            name
-            verboseName
-          }
           question(titleSlug: $titleSlug) {
-            frontendQuestionId: questionFrontendId
-            title
+            questionId
             titleSlug
+            codeSnippets {
+              lang
+              langSlug
+              code
+            }
+          }
+        }
+    """,
+
+    "problem_detail": """
+        query questionDetail($titleSlug: String!) {
+          question(titleSlug: $titleSlug) {
+            title
+            questionFrontendId
+            questionTitle
             content
+            categoryTitle
             difficulty
-            likes
-            dislikes
-            exampleTestcases
             topicTags {
               name
-              slug
             }
-            hints
+            stats
+            likes
+            dislikes
             isPaidOnly
+            solution {
+              id
+              paidOnly
+              hasVideoSolution
+              canSeeDetail
+            }
+            codeSnippets {
+              code
+              lang
+              langSlug
+            }
           }
         }
-        """,
+    """,
 
-      "problem_testcases": """
+    "problem_id": """
+        query questionDetail($titleSlug: String!) {
+          question(titleSlug: $titleSlug) {
+            questionFrontendId
+          }
+        }
+    """,
+
+    "problem_testcases": """
         query questionData($titleSlug: String!) {
           question(titleSlug: $titleSlug) {
             exampleTestcases
           }
         }
-      """
+    """
 }

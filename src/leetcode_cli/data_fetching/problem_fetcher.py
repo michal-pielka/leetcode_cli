@@ -40,30 +40,47 @@ def fetch_problem_testcases(title_slug):
         raise ProblemDataFetchError(f"Network or API issue occurred: {e}")
 
 
-def fetch_problem_data(title_slug):
-    """
-    Fetches problem data for the given title_slug.
-
-    Args:
-        title_slug (str): The title slug of the problem.
-
-    Returns:
-        dict: The problem data.
-
-    Raises:
-        ProblemDataFetchError: If fetching fails.
-    """
+def fetch_problem_id(title_slug):
     if not title_slug:
         raise ProblemDataFetchError("title_slug is required but not provided.")
 
-    query = GRAPHQL_QUERIES['problem_data']
+    query = GRAPHQL_QUERIES["problem_id"]
 
     payload = {
         "query": query,
         "variables": {
             "titleSlug": title_slug
         },
-        "operationName": "questionData"
+        "operationName": "questionDetail"
+    }
+
+    try:
+        response = requests.post(GRAPHQL_URL, json=payload)
+        response.raise_for_status()
+        result = response.json()
+
+        if "errors" in result:
+            raise ProblemDataFetchError(f"Error from API: {result['errors']}")
+
+        return result.get("data", {}).get("question", {}).get("questionFrontendId", {})
+
+    except requests.exceptions.HTTPError as http_err:
+        raise ProblemDataFetchError(f"HTTP error occurred: {http_err}")
+    except requests.RequestException as e:
+        raise ProblemDataFetchError(f"Network or API issue occurred: {e}")
+
+def fetch_problem_data(title_slug):
+    if not title_slug:
+        raise ProblemDataFetchError("title_slug is required but not provided.")
+
+    query = GRAPHQL_QUERIES["problem_detail"]
+
+    payload = {
+        "query": query,
+        "variables": {
+            "titleSlug": title_slug
+        },
+        "operationName": "questionDetail"
     }
 
     try:

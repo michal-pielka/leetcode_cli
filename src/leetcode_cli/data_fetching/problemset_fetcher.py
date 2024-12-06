@@ -48,23 +48,11 @@ def fetch_problemset(cookie=None, csrf_token=None, tags=None, difficulty=None, l
         headers["x-csrftoken"] = csrf_token 
         headers["Referer"] = f"https://leetcode.com/problemset/"
 
-    try:
-        response = requests.post(GRAPHQL_URL, json=payload, headers=headers)
-        response.raise_for_status()
-        result = response.json()
+    response = requests.post(GRAPHQL_URL, json=payload, headers=headers)
+    result = response.json()
 
-        if "errors" in result:
-            logger.error(f"Error from API: {result['errors']}")
-            return None
+    if response.status_code != 200:
+        return {}
 
-        return result
+    return result.get("data", {}).get("problemsetQuestionList", {}).get("questions", {})
 
-    except requests.exceptions.HTTPError as http_err:
-        if response.status_code == 401:
-            logger.error("Unauthorized. Cookie might be invalid or expired.")
-        else:
-            logger.error(f"HTTP error occurred: {http_err}")
-    except requests.RequestException as e:
-        logger.error(f"Network or API issue occurred: {e}")
-
-    return None

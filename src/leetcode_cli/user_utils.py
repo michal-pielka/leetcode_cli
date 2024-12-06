@@ -205,16 +205,6 @@ def save_problems_data(data: dict) -> None:
 
 
 def get_problem_by_key_value(problems_data, key, value):
-    """
-    Retrieves problem data from the cached problems metadata based on a key and value.
-
-    Args:
-        key (str): The key to search by (e.g., 'titleSlug', 'questionId').
-        value: The value to match.
-
-    Returns:
-        dict: The problem data if found, else an empty dictionary.
-    """
     questions = problems_data.get('data', {}).get('problemsetQuestionList', {}).get('questions', [])
 
     for problem in questions:
@@ -223,7 +213,7 @@ def get_problem_by_key_value(problems_data, key, value):
 
     logger.warning(f"Problem with {key}='{value}' not found in cached data.")
 
-    return None 
+    return {}
 
 def filter_problems(problems_data, difficulty=None, tags=None):
     """
