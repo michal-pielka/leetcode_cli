@@ -1,26 +1,15 @@
 import requests
 import logging
-
 from leetcode_cli.data_fetching.graphql_queries import GRAPHQL_URL, GRAPHQL_QUERIES
+from leetcode_cli.exceptions.exceptions import FetchingError
 
 logger = logging.getLogger(__name__)
 
-class ProblemDataFetchError(Exception):
-    """Custom exception for problem data fetching errors."""
-    pass
-
-
 def fetch_problem_testcases(title_slug):
-    if not title_slug:
-        raise ProblemDataFetchError("title_slug is required but not provided.")
-
     query = GRAPHQL_QUERIES['problem_testcases']
-
     payload = {
         "query": query,
-        "variables": {
-            "titleSlug": title_slug
-        },
+        "variables": {"titleSlug": title_slug},
         "operationName": "questionData"
     }
 
@@ -28,58 +17,38 @@ def fetch_problem_testcases(title_slug):
         response = requests.post(GRAPHQL_URL, json=payload)
         response.raise_for_status()
         result = response.json()
-
-        if "errors" in result:
-            raise ProblemDataFetchError(f"Error from API: {result['errors']}")
-
-        return result
-
-    except requests.exceptions.HTTPError as http_err:
-        raise ProblemDataFetchError(f"HTTP error occurred: {http_err}")
     except requests.RequestException as e:
-        raise ProblemDataFetchError(f"Network or API issue occurred: {e}")
+        raise FetchingError(f"Network error while fetching testcases for {title_slug}: {e}")
+    except ValueError:
+        raise FetchingError("Failed to parse JSON response while fetching problem testcases.")
+
+    return result
 
 
 def fetch_problem_id(title_slug):
-    if not title_slug:
-        raise ProblemDataFetchError("title_slug is required but not provided.")
-
     query = GRAPHQL_QUERIES["problem_id"]
-
     payload = {
         "query": query,
-        "variables": {
-            "titleSlug": title_slug
-        },
+        "variables": {"titleSlug": title_slug},
         "operationName": "questionDetail"
     }
-
     try:
         response = requests.post(GRAPHQL_URL, json=payload)
         response.raise_for_status()
         result = response.json()
-
-        if "errors" in result:
-            raise ProblemDataFetchError(f"Error from API: {result['errors']}")
-
-        return result.get("data", {}).get("question", {}).get("questionFrontendId", {})
-
-    except requests.exceptions.HTTPError as http_err:
-        raise ProblemDataFetchError(f"HTTP error occurred: {http_err}")
     except requests.RequestException as e:
-        raise ProblemDataFetchError(f"Network or API issue occurred: {e}")
+        raise FetchingError(f"Network error while fetching problem ID for {title_slug}: {e}")
+    except ValueError:
+        raise FetchingError("Failed to parse JSON response while fetching problem ID.")
+
+    return result
+
 
 def fetch_problem_data(title_slug):
-    if not title_slug:
-        raise ProblemDataFetchError("title_slug is required but not provided.")
-
     query = GRAPHQL_QUERIES["problem_detail"]
-
     payload = {
         "query": query,
-        "variables": {
-            "titleSlug": title_slug
-        },
+        "variables": {"titleSlug": title_slug},
         "operationName": "questionDetail"
     }
 
@@ -87,13 +56,9 @@ def fetch_problem_data(title_slug):
         response = requests.post(GRAPHQL_URL, json=payload)
         response.raise_for_status()
         result = response.json()
-
-        if "errors" in result:
-            raise ProblemDataFetchError(f"Error from API: {result['errors']}")
-
-        return result
-
-    except requests.exceptions.HTTPError as http_err:
-        raise ProblemDataFetchError(f"HTTP error occurred: {http_err}")
     except requests.RequestException as e:
-        raise ProblemDataFetchError(f"Network or API issue occurred: {e}")
+        raise FetchingError(f"Network error while fetching problem data for {title_slug}: {e}")
+    except ValueError:
+        raise FetchingError("Failed to parse JSON response while fetching problem data.")
+
+    return result

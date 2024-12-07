@@ -34,7 +34,6 @@ from leetcode_cli.user_utils import (
 from leetcode_cli.data_fetching.stats_fetcher import fetch_user_stats, fetch_user_activity
 from leetcode_cli.data_fetching.problem_fetcher import fetch_problem_data, fetch_problem_testcases, fetch_problem_id
 from leetcode_cli.data_fetching.problemset_fetcher import fetch_problemset
-from leetcode_cli.data_fetching.code_snippet_fetcher import CodeSnippetFetchError
 
 from leetcode_cli.leetcode_problem.problem_submitter import interpret_and_get_result, interpret_solution
 from leetcode_cli.leetcode_problem.problem_submitter import submit_and_get_result, SubmissionError
@@ -427,6 +426,7 @@ def show(title_slug_or_id, include, random, difficulty, tag, use_downloaded):
 
 
     metadata = fetch_problem_data(title_slug)
+    print(metadata)
 
     if not metadata or not metadata['data']['question']:
         click.echo(f"Error: Can't fetch problem: {title_slug_or_id}")
@@ -763,6 +763,8 @@ def test(file_path):
 
         problem_testcases = fetch_problem_testcases(title_slug)['data']['question']['exampleTestcases']
         result = interpret_and_get_result(cookie, csrf_token, file_path, problem_testcases)
+        print("Test result:")
+        print(result)
 
         if result:
             formatted_result = get_formatted_interpretation(result, problem_testcases)
@@ -807,6 +809,9 @@ def submit(file_path):
             return
 
         result = submit_and_get_result(cookie, csrf_token, file_path)
+
+        print("Submission result:")
+        print(result)
 
         if result:
             formatted_result = get_formatted_submission(result)

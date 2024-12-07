@@ -2,36 +2,15 @@ import requests
 import logging
 
 from leetcode_cli.data_fetching.graphql_queries import GRAPHQL_URL, GRAPHQL_QUERIES
+from leetcode_cli.exceptions.exceptions import FetchingError
 
 logger = logging.getLogger(__name__)
 
-class LeetCodeStatsFetchError(Exception):
-    """Custom exception for LeetCode stats fetching errors."""
-    pass
-
 def fetch_user_stats(username):
-    """
-    Fetches LeetCode stats for the given username.
-
-    Args:
-        username (str): The username.
-
-    Returns:
-        dict: The stats data.
-
-    Raises:
-        LeetCodeStatsFetchError: If fetching fails.
-    """
-    if not username:
-        raise LeetCodeStatsFetchError("Username was not provided.")
-
     query = GRAPHQL_QUERIES['problem_stats']
-
     payload = {
         "query": query,
-        "variables": {
-            "userSlug": username
-        },
+        "variables": {"userSlug": username},
         "operationName": "userProfileUserQuestionProgressV2"
     }
 
@@ -39,45 +18,18 @@ def fetch_user_stats(username):
         response = requests.post(GRAPHQL_URL, json=payload)
         response.raise_for_status()
         result = response.json()
-
-        if "errors" in result:
-            raise LeetCodeStatsFetchError(f"Error from API: {result['errors']}")
-
-        return result
-
-    except requests.exceptions.HTTPError as http_err:
-        raise LeetCodeStatsFetchError(f"HTTP error occurred: {http_err}")
     except requests.RequestException as e:
-        raise LeetCodeStatsFetchError(f"Network or API issue occurred: {e}")
+        raise FetchingError(f"Network error while fetching stats for user {username}: {e}")
+    except ValueError:
+        raise FetchingError("Failed to parse JSON response while fetching user stats.")
+
+    return result
 
 def fetch_user_activity(username, year):
-    """
-    Fetches LeetCode activity calendar for the given username and year.
-
-    Args:
-        username (str): The username.
-        year (int): The year.
-
-    Returns:
-        dict: The activity data.
-
-    Raises:
-        LeetCodeStatsFetchError: If fetching fails.
-    """
-    if not username:
-        raise LeetCodeStatsFetchError("Username was not provided.")
-
-    if year is None:
-        raise LeetCodeStatsFetchError("Year is None.")
-
     query = GRAPHQL_QUERIES['user_calendar']
-
     payload = {
         "query": query,
-        "variables": {
-            "username": username,
-            "year": year
-        },
+        "variables": {"username": username, "year": year},
         "operationName": "userProfileCalendar"
     }
 
@@ -85,13 +37,9 @@ def fetch_user_activity(username, year):
         response = requests.post(GRAPHQL_URL, json=payload)
         response.raise_for_status()
         result = response.json()
-
-        if "errors" in result:
-            raise LeetCodeStatsFetchError(f"Error from API: {result['errors']}")
-
-        return result
-
-    except requests.exceptions.HTTPError as http_err:
-        raise LeetCodeStatsFetchError(f"HTTP error occurred: {http_err}")
     except requests.RequestException as e:
-        raise LeetCodeStatsFetchError(f"Network or API issue occurred: {e}")
+        raise FetchingError(f"Network error while fetching user activity for {username} in {year}: {e}")
+    except ValueError:
+        raise FetchingError("Failed to parse JSON response while fetching user activity.")
+
+    return result
