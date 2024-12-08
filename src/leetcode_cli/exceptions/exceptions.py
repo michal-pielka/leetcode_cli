@@ -11,3 +11,7 @@ class ParsingError(Exception):
 class FormattingError(Exception):
     """Raised when there is an error formatting the parsed data for output."""
     pass
+
+class SubmissionError(Exception):
+    """Raised when there is an error..."""
+    pass
