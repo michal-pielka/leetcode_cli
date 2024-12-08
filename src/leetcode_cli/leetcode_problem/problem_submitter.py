@@ -4,9 +4,9 @@ import requests
 import logging
 import os
 
-from leetcode_cli.user_utils import get_problem_by_key_value
-from leetcode_cli.user_utils import problem_data_from_path
-from leetcode_cli.user_utils import load_problems_metadata
+from leetcode_cli.utils.user_utils import get_problem_by_key_value
+from leetcode_cli.utils.user_utils import problem_data_from_path
+from leetcode_cli.utils.user_utils import load_problems_metadata
 
 logger = logging.getLogger(__name__)
 

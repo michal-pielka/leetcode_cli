@@ -1,52 +1,50 @@
+# leetcode_cli/cli.py
+import logging
 import click
 
+# Import command groups from separate files
+from leetcode_cli.commands.config import config_cmd
+from leetcode_cli.commands.list_problem import list_cmd
+from leetcode_cli.commands.show_problem import show_cmd
+from leetcode_cli.commands.submit import submit_cmd
+from leetcode_cli.commands.test_solution import test_cmd
+from leetcode_cli.commands.download_problems import download_problems_cmd
+from leetcode_cli.commands.stats import stats_cmd
+from leetcode_cli.commands.create_solution import create_cmd
 
-from leetcode_cli.data_fetching.problem_fetcher import fetch_problem_data
-from leetcode_cli.parsersNEW.problem_parser import parse_problem_data
-from leetcode_cli.formatters.problem_formatter import ProblemFormatter
-from leetcode_cli.data_fetching.problemset_fetcher import fetch_problemset
+def configure_logging():
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+        handlers=[
+            logging.StreamHandler()
+        ]
+    )
 
-CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'], max_content_width=200)
-
-@click.group(context_settings=CONTEXT_SETTINGS, invoke_without_command=True)
+@click.group(context_settings=dict(help_option_names=['-h', '--help'], max_content_width=200))
 @click.pass_context
 def cli(ctx):
-    """LeetCode CLI Tool
+    """
+    LeetCode CLI Tool
 
     Manage your LeetCode activities directly from the command line.
     """
     if ctx.invoked_subcommand is None:
-        click.echo("testHELP")
+        click.echo(cli.get_help(ctx))
 
-
-@cli.command(short_help='Configure user settings')
-def test_list():
-    from leetcode_cli.data_fetching.problemset_fetcher import fetch_problemset
-    from leetcode_cli.parsersNEW.problemset_data_parser import parse_problemset_data
-    from leetcode_cli.formatters.problemset_formatter import ProblemSetFormatter
-        
-    problemset_raw = fetch_problemset(None, None, None, None, None, None)
-    parsed = parse_problemset_data(problemset_raw)
-    formatted_problemset = ProblemSetFormatter(parsed)
-    print(formatted_problemset.get_formatted_questions())
-
-
-
-
-@cli.command(short_help='Configure user settings')
-def test_two_sum():
-    raw_json_problem_data = fetch_problem_data("two-sum")
-    parsed_problem = parse_problem_data(raw_json_problem_data)
-    formatted_data = ProblemFormatter(parsed_problem)
-
-
-    print(formatted_data.title)
-    print(formatted_data.topic_tags)
-    print(formatted_data.languages)
-    print(formatted_data.description)
-    print(formatted_data.examples)
-    print(formatted_data.constraints)
-
+# Add subcommands from separate command modules
+cli.add_command(config_cmd, "config")
+cli.add_command(list_cmd, "list")
+cli.add_command(show_cmd, "show")
+cli.add_command(submit_cmd, "submit")
+cli.add_command(test_cmd, "test")
+cli.add_command(download_problems_cmd, "download_problems")
+cli.add_command(stats_cmd, "stats")
+cli.add_command(create_cmd, "create")
 
 def main():
+    configure_logging()
     cli()
+
+if __name__ == "__main__":
+    main()

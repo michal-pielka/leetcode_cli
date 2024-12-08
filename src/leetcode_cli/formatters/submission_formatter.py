@@ -1,6 +1,5 @@
 from leetcode_cli.graphics.escape_sequences import ANSI_CODES, ANSI_RESET
 from leetcode_cli.graphics.symbols import SYMBOLS
-from leetcode_cli.parsers.submission_parser import SubmissionParseError
 from leetcode_cli.models.submission import SubmissionResult
 
 SUBMISSION_ANSI = {
