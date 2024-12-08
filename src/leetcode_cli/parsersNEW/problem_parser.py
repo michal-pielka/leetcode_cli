@@ -1,446 +1,217 @@
-
-from bs4 import BeautifulSoup, NavigableString, Tag
+test = {'data': {'question': {'title': 'Two Sum', 'questionFrontendId': '1', 'questionTitle': 'Two Sum', 'content': '<p>Given an array of integers <code>nums</code>&nbsp;and an integer <code>target</code>, return <em>indices of the two numbers such that they add up to <code>target</code></em>.</p>\n\n<p>You may assume that each input would have <strong><em>exactly</em> one solution</strong>, and you may not use the <em>same</em> element twice.</p>\n\n<p>You can return the answer in any order.</p>\n\n<p>&nbsp;</p>\n<p><strong class="example">Example 1:</strong></p>\n\n<pre>\n<strong>Input:</strong> nums = [2,7,11,15], target = 9\n<strong>Output:</strong> [0,1]\n<strong>Explanation:</strong> Because nums[0] + nums[1] == 9, we return [0, 1].\n</pre>\n\n<p><strong class="example">Example 2:</strong></p>\n\n<pre>\n<strong>Input:</strong> nums = [3,2,4], target = 6\n<strong>Output:</strong> [1,2]\n</pre>\n\n<p><strong class="example">Example 3:</strong></p>\n\n<pre>\n<strong>Input:</strong> nums = [3,3], target = 6\n<strong>Output:</strong> [0,1]\n</pre>\n\n<p>&nbsp;</p>\n<p><strong>Constraints:</strong></p>\n\n<ul>\n\t<li><code>2 &lt;= nums.length &lt;= 10<sup>4</sup></code></li>\n\t<li><code>-10<sup>9</sup> &lt;= nums[i] &lt;= 10<sup>9</sup></code></li>\n\t<li><code>-10<sup>9</sup> &lt;= target &lt;= 10<sup>9</sup></code></li>\n\t<li><strong>Only one valid answer exists.</strong></li>\n</ul>\n\n<p>&nbsp;</p>\n<strong>Follow-up:&nbsp;</strong>Can you come up with an algorithm that is less than <code>O(n<sup>2</sup>)</code><font face="monospace">&nbsp;</font>time complexity?', 'categoryTitle': 'Algorithms', 'difficulty': 'Easy', 'topicTags': [{'name': 'Array'}, {'name': 'Hash Table'}], 'stats': '{"totalAccepted": "15.4M", "totalSubmission": "28.3M", "totalAcceptedRaw": 15384162, "totalSubmissionRaw": 28308526, "acRate": "54.3%"}', 'likes': 59105, 'dislikes': 2112, 'isPaidOnly': False, 'solution': {'id': '7', 'paidOnly': False, 'hasVideoSolution': True, 'canSeeDetail': True}, 'codeSnippets': [{'code': 'class Solution {\npublic:\n    vector<int> twoSum(vector<int>& nums, int target) {\n        \n    }\n};', 'lang': 'C++', 'langSlug': 'cpp'}, {'code': 'class Solution {\n    public int[] twoSum(int[] nums, int target) {\n        \n    }\n}', 'lang': 'Java', 'langSlug': 'java'}, {'code': 'class Solution(object):\n    def twoSum(self, nums, target):\n        """\n        :type nums: List[int]\n        :type target: int\n        :rtype: List[int]\n        """\n        ', 'lang': 'Python', 'langSlug': 'python'}, {'code': 'class Solution:\n    def twoSum(self, nums: List[int], target: int) -> List[int]:\n        ', 'lang': 'Python3', 'langSlug': 'python3'}, {'code': '/**\n * Note: The returned array must be malloced, assume caller calls free().\n */\nint* twoSum(int* nums, int numsSize, int target, int* returnSize) {\n    \n}', 'lang': 'C', 'langSlug': 'c'}, {'code': 'public class Solution {\n    public int[] TwoSum(int[] nums, int target) {\n        \n    }\n}', 'lang': 'C#', 'langSlug': 'csharp'}, {'code': '/**\n * @param {number[]} nums\n * @param {number} target\n * @return {number[]}\n */\nvar twoSum = function(nums, target) {\n    \n};', 'lang': 'JavaScript', 'langSlug': 'javascript'}, {'code': 'function twoSum(nums: number[], target: number): number[] {\n    \n};', 'lang': 'TypeScript', 'langSlug': 'typescript'}, {'code': 'class Solution {\n\n    /**\n     * @param Integer[] $nums\n     * @param Integer $target\n     * @return Integer[]\n     */\n    function twoSum($nums, $target) {\n        \n    }\n}', 'lang': 'PHP', 'langSlug': 'php'}, {'code': 'class Solution {\n    func twoSum(_ nums: [Int], _ target: Int) -> [Int] {\n        \n    }\n}', 'lang': 'Swift', 'langSlug': 'swift'}, {'code': 'class Solution {\n    fun twoSum(nums: IntArray, target: Int): IntArray {\n        \n    }\n}', 'lang': 'Kotlin', 'langSlug': 'kotlin'}, {'code': 'class Solution {\n  List<int> twoSum(List<int> nums, int target) {\n    \n  }\n}', 'lang': 'Dart', 'langSlug': 'dart'}, {'code': 'func twoSum(nums []int, target int) []int {\n    \n}', 'lang': 'Go', 'langSlug': 'golang'}, {'code': '# @param {Integer[]} nums\n# @param {Integer} target\n# @return {Integer[]}\ndef two_sum(nums, target)\n    \nend', 'lang': 'Ruby', 'langSlug': 'ruby'}, {'code': 'object Solution {\n    def twoSum(nums: Array[Int], target: Int): Array[Int] = {\n        \n    }\n}', 'lang': 'Scala', 'langSlug': 'scala'}, {'code': 'impl Solution {\n    pub fn two_sum(nums: Vec<i32>, target: i32) -> Vec<i32> {\n        \n    }\n}', 'lang': 'Rust', 'langSlug': 'rust'}, {'code': '(define/contract (two-sum nums target)\n  (-> (listof exact-integer?) exact-integer? (listof exact-integer?))\n  )', 'lang': 'Racket', 'langSlug': 'racket'}, {'code': '-spec two_sum(Nums :: [integer()], Target :: integer()) -> [integer()].\ntwo_sum(Nums, Target) ->\n  .', 'lang': 'Erlang', 'langSlug': 'erlang'}, {'code': 'defmodule Solution do\n  @spec two_sum(nums :: [integer], target :: integer) :: [integer]\n  def two_sum(nums, target) do\n    \n  end\nend', 'lang': 'Elixir', 'langSlug': 'elixir'}]}}}
+import json
 import re
-import logging
+from bs4 import BeautifulSoup
+from leetcode_cli.exceptions.exceptions import ParsingError
+from leetcode_cli.models.problem import Problem
 
-from leetcode_cli.graphics.escape_sequences import ANSI_CODES, ANSI_RESET
-from leetcode_cli.graphics.symbols import SYMBOLS
+def parse_problem_data(json_data):
+    """
+    Parses the JSON returned by fetch_problem_data(title_slug) into a Problem model.
+    Changes:
+    - Trim description strictly before the first example or constraints section.
+    - Constraints remain in HTML format (no stripping tags).
+    - Strip only leading and trailing newlines from description.
+    """
 
-logger = logging.getLogger(__name__)
+    if "data" not in json_data or "question" not in json_data["data"]:
+        raise ParsingError("Invalid problem data structure: 'data.question' key not found.")
 
-class LeetCodeProblemParserError(Exception):
-    """Custom exception for LeetCodeProblemParser errors."""
-    pass
+    question = json_data["data"]["question"]
+    required_fields = ["title", "questionFrontendId", "content", "categoryTitle", "difficulty", 
+                       "topicTags", "stats", "likes", "dislikes", "isPaidOnly", "solution", "codeSnippets"]
+    for field in required_fields:
+        if field not in question:
+            raise ParsingError(f"Missing '{field}' in problem data.")
 
-class LeetCodePaidOnlyProblemError(Exception):
-    """Custom exception for paid-only problems when content is inaccessible."""
-    pass
+    # Parse topic tags
+    topic_tags = []
+    for tag_data in question["topicTags"]:
+        if "name" not in tag_data:
+            raise ParsingError("Topic tag data is missing 'name' field.")
+        topic_tags.append(tag_data["name"])
 
-class LeetCodeProblemParser:
-    HTML_TO_ANSI = {
-        "strong": ANSI_CODES["BOLD"],
-        "b": ANSI_CODES["BOLD"],
-        "em": ANSI_CODES["ITALIC"],
-        "i": ANSI_CODES["ITALIC"],
-        "u": ANSI_CODES["UNDERLINE"],
-        "code": ANSI_CODES["GRAY_BG"],
-        "pre": ANSI_CODES["RED"],
-        "tag": ANSI_CODES["BABY_BLUE_BG"] + ANSI_CODES["WHITE"] + ANSI_CODES["BOLD"],
-        "language": ANSI_CODES["ORANGE_BG"] + ANSI_CODES["BLACK"] + ANSI_CODES["BOLD"],
-        "title": ANSI_CODES["BOLD"],
-        "example_title": ANSI_CODES["BOLD"],
-        "example_input_string": ANSI_CODES["BOLD"],
-        "example_output_string": ANSI_CODES["BOLD"],
-        "example_explanation_string": ANSI_CODES["BOLD"],
-        "example_input_data": ANSI_CODES["GRAY"],
-        "example_output_data": ANSI_CODES["GRAY"],
-        "example_explanation_data": ANSI_CODES["GRAY"],
-        "constraints_string": ANSI_CODES["BOLD"],
-        "Easy": ANSI_CODES["GREEN_BG"],
-        "Medium": ANSI_CODES["ORANGE_BG"],
-        "Hard": ANSI_CODES["RED_BG"],
-    }
-
-    HTML_TO_SYMBOL = {
-        "sup": SYMBOLS["CARET"],
-        "li": SYMBOLS["DOT"] + " ",
-    }
-
-    def __init__(self, metadata: dict):
-        """
-        Initializes the parser with problem metadata.
-
-        Args:
-            metadata (dict): The raw problem metadata fetched from LeetCode API.
-
-        Raises:
-            LeetCodeProblemParserError: If metadata is invalid or missing.
-            LeetCodePaidOnlyProblemError: If the problem is paid-only and content is inaccessible.
-        """
-        if not metadata or not isinstance(metadata, dict):
-            logger.error("Metadata must be a non-empty dictionary.")
-            raise LeetCodeProblemParserError("Metadata must be a non-empty dictionary.")
-
-        self.metadata = metadata
-        self.question_data = self._extract_question_data()
-        self.is_paid_only = self.question_data.get("isPaidOnly", False)
-        self.question_html_content = self.question_data.get("content", "")
-
-        # Check if the problem is paid-only and content is inaccessible
-        if self.is_paid_only and not self.question_html_content:
-            logger.warning("This is a paid-only problem and the content is inaccessible.")
-            raise LeetCodePaidOnlyProblemError("This is a paid-only problem and the content is inaccessible.")
-
-        # Extracted attributes
-        self.question_id = self.question_data.get("questionFrontendId", "")
-        self.question_title = self.question_data.get("title", "")
-        self.question_description = self._extract_question_description()
-        self.question_examples = self._extract_question_examples()
-        self.question_constraints = self._extract_question_constraints()
-        self.question_hints = self.question_data.get("hints", [])
-        self.question_topic_tags = self.question_data.get("topicTags", [])
-        self.question_languages = self._extract_languages()
-        self.question_difficulty = self.question_data.get("difficulty", "")
-        self.question_likes = self.question_data.get("likes", 0)
-        self.question_dislikes = self.question_data.get("dislikes", 0)
-        self.question_example_testcases = self.question_data.get("exampleTestcases", "")
-
-    def _extract_question_data(self) -> dict:
-        """
-        Extracts question data from metadata.
-
-        Returns:
-            dict: The question data.
-
-        Raises:
-            LeetCodeProblemParserError: If required data is missing.
-        """
+    # Parse stats (which might be a JSON string)
+    stats_str = question["stats"]
+    if isinstance(stats_str, str):
         try:
-            return self.metadata["data"]["question"]
+            stats_data = json.loads(stats_str)
+        except json.JSONDecodeError:
+            raise ParsingError("Stats field is not valid JSON.")
+    else:
+        stats_data = stats_str
 
-        except KeyError as e:
-            logger.error(f"Missing key in metadata: {e}")
-            raise LeetCodeProblemParserError(f"Missing key in metadata: {e}")
+    stats_required = ["totalAccepted", "totalSubmission", "totalAcceptedRaw", "totalSubmissionRaw", "acRate"]
+    for sfield in stats_required:
+        if sfield not in stats_data:
+            raise ParsingError(f"Missing '{sfield}' in stats data.")
 
-    def _extract_question_description(self) -> str:
-        """
-        Extracts the question description from HTML content.
-
-        Returns:
-            str: The question description in HTML.
-        """
-        soup = BeautifulSoup(self.question_html_content, "html.parser")
-        description_elements = []
-        for element in soup.find_all(['p', 'ul']):
-            if element.find('strong', string=re.compile(r'Example')):
-                break
-            description_elements.append(str(element))
-        description_html = "\n".join(description_elements).strip()
-        return description_html
-
-    def _extract_question_examples(self) -> list:
-        """
-        Extracts examples from the question content.
-
-        Returns:
-            list: A list of example dictionaries.
-        """
-        soup = BeautifulSoup(self.question_html_content, "html.parser")
-        examples = []
-        example_headers = soup.find_all('strong', string=re.compile(r'Example \d+'))
-        for header in example_headers:
-            example = self._parse_example_section(header)
-            if example:
-                examples.append(example)
-        return examples
-
-    def _extract_languages(self):
-        languages = []
-
-        for language_data in self.question_data.get("codeSnippets", []):
-            lang = language_data.get("lang", None)
-
-            if lang:
-                languages.append(lang)
-
-        return languages
-
-    def _parse_example_section(self, header) -> dict:
-        """
-        Parses an example section from the HTML.
-
-        Args:
-            header (Tag): The header tag of the example.
-
-        Returns:
-            dict: A dictionary containing the example data.
-        """
-        example_title = header.get_text(strip=True).rstrip(':')
-        pre_tag = header.find_next('pre')
-        if not pre_tag:
-            return None
-        example_content = pre_tag.decode_contents()
-        parsed_example = self._parse_example_content(example_content)
-        if parsed_example:
-            parsed_example['title'] = example_title
-            return parsed_example
-        return None
-
-    def _parse_example_content(self, html_content: str) -> dict:
-        """
-        Parses the content of an example.
-
-        Args:
-            html_content (str): The HTML content of the example.
-
-        Returns:
-            dict: A dictionary containing input, output, and explanation.
-        """
-        soup = BeautifulSoup(html_content, "html.parser")
-        content_text = soup.get_text(separator="\n").strip()
-        example_dict = {}
-
-        # Use regular expressions to capture 'Input', 'Output', and 'Explanation' sections
-        input_match = re.search(r'Input:\s*(.*?)(?:\nOutput:|\Z)', content_text, re.DOTALL)
-        output_match = re.search(r'Output:\s*(.*?)(?:\nExplanation:|\Z)', content_text, re.DOTALL)
-        explanation_match = re.search(r'Explanation:\s*(.*)', content_text, re.DOTALL)
-
-        if input_match:
-            example_dict['input'] = input_match.group(1).strip()
-        if output_match:
-            example_dict['output'] = output_match.group(1).strip()
-        if explanation_match:
-            example_dict['explanation'] = explanation_match.group(1).strip()
-        return example_dict
-
-    def _parse_input(self, input_str: str) -> dict:
-        """
-        Parses the input string of an example, correctly handling nested lists.
-
-        Args:
-            input_str (str): The input string.
-
-        Returns:
-            dict: A dictionary of input parameters.
-        """
-        input_dict = {}
-        # Pattern to match key = value, where value can be anything until the next comma at the top level
-        pattern = r'(\w+)\s*=\s*([\s\S]+?)(?:(?<=\])|(?<=\})|(?<=\")|(?<=\')|$)(?:,|$)'
-        matches = re.finditer(pattern, input_str)
-        for match in matches:
-            key = match.group(1).strip()
-            value = match.group(2).strip()
-            input_dict[key] = value
-        return input_dict
-
-    def _extract_question_constraints(self) -> list:
-        """
-        Extracts the constraints from the question content.
-
-        Returns:
-            list: A list of constraint strings.
-        """
-        soup = BeautifulSoup(self.question_html_content, "html.parser")
-        constraints_header = soup.find('strong', string='Constraints:')
-        if not constraints_header:
-            return []
-        ul_tag = constraints_header.find_next('ul')
-        if not ul_tag:
-            return []
-        constraints = [str(li) for li in ul_tag.find_all('li')]
-        return constraints
-
-    def html_to_ansi(self, html_content: str) -> str:
-        """
-        Converts HTML content to ANSI-formatted string.
-
-        Args:
-            html_content (str): The HTML content.
-
-        Returns:
-            str: The ANSI-formatted string.
-        """
-        if not html_content:
-            return ""
-        soup = BeautifulSoup(html_content, "html.parser")
-        ansi_str = ""
-        style_stack = []
-
-        def traverse(element):
-            nonlocal ansi_str
-            if isinstance(element, NavigableString):
-                ansi_str += element
-            elif isinstance(element, Tag):
-                if element.name in self.HTML_TO_SYMBOL:
-                    ansi_str += self.HTML_TO_SYMBOL[element.name]
-                if element.name in self.HTML_TO_ANSI:
-                    ansi_code = self.HTML_TO_ANSI[element.name]
-                    ansi_str += ansi_code
-                    style_stack.append(ansi_code)
-                if element.name in ['p', 'br', 'ul']:
-                    ansi_str += '\n'
-                for child in element.children:
-                    traverse(child)
-                if element.name in self.HTML_TO_ANSI:
-                    ansi_str += ANSI_RESET
-                    if style_stack:
-                        style_stack.pop()
-
-        for child in soup.children:
-            traverse(child)
-        return ansi_str
-
-    def get_formatted_topic_tags(self) -> str:
-        """
-        Formats the topic tags.
-
-        Returns:
-            str: A formatted string of topic tags.
-        """
-        formatted_tags = ["Tags:"]
-
-        for tag in self.question_topic_tags:
-            tag_name = " " + tag["name"].lower() + " "
-            formatted_tags.append(self.HTML_TO_ANSI["tag"] + tag_name + ANSI_RESET + " ")
-
-        return " ".join(formatted_tags)
-
-    def get_formatted_languages(self) -> str:
-        """
-        Formats the submittable languages.
-
-        Returns:
-            str: A formatted string of languages
-        """
-        formatted_languages = ["Languages:"]
-
-        for language in self.question_languages:
-            formatted_language = f"{self.HTML_TO_ANSI['language']} {language} {ANSI_RESET}"
-            formatted_languages.append(formatted_language)
-
-        return " ".join(formatted_languages)
-
-    def get_formatted_title(self) -> str:
-        """
-        Formats the question title.
-
-        Returns:
-            str: The formatted title.
-        """
-        difficulty_color = self.HTML_TO_ANSI.get(self.question_difficulty, "")
-        title = f"[{self.question_id}] {self.question_title} {difficulty_color}[{self.question_difficulty}]{ANSI_RESET}"
-        return f"{self.HTML_TO_ANSI['title']}{title}{ANSI_RESET}"
-
-    def get_formatted_description(self) -> str:
-        """
-        Formats the question description.
-
-        Returns:
-            str: The formatted description.
-        """
-        if not self.question_description:
-            return "No description available."
-        return self.html_to_ansi(self.question_description)
-
-    def _format_example(self, example: dict) -> str:
-        """
-        Formats a single example.
-
-        Args:
-            example (dict): The example data.
-
-        Returns:
-            str: The formatted example string.
-        """
-        parts = []
-        parts.append(f"{self.HTML_TO_ANSI['example_title']}{example['title']}{ANSI_RESET}\n\n")
-        parts.append(f"| {self.HTML_TO_ANSI['example_input_string']}Input: {ANSI_RESET}{self.HTML_TO_ANSI['example_input_data']}{example['input']}{ANSI_RESET}\n")
-        parts.append(f"| {self.HTML_TO_ANSI['example_output_string']}Output: {ANSI_RESET}{self.HTML_TO_ANSI['example_output_data']}{example['output']}{ANSI_RESET}")
-        if 'explanation' in example:
-            explanation = example['explanation'].replace("\n", f"{ANSI_RESET}\n| {self.HTML_TO_ANSI['example_explanation_data']}")
-            parts.append(f"\n| {self.HTML_TO_ANSI['example_explanation_string']}Explanation: {ANSI_RESET}{self.HTML_TO_ANSI['example_explanation_data']}{explanation}{ANSI_RESET}")
-        return "".join(parts)
-
-    def get_formatted_examples(self) -> str:
-        """
-        Formats all examples.
-
-        Returns:
-            str: The formatted examples.
-        """
-        formatted_examples = [self._format_example(example) for example in self.question_examples]
-        return "\n\n".join(formatted_examples)
-
-    def get_formatted_constraints(self) -> str:
-        """
-        Formats the constraints.
-
-        Returns:
-            str: The formatted constraints.
-        """
-        if not self.question_constraints:
-            return ""
-        constraints = [self.html_to_ansi(html) for html in self.question_constraints]
-        constraints_str = "\n".join(constraints)
-        return f"{self.HTML_TO_ANSI['constraints_string']}Constraints:{ANSI_RESET}\n\n{constraints_str}"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-"""
-{
-  "data": {
-    "question": {
-      "title": "Two Sum",
-      "questionFrontendId": "1",
-      "questionTitle": "Two Sum",
-      "content": "<p>Given an array of integers <code>nums</code>&nbsp;and an integer <code>target</code>, return <em>indices of the two numbers such that they add up to <code>target</code></em>.</p>\n\n<p>You may assume that each input would have <strong><em>exactly</em> one solution</strong>, and you may not use the <em>same</em> element twice.</p>\n\n<p>You can return the answer in any order.</p>\n\n<p>&nbsp;</p>\n<p><strong class=\"example\">Example 1:</strong></p>\n\n<pre>\n<strong>Input:</strong> nums = [2,7,11,15], target = 9\n<strong>Output:</strong> [0,1]\n<strong>Explanation:</strong> Because nums[0] + nums[1] == 9, we return [0, 1].\n</pre>\n\n<p><strong class=\"example\">Example 2:</strong></p>\n\n<pre>\n<strong>Input:</strong> nums = [3,2,4], target = 6\n<strong>Output:</strong> [1,2]\n</pre>\n\n<p><strong class=\"example\">Example 3:</strong></p>\n\n<pre>\n<strong>Input:</strong> nums = [3,3], target = 6\n<strong>Output:</strong> [0,1]\n</pre>\n\n<p>&nbsp;</p>\n<p><strong>Constraints:</strong></p>\n\n<ul>\n\t<li><code>2 &lt;= nums.length &lt;= 10<sup>4</sup></code></li>\n\t<li><code>-10<sup>9</sup> &lt;= nums[i] &lt;= 10<sup>9</sup></code></li>\n\t<li><code>-10<sup>9</sup> &lt;= target &lt;= 10<sup>9</sup></code></li>\n\t<li><strong>Only one valid answer exists.</strong></li>\n</ul>\n\n<p>&nbsp;</p>\n<strong>Follow-up:&nbsp;</strong>Can you come up with an algorithm that is less than <code>O(n<sup>2</sup>)</code><font face=\"monospace\">&nbsp;</font>time complexity?",
-      "categoryTitle": "Algorithms",
-      "difficulty": "Easy",
-      "topicTags": [
-        {
-          "name": "Array"
-        },
-        {
-          "name": "Hash Table"
-        }
-      ],
-      "stats": {
-        "totalAccepted": "15.4M",
-        "totalSubmission": "28.3M",
-        "totalAcceptedRaw": 15372187,
-        "totalSubmissionRaw": 28290370,
-        "acRate": "54.3%"
-      },
-      "likes": 59084,
-      "dislikes": 2111,
-      "isPaidOnly": false,
-      "solution": {
-        "id": "7",
-        "paidOnly": false,
-        "hasVideoSolution": true,
-        "canSeeDetail": true
-      },
-      "codeSnippets": [
-        {
-          "code": "class Solution {\npublic:\n    vector<int> twoSum(vector<int>& nums, int target) {\n        \n    }\n};",
-          "lang": "C++",
-          "langSlug": "cpp"
-        },
-        ...
-        {
-          "code": "defmodule Solution do\n  @spec two_sum(nums :: [integer], target :: integer) :: [integer]\n  def two_sum(nums, target) do\n    \n  end\nend",
-          "lang": "Elixir",
-          "langSlug": "elixir"
-        }
-      ]
+    stats = {
+        "total_accepted": stats_data["totalAccepted"],
+        "total_submission": stats_data["totalSubmission"],
+        "total_accepted_raw": stats_data["totalAcceptedRaw"],
+        "total_submission_raw": stats_data["totalSubmissionRaw"],
+        "ac_rate": stats_data["acRate"]
     }
-  }
-}
-"""
 
+    # Parse solution info
+    solution_data = question["solution"]
+    solution_required = ["id", "paidOnly", "hasVideoSolution", "canSeeDetail"]
+    for sol_field in solution_required:
+        if sol_field not in solution_data:
+            raise ParsingError(f"Missing '{sol_field}' in solution data.")
 
+    solution_info = {
+        "id": solution_data["id"],
+        "paid_only": solution_data["paidOnly"],
+        "has_video_solution": solution_data["hasVideoSolution"],
+        "can_see_detail": solution_data["canSeeDetail"]
+    }
 
+    # Parse code snippets
+    snippets = []
+    for snippet_data in question["codeSnippets"]:
+        snippet_required = ["lang", "langSlug"]
+        for sn_field in snippet_required:
+            if sn_field not in snippet_data:
+                raise ParsingError(f"Missing '{sn_field}' in code snippet data.")
 
+        snippets.append({
+            "lang": snippet_data["lang"],
+            "lang_slug": snippet_data["langSlug"]
+        })
 
+    # Parse the HTML content for description, examples, and constraints
+    html_content = question["content"]
+    soup = BeautifulSoup(html_content, "html.parser")
 
+    # Find constraints
+    constraints_header = soup.find('strong', string=re.compile(r'Constraints:'))
+    constraints = []
+    if constraints_header:
+        ul_tag = constraints_header.find_next('ul')
+        if ul_tag:
+            # Keep HTML tags in constraints
+            for li in ul_tag.find_all('li'):
+                # Store li as HTML
+                constraints.append(str(li))
 
+    # Find examples
+    # Identify them by <strong class="example">
+    example_headers = soup.find_all('strong', class_='example')
+    examples = []
+    for header in example_headers:
+        example = _parse_example_section(header)
+        if example:
+            examples.append(example)
 
+    # If no class='example', fallback to original pattern
+    # Sometimes examples might not have class='example', but given instructions, let's trust that `class="example"` marks them.
+    # If needed, we could also search by the regex 'Example \d+' as before:
+    if not examples:
+        # If no examples found by class, try fallback:
+        fallback_example_headers = soup.find_all('strong', string=re.compile(r'Example \d+'))
+        for header in fallback_example_headers:
+            if header not in example_headers:
+                example = _parse_example_section(header)
+                if example:
+                    examples.append(example)
+                    example_headers.append(header)
 
+    # Determine where description ends: the first element that is either an example or the constraints header.
+    stopping_points = []
+    if example_headers:
+        stopping_points.extend(example_headers)
+    if constraints_header:
+        stopping_points.append(constraints_header)
 
+    earliest_stop = None
+    if stopping_points:
+        # Sort stopping_points based on their occurrence in the HTML. The first found in the document order is earliest.
+        all_elements = list(soup.find_all())
+        earliest_stop = min(stopping_points, key=lambda el: all_elements.index(el))
 
-class ProblemParser:
-    def __init__(raw_json_data):
-        pass
+    # If we found a stopping point, we slice the original HTML content up to that point
+    if earliest_stop:
+        description_html = _slice_html_before(html_content, earliest_stop, soup)
+        # Strip only leading and trailing newlines
+        description_html = description_html.strip('\n')
+    else:
+        description_html = html_content.strip('\n')
+
+    problem = Problem(
+        title=question["title"],
+        question_frontend_id=question["questionFrontendId"],
+        description=description_html.strip(),
+        examples=examples,
+        constraints=constraints,
+        category_title=question["categoryTitle"],
+        difficulty=question["difficulty"],
+        topic_tags=topic_tags,
+        stats=stats,
+        likes=question["likes"],
+        dislikes=question["dislikes"],
+        is_paid_only=question["isPaidOnly"],
+        solution_info=solution_info,
+        code_snippets=snippets
+    )
+
+    return problem
+
+def _parse_example_section(header):
+    """
+    Extract the example title and content.
+    """
+    example_title = header.get_text(strip=True).rstrip(':')
+    pre_tag = header.find_next('pre')
+    if not pre_tag:
+        return None
+    example_content = pre_tag.decode_contents()
+    return _parse_example_content(example_content, example_title)
+
+def _parse_example_content(html_content: str, title: str) -> dict:
+    """
+    Parses the content of an example into a dict: {title, input, output, explanation}.
+    'input' will be a list of strings if multiple parameters are found.
+    """
+    soup = BeautifulSoup(html_content, "html.parser")
+    content_text = soup.get_text(separator="\n").strip()
+    example_dict = {"title": title}
+
+    input_match = re.search(r'Input:\s*(.*?)(?:\nOutput:|\Z)', content_text, re.DOTALL)
+    output_match = re.search(r'Output:\s*(.*?)(?:\nExplanation:|\Z)', content_text, re.DOTALL)
+    explanation_match = re.search(r'Explanation:\s*(.*)', content_text, re.DOTALL)
+
+    input_str = input_match.group(1).strip() if input_match else ""
+    input_list = []
+    if input_str:
+        # Split by ',' and strip each part
+        parts = [part.strip() for part in input_str.split(',')]
+        input_list = [p for p in parts if p]
+
+    example_dict['input'] = input_list
+    example_dict['output'] = output_match.group(1).strip() if output_match else ""
+    example_dict['explanation'] = explanation_match.group(1).strip() if explanation_match else ""
+
+    return example_dict
+
+def _slice_html_before(original_html: str, stop_element, soup: BeautifulSoup) -> str:
+    """
+    Slices the original_html string to end right before the stop_element.
+    We find the stop_element's exact HTML in the soup and use its start position
+    in the original_html to slice.
+    """
+    # Convert stop_element to a string
+    stop_html = str(stop_element)
+    # Find where stop_html occurs in original_html
+    idx = original_html.find(stop_html)
+    if idx == -1:
+        # If for some reason we can't find it, just return original_html (fallback)
+        return original_html
+    # Return everything up to idx (this excludes the stop_element and anything after it)
+    sliced_html = original_html[:idx]
+
+    # Now, strip leading and trailing newlines
+    sliced_html = sliced_html.lstrip('\n').rstrip('\n')
+
+    return sliced_html

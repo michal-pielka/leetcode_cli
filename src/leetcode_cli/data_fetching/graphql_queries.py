@@ -108,7 +108,6 @@ GRAPHQL_QUERIES = {
               canSeeDetail
             }
             codeSnippets {
-              code
               lang
               langSlug
             }
