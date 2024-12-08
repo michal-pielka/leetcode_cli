@@ -8,8 +8,77 @@ from leetcode_cli.models.problem import Problem
 import random
 
 POSSIBLE_TAGS = [
-    "array", "string", "hash-table", "dynamic-programming", "math", # ...
-    # add all other tags as needed
+    "array",
+    "string",
+    "hash-table",
+    "dynamic-programming",
+    "math",
+    "sorting",
+    "greedy",
+    "depth-first-search",
+    "binary-search",
+    "database",
+    "matrix",
+    "tree",
+    "breadth-first-search",
+    "bit-manipulation",
+    "two-pointers",
+    "prefix-sum",
+    "heap-priority-queue",
+    "binary-tree",
+    "simulation",
+    "stack",
+    "counting",
+    "graph",
+    "sliding-window",
+    "design",
+    "backtracking",
+    "enumeration",
+    "union-find",
+    "linked-list",
+    "ordered-set",
+    "number-theory",
+    "monotonic-stack",
+    "trie",
+    "segment-tree",
+    "bitmask",
+    "queue",
+    "divide-and-conquer",
+    "recursion",
+    "combinatorics",
+    "binary-search-tree",
+    "hash-function",
+    "memoization",
+    "binary-indexed-tree",
+    "geometry",
+    "string-matching",
+    "topological-sort",
+    "shortest-path",
+    "rolling-hash",
+    "game-theory",
+    "interactive",
+    "data-stream",
+    "monotonic-queue",
+    "brainteaser",
+    "randomized",
+    "merge-sort",
+    "doubly-linked-list",
+    "counting-sort",
+    "iterator",
+    "concurrency",
+    "probability-and-statistics",
+    "quickselect",
+    "suffix-array",
+    "bucket-sort",
+    "minimum-spanning-tree",
+    "shell",
+    "line-sweep",
+    "reservoir-sampling",
+    "strongly-connected-component",
+    "eulerian-circuit",
+    "radix-sort",
+    "rejection-sampling",
+    "biconnected-component"
 ]
 
 def is_title_slug(value):
@@ -79,7 +148,7 @@ def show_cmd(title_slug_or_id, include, random, difficulty, tag, use_downloaded)
     formatter = ProblemFormatter(problem)
     all_sections = {
         'title': formatter.title,
-        'tags': formatter.tags,
+        'tags': formatter.topic_tags,
         'langs': formatter.languages,
         'description': formatter.description,
         'examples': formatter.examples,
@@ -95,7 +164,5 @@ def show_cmd(title_slug_or_id, include, random, difficulty, tag, use_downloaded)
     for sec in sections:
         content = all_sections.get(sec)
         if content:
-            val = content()
-            if val:
-                click.echo(val)
-                click.echo()
+            click.echo(content)
+            click.echo()

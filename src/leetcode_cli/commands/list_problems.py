@@ -128,5 +128,4 @@ def list_cmd(difficulty, tag, limit, page, use_downloaded):
         problemset = parse_problemset_data(raw)
 
     formatter = ProblemSetFormatter(problemset)
-    click.echo(formatter.get_summary_line())
     click.echo(formatter.get_formatted_questions())

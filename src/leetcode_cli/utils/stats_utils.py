@@ -1,7 +1,8 @@
+# leetcode_cli/utils/stats_utils.py
+
 import json
 from datetime import datetime, timezone, timedelta
 import logging
-
 from leetcode_cli.graphics.escape_sequences import ANSI_CODES
 
 logger = logging.getLogger(__name__)
@@ -125,3 +126,4 @@ def calculate_color(submissions: int, max_submissions: int, min_submissions: int
     index = int(normalized * (len(CUSTOM_GREENS) - 1))
 
     return CUSTOM_GREENS[index]
+

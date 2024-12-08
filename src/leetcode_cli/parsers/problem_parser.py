@@ -56,17 +56,20 @@ def parse_problem_data(json_data):
 
     # Parse solution info
     solution_data = question["solution"]
-    solution_required = ["id", "paidOnly", "hasVideoSolution", "canSeeDetail"]
-    for sol_field in solution_required:
-        if sol_field not in solution_data:
-            raise ParsingError(f"Missing '{sol_field}' in solution data.")
+    if solution_data:
+        solution_required = ["id", "paidOnly", "hasVideoSolution", "canSeeDetail"]
+        for sol_field in solution_required:
+            if sol_field not in solution_data:
+                raise ParsingError(f"Missing '{sol_field}' in solution data.")
 
-    solution_info = {
-        "id": solution_data["id"],
-        "paid_only": solution_data["paidOnly"],
-        "has_video_solution": solution_data["hasVideoSolution"],
-        "can_see_detail": solution_data["canSeeDetail"]
-    }
+        solution_info = {
+            "id": solution_data["id"],
+            "paid_only": solution_data["paidOnly"],
+            "has_video_solution": solution_data["hasVideoSolution"],
+            "can_see_detail": solution_data["canSeeDetail"]
+        }
+    else:
+        solution_info = None
 
     # Parse code snippets
     snippets = []

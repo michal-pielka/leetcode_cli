@@ -4,7 +4,7 @@ import click
 
 # Import command groups from separate files
 from leetcode_cli.commands.config import config_cmd
-from leetcode_cli.commands.list_problem import list_cmd
+from leetcode_cli.commands.list_problems import list_cmd
 from leetcode_cli.commands.show_problem import show_cmd
 from leetcode_cli.commands.submit import submit_cmd
 from leetcode_cli.commands.test_solution import test_cmd
