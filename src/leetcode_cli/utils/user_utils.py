@@ -139,7 +139,7 @@ def extract_csrf_token(cookie: str) -> str:
     try:
         match = re.search(r'csrftoken=([^;]+)', cookie)
 
-    except Exception as e:
+    except Exception:
         return None
 
     if match:

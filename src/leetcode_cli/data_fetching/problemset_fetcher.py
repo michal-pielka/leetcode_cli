@@ -21,6 +21,7 @@ def fetch_problemset(cookie=None, csrf_token=None, tags=None, difficulty=None, l
 
     if tags:
         payload["variables"]["filters"]["tags"] = tags
+
     if difficulty:
         payload["variables"]["filters"]["difficulty"] = difficulty
 

@@ -1,7 +1,7 @@
 GRAPHQL_URL = "https://leetcode.com/graphql"
 
 GRAPHQL_QUERIES = {
-    "problem_stats": """
+    "user_problem_stats": """
         query userProfileUserQuestionProgressV2($userSlug: String!) {
           userProfileUserQuestionProgressV2(userSlug: $userSlug) {
             numAcceptedQuestions {
@@ -112,6 +112,14 @@ GRAPHQL_QUERIES = {
               langSlug
             }
           }
+        }
+    """,
+
+    "random_title_slug": """
+        query randomQuestion($categorySlug: String, $filters: QuestionListFilterInput) {
+            randomQuestion(categorySlug: $categorySlug, filters: $filters) {
+                titleSlug
+            }
         }
     """,
 

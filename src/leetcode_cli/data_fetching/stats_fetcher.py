@@ -7,7 +7,7 @@ from leetcode_cli.exceptions.exceptions import FetchingError
 logger = logging.getLogger(__name__)
 
 def fetch_user_stats(username):
-    query = GRAPHQL_QUERIES['problem_stats']
+    query = GRAPHQL_QUERIES['user_problem_stats']
     payload = {
         "query": query,
         "variables": {"userSlug": username},
@@ -18,6 +18,7 @@ def fetch_user_stats(username):
         response = requests.post(GRAPHQL_URL, json=payload)
         response.raise_for_status()
         result = response.json()
+
     except requests.RequestException as e:
         raise FetchingError(f"Network error while fetching stats for user {username}: {e}")
     except ValueError:
@@ -37,6 +38,7 @@ def fetch_user_activity(username, year):
         response = requests.post(GRAPHQL_URL, json=payload)
         response.raise_for_status()
         result = response.json()
+
     except requests.RequestException as e:
         raise FetchingError(f"Network error while fetching user activity for {username} in {year}: {e}")
     except ValueError:

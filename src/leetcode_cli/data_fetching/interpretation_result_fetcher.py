@@ -3,6 +3,7 @@ import time
 from typing import Dict
 from leetcode_cli.exceptions.exceptions import FetchingError
 from leetcode_cli.utils.user_utils import load_problems_metadata, get_problem_by_key_value
+from leetcode_cli.data_fetching.problem_fetcher import fetch_problem_id
 
 
 def fetch_interpretation_result(cookie: str, csrf_token: str, title_slug: str, code: str, language: str, testcases: str) -> Dict:
@@ -22,17 +23,27 @@ def fetch_interpretation_result(cookie: str, csrf_token: str, title_slug: str, c
         dict: The raw JSON result from LeetCode after interpretation is complete.
     """
     problems_data = load_problems_metadata()
-    question_data = get_problem_by_key_value(problems_data, "titleSlug", title_slug)
-    if not question_data or "questionId" not in question_data:
-        raise FetchingError(f"Unable to find questionId for {title_slug}")
 
-    question_id = question_data["questionId"]
+    if not problems_data:
+        question_id = fetch_problem_id(title_slug).get("data", {}).get("question", {}).get("questionId", None)
+
+        if not question_id:
+            raise FetchingError(f"Unable to find questionId for {title_slug}")
+
+    else:
+        question_data = get_problem_by_key_value(problems_data, "titleSlug", title_slug)
+
+        if not question_data or "questionId" not in question_data:
+            raise FetchingError(f"Unable to find questionId for {title_slug}")
+
+        question_id = question_data["questionId"]
+
     submit_url = f"https://leetcode.com/problems/{title_slug}/interpret_solution/"
 
     payload = {
         "data_input": testcases,
         "lang": language,
-        "question_id": str(question_id),
+        "question_id": question_id,
         "typed_code": code,
     }
 
@@ -48,8 +59,10 @@ def fetch_interpretation_result(cookie: str, csrf_token: str, title_slug: str, c
         response = requests.post(submit_url, json=payload, headers=headers)
         response.raise_for_status()
         submission = response.json()
+
     except requests.RequestException as e:
         raise FetchingError(f"Submission failed: {e}")
+
     except ValueError:
         raise FetchingError("Invalid response format from LeetCode.")
 
@@ -71,5 +84,5 @@ def fetch_interpretation_result(cookie: str, csrf_token: str, title_slug: str, c
 
         if result.get('state') == "SUCCESS":
             return result
-        time.sleep(0.25)
+        time.sleep(0.10)
 

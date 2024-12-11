@@ -10,6 +10,7 @@ def parse_problemset_data(json_data: Dict[str, Any]) -> ProblemSet:
         raise ParsingError("Invalid problemset data structure: 'data.problemsetQuestionList' key not found.")
 
     plist = json_data["data"]["problemsetQuestionList"]
+
     if "questions" not in plist or "total" not in plist:
         raise ParsingError("Missing 'questions' or 'total' in problemset data.")
 
@@ -34,7 +35,7 @@ def parse_problemset_data(json_data: Dict[str, Any]) -> ProblemSet:
             topic_tags=topic_slugs,
             frontend_question_id=str(q["frontendQuestionId"]),
             paid_only=bool(q["paidOnly"]),
-            status=q["status"],  # Could be None or a string
+            status=q["status"],
             title=q["title"],
             title_slug=q["titleSlug"]
         )

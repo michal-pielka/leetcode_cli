@@ -2,6 +2,10 @@ from leetcode_cli.graphics.escape_sequences import ANSI_CODES, ANSI_RESET
 from leetcode_cli.graphics.symbols import SYMBOLS
 from leetcode_cli.models.interpretation import InterpretationResult
 
+
+# fetch result {'status_code': 15, 'lang': 'python', 'run_success': False, 'runtime_error': 'Line 3: TypeError: can only concatenate list (not "int") to list', 'full_runtime_error': 'TypeError: can only concatenate list (not "int") to list\n    dp = [0] * len(cost + 1)\nLine 3 in minCostClimbingStairs (Solution.py)\n    ret = Solution().minCostClimbingStairs(param_1)\nLine 34 in _driver (Solution.py)\n    _driver()\nLine 48 in <module> (Solution.py)', 'status_runtime': 'N/A', 'memory': 12172000, 'code_answer': [], 'code_output': [], 'std_output_list': [''], 'elapsed_time': 29, 'task_finish_time': 1733745588191, 'task_name': 'judger.runcodetask.RunCode', 'expected_status_code': 10, 'expected_lang': 'python', 'expected_run_success': True, 'expected_status_runtime': '15', 'expected_memory': 11972000, 'expected_display_runtime': '0', 'expected_code_answer': ['15', '6', ''], 'expected_code_output': [], 'expected_std_output_list': ['', '', ''], 'expected_elapsed_time': 32, 'expected_task_finish_time': 1733743435763, 'expected_task_name': 'judger.interprettask.Interpret', 'correct_answer': False, 'compare_result': '00', 'total_correct': 0, 'total_testcases': 2, 'runtime_percentile': None, 'status_memory': 'N/A', 'memory_percentile': None, 'pretty_lang': 'Python', 'submission_id': 'runcode_1733745585.9841516_FX0x9HkzTM', 'status_msg': 'Runtime Error', 'state': 'SUCCESS'}
+
+
 # Reuse SUBMISSION_ANSI from previous code
 SUBMISSION_ANSI = {
     "Accepted": ANSI_CODES["GREEN"] + ANSI_CODES["BOLD"] + SYMBOLS["CHECKMARK"],
@@ -32,6 +36,8 @@ class InterpretationFormatter:
         self.testcases = testcases
 
     def get_formatted_interpretation(self) -> str:
+        print("formatter:\n\n")
+        print(self.result)
         status_code = self.result.status_code
         status_msg = self.result.status_msg
         lang = self.result.pretty_lang or self.result.lang
@@ -44,14 +50,7 @@ class InterpretationFormatter:
         code_outputs = self.result.code_answer or []
         std_outputs = self.result.std_output_list or []
 
-        error_msg1 = self.result.runtime_percentile  # Correction: runtime_percentile not error msg?
-        # Actually from old code, error_msg1 should be from runtime_error, compile_error fields
-        # Let's add runtime_error and compile_error fields to InterpretationResult if missing
-        # Re-check sample: it has runtime_error and compile_error possibly.
-        # Let's handle errors from the initial model fields if needed:
-        # The initial code references error_msg1, error_msg2 from submission dictionary
-        # Let's just assume we have runtime_error and compile_error in the InterpretationResult model.
-        # Add them in model and handle here:
+        error_msg1 = self.result.runtime_percentile
         error_msg1 = getattr(self.result, 'runtime_error', None)
         error_msg2 = getattr(self.result, 'compile_error', None)
         full_error_msg1 = getattr(self.result, 'full_runtime_error', None)

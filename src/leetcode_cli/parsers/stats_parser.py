@@ -22,9 +22,11 @@ def parse_user_stats_data(json_data: Dict[str, Any]) -> UserStatsModel:
         untouched = {item["difficulty"].upper(): item["count"] for item in user_progress.get("numUntouchedQuestions", [])}
 
         return UserStatsModel(accepted=accepted, failed=failed, untouched=untouched)
+
     except KeyError as e:
         logger.error(f"Missing key in stats data: {e}")
         raise ParsingError(f"Missing key in stats data: {e}")
+
     except TypeError as e:
         logger.error(f"Invalid structure in stats data: {e}")
         raise ParsingError(f"Invalid structure in stats data: {e}")
@@ -38,6 +40,7 @@ def parse_user_activity_data(previous_year_data: Dict[str, Any], current_year_da
         joined_activity = join_and_slice_calendars(previous_year_data, current_year_data)
         filled_activity = fill_daily_activity(joined_activity)
         return UserActivityModel(daily_activity=filled_activity)
+
     except Exception as e:
         logger.error(f"Error parsing user activity data: {e}")
         raise ParsingError(f"Error parsing user activity data: {e}")

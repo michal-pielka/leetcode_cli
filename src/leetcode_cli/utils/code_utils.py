@@ -57,14 +57,17 @@ def get_language_and_extension(file_extension=None):
         lang_slug = extension_to_lang_slug.get(file_extension.lower())
         if not lang_slug:
             return None, None
+
         return lang_slug, file_extension.lower()
     else:
         # Use default language from config
         lang_slug = get_language()
         if not lang_slug or lang_slug.lower() not in POSSIBLE_LANG_SLUGS:
             return None, None
+
         file_extension = lang_slug_to_extension.get(lang_slug.lower())
         if not file_extension:
             return None, None
+
         return lang_slug.lower(), file_extension.lower()
 
