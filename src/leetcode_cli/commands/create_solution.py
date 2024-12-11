@@ -1,14 +1,11 @@
 # leetcode_cli/commands/create_solution.py
 import click
-import os
 
-from leetcode_cli.utils.user_utils import get_chosen_problem, get_language, set_chosen_problem
-from leetcode_cli.utils.user_utils import get_cookie, extract_csrf_token
+from leetcode_cli.utils.user_utils import get_chosen_problem, load_problems_metadata, get_problem_by_key_value, select_random_problem
 from leetcode_cli.utils.code_utils import get_language_and_extension
 from leetcode_cli.data_fetching.problem_fetcher import fetch_problem_id
 from leetcode_cli.data_fetching.code_snippet_fetcher import fetch_code_snippet
 from leetcode_cli.leetcode_problem.create_solution_file import create_solution_file
-from leetcode_cli.graphics.escape_sequences import ANSI_RESET, ANSI_CODES
 
 @click.command(short_help='Create solution file')
 @click.argument('title_slug_or_id', required=False)
@@ -39,6 +36,7 @@ def create_cmd(title_slug_or_id):
             if sn.get('langSlug') == lang_slug:
                 code_str = sn.get('code', "")
                 break
+
         if not code_str:
             # If no snippet found for this language, fallback to a default comment
             code_str = f"# {title_slug} solution in {lang_slug}\n\n"
@@ -122,8 +120,21 @@ def create_cmd(title_slug_or_id):
 
     # Case 4: Argument has no dot
     if title_slug_or_id.isdigit():
-        # Not implemented scenario
-        click.echo("Error: Showing by ID not implemented in this example without downloaded metadata.")
+        problems_data = load_problems_metadata()
+        if not problems_data:
+            click.echo("Error: problems' metadata not found, use leetcode download-problems.")
+            return
+
+        selected_problem = get_problem_by_key_value(problems_data, "frontendQuestionId", title_slug_or_id)
+        title_slug = selected_problem.get("titleSlug", None)
+
+        if not title_slug:
+            click.echo("Error: no problem for specified id in problems' metadata.")
+            return
+
+        lang_slug, file_extension = get_language_and_extension()
+        create_file(title_slug_or_id, title_slug, lang_slug, file_extension)
+
         return
     else:
         # It's a slug

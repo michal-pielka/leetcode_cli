@@ -1,11 +1,12 @@
 # leetcode_cli/commands/show_problem.py
 import click
-from leetcode_cli.utils.user_utils import load_problems_metadata, get_problem_by_key_value, set_chosen_problem, get_chosen_problem
+
+from leetcode_cli.utils.user_utils import load_problems_metadata, get_problem_by_key_value, set_chosen_problem, select_random_problem
 from leetcode_cli.data_fetching.problem_fetcher import fetch_problem_data
 from leetcode_cli.parsers.problem_parser import parse_problem_data
 from leetcode_cli.formatters.problem_formatter import ProblemFormatter
-from leetcode_cli.models.problem import Problem
-import random
+from leetcode_cli.utils.user_utils import filter_problems
+from leetcode_cli.data_fetching.problem_fetcher import fetch_random_title_slug
 
 POSSIBLE_TAGS = [
     "array",
@@ -88,40 +89,56 @@ def is_title_slug(value):
 @click.argument('title_slug_or_id', required=False)
 @click.option('--include', multiple=True,
     type=click.Choice(["title", "tags", "langs", "description", "examples", "constraints"], case_sensitive=False),
-    help='Sections to display. (default: all)')
+    help='Sections to display. (default: all sections)')
 @click.option('--random', is_flag=True, help='Show a random problem')
 @click.option('--difficulty', type=click.Choice(["EASY", "MEDIUM", "HARD"], case_sensitive=False),
-    help='Filter random problems by difficulty (Requires --random)')
+              help='Filter random problems by difficulty (Requires --random) (default: all difficulties).')
 @click.option('--tag', multiple=True, type=click.Choice(POSSIBLE_TAGS, case_sensitive=False),
-    help='Filter random problems by tag (Requires --random)')
+              help='Filter random problems by tag (Requires --random) (default: all tags).')
 @click.option('--use-downloaded', is_flag=True, help='Use downloaded problems metadata')
 def show_cmd(title_slug_or_id, include, random, difficulty, tag, use_downloaded):
     """Show problem details."""
     if random:
         if not use_downloaded:
-            click.echo("Error: --random requires --use-downloaded.")
-            return
+            random_problem = fetch_random_title_slug(difficulty, tag)
 
-        problems_data = load_problems_metadata()
-        from leetcode_cli.utils.user_utils import filter_problems
-        filtered_problems = filter_problems(problems_data, difficulty, tag)
-        if not filtered_problems:
-            click.echo("No matching problems found.")
-            return
-        problem_data = random.choice(filtered_problems)
-        title_slug = problem_data.get("titleSlug")
+            if not random_problem.get("data", {}).get("randomQuestion", None):
+                click.echo("No matching problems found.")
+                return
+
+            title_slug = random_problem.get("data", {}).get("randomQuestion", {}).get("titleSlug", None)
+
+        else:
+            problems_data = load_problems_metadata()
+
+            if not problems_data:
+                click.echo("Error: problems' metadata not found, use leetcode download-problems.")
+
+            filtered_problems = filter_problems(problems_data, difficulty, tag)
+
+            if not filtered_problems:
+                click.echo("No matching problems found.")
+                return
+
+            problem_data = select_random_problem(filtered_problems)
+            title_slug = problem_data.get("titleSlug", None)
     else:
         if difficulty or tag:
             click.echo("Error: --difficulty/--tag only work with --random.")
             return
+
         if not title_slug_or_id:
-            click.echo("Error: Need a title_slug_or_id.")
+            click.echo("Error: Need title slug or id.")
             return
 
         if use_downloaded:
             problems_data = load_problems_metadata()
+            if not problems_data:
+                click.echo("Error: problems' metadata not found, use leetcode download-problems.")
+
             if title_slug_or_id.isdigit():
                 problem_data = get_problem_by_key_value(problems_data, "frontendQuestionId", title_slug_or_id)
+
             else:
                 problem_data = get_problem_by_key_value(problems_data, "titleSlug", title_slug_or_id)
             title_slug = problem_data.get("titleSlug")
@@ -129,6 +146,7 @@ def show_cmd(title_slug_or_id, include, random, difficulty, tag, use_downloaded)
             # If not using downloaded, title_slug_or_id is assumed to be title_slug
             if is_title_slug(title_slug_or_id):
                 title_slug = title_slug_or_id
+
             else:
                 click.echo("Error: Show by ID requires --use-downloaded.")
                 return

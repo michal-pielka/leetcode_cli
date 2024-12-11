@@ -5,7 +5,6 @@ from leetcode_cli.utils.user_utils import get_username
 from leetcode_cli.data_fetching.stats_fetcher import fetch_user_stats, fetch_user_activity
 from leetcode_cli.parsers.stats_parser import parse_user_stats_data, parse_user_activity_data
 from leetcode_cli.formatters.stats_formatter import format_user_stats, format_user_activity
-from leetcode_cli.graphics.escape_sequences import ANSI_RESET, ANSI_CODES
 
 @click.command(short_help='Display user stats')
 @click.argument('username', required=False, default=get_username())
@@ -24,7 +23,7 @@ def stats_cmd(username, include):
         leetcode stats USERNAME
     """
     if not username:
-        click.echo(f"Error: Username not set. Use 'leetcode config username <user>'.")
+        click.echo("Error: Username not set. Use 'leetcode config username <user>'.")
         return
 
     if not include:

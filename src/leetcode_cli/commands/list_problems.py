@@ -85,8 +85,8 @@ def validate_positive_integer(ctx, param, value):
     return value
 
 @click.command(short_help='List problems')
-@click.option('--difficulty', type=click.Choice(["EASY", "MEDIUM", "HARD"], case_sensitive=False), help='Filter by difficulty.')
-@click.option('--tag', multiple=True, type=click.Choice(POSSIBLE_TAGS, case_sensitive=False), help='Filter by tag.')
+@click.option('--difficulty', type=click.Choice(["EASY", "MEDIUM", "HARD"], case_sensitive=False), help='Filter by difficulty (default: all difficulties).')
+@click.option('--tag', multiple=True, type=click.Choice(POSSIBLE_TAGS, case_sensitive=False), help='Filter by tag (default: all tags).')
 @click.option('--limit', type=int, default=50, callback=validate_positive_integer, help='Limit results (default: 50)')
 @click.option('--page', type=int, default=1, callback=validate_positive_integer, help='Page number (default: 1)')
 @click.option('--use-downloaded', is_flag=True, help='Use downloaded problems metadata.')
@@ -99,10 +99,12 @@ def list_cmd(difficulty, tag, limit, page, use_downloaded):
         if not problems_data:
             click.echo("No local metadata found. Use 'leetcode download_problems' first.")
             return
+
         filtered_problems = filter_problems(problems_data, difficulty, tag)
         if not filtered_problems:
             click.echo("No problems found with these filters.")
             return
+
         if skip >= len(filtered_problems):
             click.echo("No problems on this page.")
             return
@@ -116,15 +118,18 @@ def list_cmd(difficulty, tag, limit, page, use_downloaded):
                 }
             }
         }
+
         problemset = parse_problemset_data(mock_data)
 
     else:
         cookie = get_cookie()
         csrf_token = extract_csrf_token(cookie)
         raw = fetch_problemset(cookie=cookie, csrf_token=csrf_token, tags=tag, difficulty=difficulty, limit=limit, skip=skip)
+
         if not raw:
             click.echo("Error: No data returned from server.")
             return
+
         problemset = parse_problemset_data(raw)
 
     formatter = ProblemSetFormatter(problemset)
