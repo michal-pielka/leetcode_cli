@@ -27,6 +27,7 @@ def test_cmd(file_path):
     problem_testcases = testcases_data['data']['question']['exampleTestcases']
 
     raw_interpretation = fetch_interpretation_result(cookie, csrf_token, title_slug, code, language, problem_testcases)
+    print(raw_interpretation)
     interpretation_res = parse_interpretation_result(raw_interpretation)
     formatter = InterpretationFormatter(interpretation_res, problem_testcases)
     click.echo(formatter.get_formatted_interpretation())
