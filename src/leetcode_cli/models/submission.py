@@ -6,6 +6,10 @@ class SubmissionResult:
     status_code: int
     lang: str
     run_success: bool
+    runtime_error: Optional[str]
+    full_runtime_error: Optional[str]
+    compile_error: Optional[str]
+    full_compile_error: Optional[str]
     status_runtime: str
     memory: int
     display_runtime: str

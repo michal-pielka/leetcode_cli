@@ -3,6 +3,31 @@ import os
 import platform
 import logging
 
+
+DEFAULT_FORMATTING_CONFIG = {
+  "interpretation": {
+    "show_language": True,
+    "show_testcases": True,
+    "show_expected_output": True,
+    "show_code_output": True,
+    "show_stdout": True,
+    "show_error_messages": True,
+    "show_detailed_error_messages": True
+  },
+
+  "submission": {
+    "show_language": True,
+    "show_testcases": True,
+    "show_runtime_memory": True,
+    "show_code_output": True,
+    "show_stdout": True,
+    "show_error_messages": True,
+    "show_detailed_error_messages": True,
+    "show_expected_output": True
+  }
+}
+
+
 logger = logging.getLogger(__name__)
 
 def get_config_path() -> str:
@@ -19,6 +44,34 @@ def get_config_path() -> str:
         config_dir = os.path.expanduser("~/.config/leetcode")
         config_path = os.path.join(config_dir, "config.json")
     return config_path
+
+def load_formatting_config() -> dict:
+    config_dir = os.path.dirname(get_config_path())
+    formatting_config_path = os.path.join(config_dir, "formatting_config.json")
+
+    if not os.path.exists(formatting_config_path):
+        # Create with defaults
+        with open(formatting_config_path, "w") as f:
+            json.dump(DEFAULT_FORMATTING_CONFIG, f, indent=4)
+        return DEFAULT_FORMATTING_CONFIG
+
+    try:
+        with open(formatting_config_path, "r") as f:
+            user_config = json.load(f)
+            return _merge_dicts(DEFAULT_FORMATTING_CONFIG, user_config)
+    except (json.JSONDecodeError, OSError) as e:
+        logger.warning(f"Failed to load formatting_config.json: {e}. Using defaults.")
+        return DEFAULT_FORMATTING_CONFIG
+
+def _merge_dicts(defaults, user_config):
+    # Recursively merge two dicts
+    for key, value in defaults.items():
+        if key in user_config:
+            if isinstance(value, dict) and isinstance(user_config[key], dict):
+                _merge_dicts(value, user_config[key])
+            else:
+                defaults[key] = user_config[key]
+    return defaults
 
 def get_problems_data_path() -> str:
     """
