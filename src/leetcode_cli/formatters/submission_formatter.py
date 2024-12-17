@@ -1,21 +1,12 @@
+# leetcode_cli/formatters/submission_formatter.py
 from leetcode_cli.graphics.ansi_codes import ANSI_RESET
-from leetcode_cli.graphics.mappings.submission_mappings import SUBMISSION_SYMBOLS, SUBMISSION_ANSI_CODES
+from leetcode_cli.utils.theme_utils import get_theme_data
 from leetcode_cli.models.submission import SubmissionResult
 from leetcode_cli.utils.formatting_config_utils import load_formatting_config
 
+THEME_DATA = get_theme_data()
 
 def _format_field(label: str, value: str, width: int = 25) -> str:
-    """
-    Formats a single field with a label and value.
-
-    Args:
-        label (str): The label of the field.
-        value (str): The value of the field.
-        width (int): The width allocated for the label.
-
-    Returns:
-        str: The formatted field.
-    """
     lines = value.split('\n')
     if not lines:
         return f"  {label:<{width}} \n"
@@ -34,12 +25,6 @@ class SubmissionFormatter:
         self.format_conf = load_formatting_config()["submission"]
 
     def get_formatted_submission(self) -> str:
-        """
-        Formats the SubmissionResult into a user-friendly string.
-
-        Returns:
-            str: The formatted submission result.
-        """
         status_msg = self.result.status_msg
 
         # Configuration flags
@@ -51,7 +36,6 @@ class SubmissionFormatter:
 
         show_errors = self.format_conf.get("show_error_messages", True)
         detailed_errors = self.format_conf.get("show_detailed_error_messages", True)
-
 
         show_expected_output = self.format_conf.get("show_expected_output", True)
 
@@ -74,9 +58,7 @@ class SubmissionFormatter:
         compile_error = getattr(self.result, 'compile_error', None)
         full_compile_error = getattr(self.result, 'full_compile_error', None)
 
-        # Determine status ANSI code
-
-        ansi_status = f"{SUBMISSION_ANSI_CODES.get(status_msg, SUBMISSION_ANSI_CODES["unknown"])}{SUBMISSION_SYMBOLS.get(status_msg, "unknown")}"
+        ansi_status = f"{THEME_DATA['SUBMISSION_ANSI_CODES'].get(status_msg, THEME_DATA['SUBMISSION_ANSI_CODES'].get('unknown', ''))}{THEME_DATA['SUBMISSION_SYMBOLS'].get(status_msg, 'unknown')}"
         parsed_result = f"\n  {ansi_status} {status_msg} {ANSI_RESET}\n"
 
         # Passed testcases
@@ -107,7 +89,6 @@ class SubmissionFormatter:
 
         # Your Output
         if show_code_output and code_output:
-            # If code_output is a list, join it into a single string
             if isinstance(code_output, list):
                 code_output_str = "\n".join(code_output)
             else:
@@ -116,7 +97,6 @@ class SubmissionFormatter:
 
         # Stdout
         if show_stdout and std_output:
-            # If std_output is a list, join it into a single string
             if isinstance(std_output, list):
                 std_output_str = "\n".join(std_output)
             else:
@@ -130,7 +110,6 @@ class SubmissionFormatter:
 
             if compile_error:
                 parsed_result += _format_field('Error Message:', compile_error)
-
 
         if detailed_errors:
             if full_runtime_error:

@@ -11,6 +11,8 @@ from leetcode_cli.commands.test_solution import test_cmd
 from leetcode_cli.commands.download_problems import download_problems_cmd
 from leetcode_cli.commands.stats import stats_cmd
 from leetcode_cli.commands.create_solution import create_cmd
+from leetcode_cli.commands.theme import theme_cmd
+from leetcode_cli.utils.theme_utils import initialize_config_and_default_theme
 
 def configure_logging():
     logging.basicConfig(
@@ -41,9 +43,11 @@ cli.add_command(test_cmd, "test")
 cli.add_command(download_problems_cmd, "download-problems")
 cli.add_command(stats_cmd, "stats")
 cli.add_command(create_cmd, "create")
+cli.add_command(theme_cmd, "theme")
 
 def main():
     configure_logging()
+    initialize_config_and_default_theme() 
     cli()
 
 if __name__ == "__main__":

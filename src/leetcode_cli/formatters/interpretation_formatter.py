@@ -1,8 +1,11 @@
-from leetcode_cli.graphics.mappings.interpretation_mappings import INTERPRETATION_ANSI_CODES, INTERPRETATION_SYMBOLS
+# leetcode_cli/formatters/interpretation_formatter.py
+from leetcode_cli.utils.theme_utils import get_theme_data
 from leetcode_cli.graphics.ansi_codes import ANSI_RESET
 from leetcode_cli.models.interpretation import InterpretationResult
 from leetcode_cli.utils.formatting_config_utils import load_formatting_config
 
+
+THEME_DATA = get_theme_data()
 
 def _format_field(label: str, value: str, width: int = 25) -> str:
     lines = value.split('\n')
@@ -29,13 +32,11 @@ class InterpretationFormatter:
         lang = self.result.pretty_lang or self.result.lang
         total_testcases = self.result.total_testcases
 
-        # Configuration flags
         show_language = self.format_conf["show_language"]
         show_testcases = self.format_conf["show_testcases"]
         show_expected_output = self.format_conf["show_expected_output"]
         show_code_output = self.format_conf["show_code_output"]
         show_stdout = self.format_conf["show_stdout"]
-
         show_errors = self.format_conf["show_error_messages"]
         detailed_errors = self.format_conf["show_detailed_error_messages"]
 
@@ -46,7 +47,6 @@ class InterpretationFormatter:
         code_outputs = self.result.code_answer or []
         std_outputs = self.result.std_output_list or []
 
-        # Error fields
         runtime_error = getattr(self.result, 'runtime_error', None)
         full_runtime_error = getattr(self.result, 'full_runtime_error', None)
         compile_error = getattr(self.result, 'compile_error', None)
@@ -62,15 +62,14 @@ class InterpretationFormatter:
             code_output = code_outputs[i] if i < len(code_outputs) else None
             std_output = std_outputs[i] if i < len(std_outputs) else None
 
-            # Status line
             if status_code == 10:
-                # Accepted or Wrong Answer depending on code_output vs expected_output
+                # Accepted or Wrong Answer
                 if code_output == expected_output:
-                    parsed_result += f"\n  {INTERPRETATION_ANSI_CODES["Accepted"]}{INTERPRETATION_SYMBOLS["Accepted"]} Accepted {ANSI_RESET}\n"
+                    parsed_result += f"\n  {THEME_DATA['INTERPRETATION_ANSI_CODES']['Accepted']}{THEME_DATA['INTERPRETATION_SYMBOLS']['Accepted']} Accepted {ANSI_RESET}\n"
                 else:
-                    parsed_result += f"\n  {INTERPRETATION_ANSI_CODES["Wrong Answer"]}{INTERPRETATION_SYMBOLS["Wrong Answer"]} Wrong Answer {ANSI_RESET}\n"
+                    parsed_result += f"\n  {THEME_DATA['INTERPRETATION_ANSI_CODES']['Wrong Answer']}{THEME_DATA['INTERPRETATION_SYMBOLS']['Wrong Answer']} Wrong Answer {ANSI_RESET}\n"
             else:
-                ansi_status = INTERPRETATION_ANSI_CODES.get(status_msg, INTERPRETATION_ANSI_CODES["unknown"])
+                ansi_status = THEME_DATA['INTERPRETATION_ANSI_CODES'].get(status_msg, THEME_DATA['INTERPRETATION_ANSI_CODES']["unknown"])
                 parsed_result += f"\n  {ansi_status} {status_msg} {ANSI_RESET}\n"
 
             if show_language:
@@ -91,15 +90,12 @@ class InterpretationFormatter:
             if show_errors:
                 if runtime_error:
                     parsed_result += _format_field('Error Message:', runtime_error)
-
                 if compile_error:
                     parsed_result += _format_field('Error Message:', compile_error)
-
 
             if detailed_errors:
                 if full_runtime_error:
                     parsed_result += _format_field('Detailed Error:', full_runtime_error)
-
                 if full_compile_error:
                     parsed_result += _format_field('Detailed Error:', full_compile_error)
 

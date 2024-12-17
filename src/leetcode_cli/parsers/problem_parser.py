@@ -59,7 +59,6 @@ def parse_problem_data(json_data):
 
     # Parse code snippets
     snippets = []
-    print(question)
     for snippet_data in question["codeSnippets"]:
         snippet_required = ["lang", "langSlug"]
         for sn_field in snippet_required:

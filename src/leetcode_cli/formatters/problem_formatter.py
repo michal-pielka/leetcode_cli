@@ -1,18 +1,17 @@
 from bs4 import BeautifulSoup, NavigableString, Tag
-
-from leetcode_cli.graphics.mappings.problem_mappings import PROBLEM_FORMATTER_ANSI_CODES, PROBLEM_FORMATTER_SYMBOLS
+from leetcode_cli.utils.theme_utils import get_theme_data
 from leetcode_cli.graphics.ansi_codes import ANSI_RESET
 
 class ProblemFormatter:
-
     def __init__(self, problem):
         self.problem = problem
+        self.THEME_DATA = get_theme_data()
 
     @property
     def title(self) -> str:
-        difficulty_color = PROBLEM_FORMATTER_ANSI_CODES.get(self.problem.difficulty, "")
+        difficulty_color = self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES'].get(self.problem.difficulty, "")
         title_text = f"[{self.problem.question_frontend_id}] {self.problem.title} {difficulty_color}[{self.problem.difficulty}]{ANSI_RESET}"
-        return f"{PROBLEM_FORMATTER_ANSI_CODES['title']}{title_text}{ANSI_RESET}"
+        return f"{self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']['title']}{title_text}{ANSI_RESET}"
 
     @property
     def description(self) -> str:
@@ -31,10 +30,9 @@ class ProblemFormatter:
     def constraints(self) -> str:
         if not self.problem.constraints:
             return ""
-        # Each constraint is already an HTML string; convert each to ANSI
         constraints = [self.html_to_ansi(c) for c in self.problem.constraints]
         constraints_str = "\n".join(constraints)
-        return f"{PROBLEM_FORMATTER_ANSI_CODES['constraints_string']}Constraints:{ANSI_RESET}\n\n{constraints_str}"
+        return f"{self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']['constraints_string']}Constraints:{ANSI_RESET}\n\n{constraints_str}"
 
     @property
     def topic_tags(self) -> str:
@@ -43,25 +41,21 @@ class ProblemFormatter:
         formatted_tags = ["Tags:"]
         for tag in self.problem.topic_tags:
             tag_name = " " + tag.lower() + " "
-            formatted_tags.append(PROBLEM_FORMATTER_ANSI_CODES["tag"] + tag_name + ANSI_RESET + " ")
+            formatted_tags.append(self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']["tag"] + tag_name + ANSI_RESET + " ")
         return " ".join(formatted_tags)
 
     @property
     def languages(self) -> str:
-        # code_snippets is a list of dicts with keys: code, lang, lang_slug
         langs = set(sn['lang'] for sn in self.problem.code_snippets if sn.get('lang'))
         if not langs:
             return "No code snippets available."
         formatted_languages = ["Languages:"]
         for language in langs:
-            formatted_language = f"{PROBLEM_FORMATTER_ANSI_CODES['language']} {language} {ANSI_RESET}"
+            formatted_language = f"{self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']['language']} {language} {ANSI_RESET}"
             formatted_languages.append(formatted_language)
         return " ".join(formatted_languages)
 
     def html_to_ansi(self, html_content: str) -> str:
-        """
-        Converts HTML content to ANSI-formatted string.
-        """
         if not html_content:
             return ""
 
@@ -74,18 +68,17 @@ class ProblemFormatter:
             if isinstance(element, NavigableString):
                 ansi_str += element
             elif isinstance(element, Tag):
-                if element.name in PROBLEM_FORMATTER_SYMBOLS:
-                    ansi_str += PROBLEM_FORMATTER_SYMBOLS[element.name]
-                if element.name in PROBLEM_FORMATTER_ANSI_CODES:
-                    ansi_code = PROBLEM_FORMATTER_ANSI_CODES[element.name]
+                if element.name in self.THEME_DATA['PROBLEM_FORMATTER_SYMBOLS']:
+                    ansi_str += self.THEME_DATA['PROBLEM_FORMATTER_SYMBOLS'][element.name]
+                if element.name in self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']:
+                    ansi_code = self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES'][element.name]
                     ansi_str += ansi_code
                     style_stack.append(ansi_code)
-                # Insert line breaks after certain tags
                 if element.name in ['p', 'br', 'ul']:
                     ansi_str += '\n'
                 for child in element.children:
                     traverse(child)
-                if element.name in PROBLEM_FORMATTER_ANSI_CODES:
+                if element.name in self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']:
                     ansi_str += ANSI_RESET
                     if style_stack:
                         style_stack.pop()
@@ -95,32 +88,16 @@ class ProblemFormatter:
         return ansi_str
 
     def _format_example(self, example: dict) -> str:
-        """
-        Formats a single example dictionary into a user-friendly string.
-        example = {
-            "title": "Example 1",
-            "input": ["nums = [2,7,11,15]", "target = 9"],
-            "output": "[0,1]",
-            "explanation": "Because nums[0] + nums[1] == 9, we return [0, 1]."
-        }
-        """
         parts = []
-        # Title
-        parts.append(f"{PROBLEM_FORMATTER_ANSI_CODES['example_title']}{example.get('title', 'Example')}{ANSI_RESET}\n\n")
-
-        # Input is a list of strings
+        parts.append(f"{self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']['example_title']}{example.get('title', 'Example')}{ANSI_RESET}\n\n")
         input_lines = example.get('input', [])
         input_str = ", ".join(input_lines)
-        parts.append(f"| {PROBLEM_FORMATTER_ANSI_CODES['example_input_string']}Input: {ANSI_RESET}{PROBLEM_FORMATTER_ANSI_CODES['example_input_data']}{input_str}{ANSI_RESET}\n")
-
-        # Output
+        parts.append(f"| {self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']['example_input_string']}Input: {ANSI_RESET}{self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']['example_input_data']}{input_str}{ANSI_RESET}\n")
         output_str = example.get('output', '')
-        parts.append(f"| {PROBLEM_FORMATTER_ANSI_CODES['example_output_string']}Output: {ANSI_RESET}{PROBLEM_FORMATTER_ANSI_CODES['example_output_data']}{output_str}{ANSI_RESET}")
-
-        # Explanation (if any)
+        parts.append(f"| {self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']['example_output_string']}Output: {ANSI_RESET}{self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']['example_output_data']}{output_str}{ANSI_RESET}")
         explanation = example.get('explanation', '')
         if explanation:
-            explanation_formatted = explanation.replace("\n", f"{ANSI_RESET}\n| {PROBLEM_FORMATTER_ANSI_CODES['example_explanation_data']}")
-            parts.append(f"\n| {PROBLEM_FORMATTER_ANSI_CODES['example_explanation_string']}Explanation: {ANSI_RESET}{PROBLEM_FORMATTER_ANSI_CODES['example_explanation_data']}{explanation_formatted}{ANSI_RESET}")
+            explanation_formatted = explanation.replace("\n", f"{ANSI_RESET}\n| {self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']['example_explanation_data']}")
+            parts.append(f"\n| {self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']['example_explanation_string']}Explanation: {ANSI_RESET}{self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']['example_explanation_data']}{explanation_formatted}{ANSI_RESET}")
 
         return "".join(parts)
