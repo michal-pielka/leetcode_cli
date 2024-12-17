@@ -21,11 +21,13 @@ def parse_submission_result(json_data: Dict[str, Any]) -> SubmissionResult:
 
     # Optional: Validate error fields based on 'run_success'
     run_success = bool(json_data["run_success"])
+    """
     if not run_success:
         # If run was unsuccessful, at least one error field should be present
         error_fields = ["runtime_error", "compile_error"]
         if not any(json_data.get(error) for error in error_fields):
             raise ParsingError("Run failed but no error message provided in 'runtime_error' or 'compile_error'.")
+    """
 
     return SubmissionResult(
         status_code=int(json_data["status_code"]),

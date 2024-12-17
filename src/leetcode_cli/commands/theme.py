@@ -1,5 +1,5 @@
 import click
-from leetcode_cli.utils.theme_utils import list_themes, set_current_theme
+from leetcode_cli.utils.theme_utils import list_themes, set_current_theme, get_current_theme
 
 @click.command(short_help='Change or list themes')
 @click.argument('theme_name', required=False)
@@ -11,12 +11,16 @@ def theme_cmd(theme_name):
     Otherwise, list all available themes.
     """
     if not theme_name:
+        current_theme = get_current_theme()
         themes = list_themes()
+
         if not themes:
             click.echo("No themes found.")
             return
 
+        click.echo(f"Current theme: {current_theme}")
         click.echo("Available themes:")
+
         for t in themes:
             click.echo(f" - {t}")
 
