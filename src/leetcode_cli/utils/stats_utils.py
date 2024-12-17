@@ -3,7 +3,7 @@
 import json
 from datetime import datetime, timezone, timedelta
 import logging
-from leetcode_cli.graphics.escape_sequences import ANSI_CODES
+from leetcode_cli.graphics.ansi_codes import ANSI_CODES
 
 logger = logging.getLogger(__name__)
 

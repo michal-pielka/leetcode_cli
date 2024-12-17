@@ -1,8 +1,8 @@
 # leetcode_cli/commands/test_solution.py
 import click
-from leetcode_cli.utils.user_utils import get_cookie, extract_csrf_token
+from leetcode_cli.utils.config_utils import get_cookie, extract_csrf_token
 from leetcode_cli.utils.code_utils import read_code_from_file, determine_language_from_extension
-from leetcode_cli.utils.user_utils import problem_data_from_path
+from leetcode_cli.utils.download_problems_utils import problem_data_from_path
 from leetcode_cli.data_fetching.problem_fetcher import fetch_problem_testcases
 from leetcode_cli.data_fetching.interpretation_result_fetcher import fetch_interpretation_result
 from leetcode_cli.parsers.interpretation_parser import parse_interpretation_result

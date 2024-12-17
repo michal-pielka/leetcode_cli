@@ -2,8 +2,7 @@
 # leetcode_cli/commands/download_problems.py
 import click
 from leetcode_cli.data_fetching.problemset_fetcher import fetch_problemset
-from leetcode_cli.utils.user_utils import get_problems_data_path
-from leetcode_cli.utils.user_utils import save_problems_data
+from leetcode_cli.utils.download_problems_utils import get_problems_data_path, save_problems_data
 
 @click.command(short_help='Download all problems metadata')
 def download_problems_cmd():

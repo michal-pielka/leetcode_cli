@@ -1,7 +1,9 @@
 # leetcode_cli/commands/create_solution.py
 import click
 
-from leetcode_cli.utils.user_utils import get_chosen_problem, load_problems_metadata, get_problem_by_key_value, select_random_problem
+
+from leetcode_cli.utils.config_utils import get_chosen_problem
+from leetcode_cli.utils.download_problems_utils import load_problems_metadata, get_problem_by_key_value
 from leetcode_cli.utils.code_utils import get_language_and_extension
 from leetcode_cli.data_fetching.problem_fetcher import fetch_problem_id
 from leetcode_cli.data_fetching.code_snippet_fetcher import fetch_code_snippet

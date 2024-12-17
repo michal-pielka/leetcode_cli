@@ -1,18 +1,8 @@
-from leetcode_cli.graphics.escape_sequences import ANSI_CODES, ANSI_RESET
-from leetcode_cli.graphics.symbols import SYMBOLS
+from leetcode_cli.graphics.mappings.interpretation_mappings import INTERPRETATION_ANSI_CODES, INTERPRETATION_SYMBOLS
+from leetcode_cli.graphics.ansi_codes import ANSI_RESET
 from leetcode_cli.models.interpretation import InterpretationResult
-from leetcode_cli.utils.user_utils import load_formatting_config
+from leetcode_cli.utils.formatting_config_utils import load_formatting_config
 
-SUBMISSION_ANSI = {
-    "Accepted": ANSI_CODES["GREEN"] + ANSI_CODES["BOLD"] + SYMBOLS["CHECKMARK"],
-    "Wrong Answer": ANSI_CODES["RED"] + ANSI_CODES["BOLD"] + SYMBOLS["X"],
-    "Memory Limit Exceeded": ANSI_CODES["RED"] + ANSI_CODES["BOLD"] + SYMBOLS["X"],
-    "Output Limit Exceeded": ANSI_CODES["RED"] + ANSI_CODES["BOLD"] + SYMBOLS["X"],
-    "Time Limit Exceeded": ANSI_CODES["RED"] + ANSI_CODES["BOLD"] + SYMBOLS["X"],
-    "Runtime Error": ANSI_CODES["RED"] + ANSI_CODES["BOLD"] + SYMBOLS["X"],
-    "Compile Error": ANSI_CODES["RED"] + ANSI_CODES["BOLD"] + SYMBOLS["X"],
-    "unknown": ANSI_CODES["ORANGE"] + ANSI_CODES["BOLD"] + SYMBOLS["X"],
-}
 
 def _format_field(label: str, value: str, width: int = 25) -> str:
     lines = value.split('\n')
@@ -76,11 +66,11 @@ class InterpretationFormatter:
             if status_code == 10:
                 # Accepted or Wrong Answer depending on code_output vs expected_output
                 if code_output == expected_output:
-                    parsed_result += f"\n  {SUBMISSION_ANSI['Accepted']} Accepted {ANSI_RESET}\n"
+                    parsed_result += f"\n  {INTERPRETATION_ANSI_CODES["Accepted"]}{INTERPRETATION_SYMBOLS["Accepted"]} Accepted {ANSI_RESET}\n"
                 else:
-                    parsed_result += f"\n  {SUBMISSION_ANSI['Wrong Answer']} Wrong Answer {ANSI_RESET}\n"
+                    parsed_result += f"\n  {INTERPRETATION_ANSI_CODES["Wrong Answer"]}{INTERPRETATION_SYMBOLS["Wrong Answer"]} Wrong Answer {ANSI_RESET}\n"
             else:
-                ansi_status = SUBMISSION_ANSI.get(status_msg, SUBMISSION_ANSI["unknown"])
+                ansi_status = INTERPRETATION_ANSI_CODES.get(status_msg, INTERPRETATION_ANSI_CODES["unknown"])
                 parsed_result += f"\n  {ansi_status} {status_msg} {ANSI_RESET}\n"
 
             if show_language:

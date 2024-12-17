@@ -1,7 +1,7 @@
 # leetcode_cli/commands/stats.py
 import click
 from datetime import datetime
-from leetcode_cli.utils.user_utils import get_username
+from leetcode_cli.utils.config_utils import get_username
 from leetcode_cli.data_fetching.stats_fetcher import fetch_user_stats, fetch_user_activity
 from leetcode_cli.parsers.stats_parser import parse_user_stats_data, parse_user_activity_data
 from leetcode_cli.formatters.stats_formatter import format_user_stats, format_user_activity

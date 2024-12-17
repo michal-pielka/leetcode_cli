@@ -1,86 +1,13 @@
 # leetcode_cli/commands/show_problem.py
 import click
 
-from leetcode_cli.utils.user_utils import load_problems_metadata, get_problem_by_key_value, set_chosen_problem, select_random_problem
+from leetcode_cli.utils.config_utils import set_chosen_problem
+from leetcode_cli.utils.download_problems_utils import filter_problems, load_problems_metadata, get_problem_by_key_value, select_random_problem
 from leetcode_cli.data_fetching.problem_fetcher import fetch_problem_data
 from leetcode_cli.parsers.problem_parser import parse_problem_data
 from leetcode_cli.formatters.problem_formatter import ProblemFormatter
-from leetcode_cli.utils.user_utils import filter_problems
 from leetcode_cli.data_fetching.problem_fetcher import fetch_random_title_slug
-
-POSSIBLE_TAGS = [
-    "array",
-    "string",
-    "hash-table",
-    "dynamic-programming",
-    "math",
-    "sorting",
-    "greedy",
-    "depth-first-search",
-    "binary-search",
-    "database",
-    "matrix",
-    "tree",
-    "breadth-first-search",
-    "bit-manipulation",
-    "two-pointers",
-    "prefix-sum",
-    "heap-priority-queue",
-    "binary-tree",
-    "simulation",
-    "stack",
-    "counting",
-    "graph",
-    "sliding-window",
-    "design",
-    "backtracking",
-    "enumeration",
-    "union-find",
-    "linked-list",
-    "ordered-set",
-    "number-theory",
-    "monotonic-stack",
-    "trie",
-    "segment-tree",
-    "bitmask",
-    "queue",
-    "divide-and-conquer",
-    "recursion",
-    "combinatorics",
-    "binary-search-tree",
-    "hash-function",
-    "memoization",
-    "binary-indexed-tree",
-    "geometry",
-    "string-matching",
-    "topological-sort",
-    "shortest-path",
-    "rolling-hash",
-    "game-theory",
-    "interactive",
-    "data-stream",
-    "monotonic-queue",
-    "brainteaser",
-    "randomized",
-    "merge-sort",
-    "doubly-linked-list",
-    "counting-sort",
-    "iterator",
-    "concurrency",
-    "probability-and-statistics",
-    "quickselect",
-    "suffix-array",
-    "bucket-sort",
-    "minimum-spanning-tree",
-    "shell",
-    "line-sweep",
-    "reservoir-sampling",
-    "strongly-connected-component",
-    "eulerian-circuit",
-    "radix-sort",
-    "rejection-sampling",
-    "biconnected-component"
-]
+from leetcode_cli.constants.problem_constants import POSSIBLE_TAGS
 
 def is_title_slug(value):
     return not value.isdigit()

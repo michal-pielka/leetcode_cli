@@ -1,83 +1,12 @@
 # leetcode_cli/commands/list_problems.py
 import click
-from leetcode_cli.utils.user_utils import load_problems_metadata, filter_problems, get_cookie, extract_csrf_token
+
+from leetcode_cli.utils.config_utils import get_cookie, extract_csrf_token
+from leetcode_cli.utils.download_problems_utils import load_problems_metadata, filter_problems
 from leetcode_cli.data_fetching.problemset_fetcher import fetch_problemset
 from leetcode_cli.parsers.problemset_data_parser import parse_problemset_data
 from leetcode_cli.formatters.problemset_formatter import ProblemSetFormatter
-
-POSSIBLE_TAGS = [
-    "array",
-    "string",
-    "hash-table",
-    "dynamic-programming",
-    "math",
-    "sorting",
-    "greedy",
-    "depth-first-search",
-    "binary-search",
-    "database",
-    "matrix",
-    "tree",
-    "breadth-first-search",
-    "bit-manipulation",
-    "two-pointers",
-    "prefix-sum",
-    "heap-priority-queue",
-    "binary-tree",
-    "simulation",
-    "stack",
-    "counting",
-    "graph",
-    "sliding-window",
-    "design",
-    "backtracking",
-    "enumeration",
-    "union-find",
-    "linked-list",
-    "ordered-set",
-    "number-theory",
-    "monotonic-stack",
-    "trie",
-    "segment-tree",
-    "bitmask",
-    "queue",
-    "divide-and-conquer",
-    "recursion",
-    "combinatorics",
-    "binary-search-tree",
-    "hash-function",
-    "memoization",
-    "binary-indexed-tree",
-    "geometry",
-    "string-matching",
-    "topological-sort",
-    "shortest-path",
-    "rolling-hash",
-    "game-theory",
-    "interactive",
-    "data-stream",
-    "monotonic-queue",
-    "brainteaser",
-    "randomized",
-    "merge-sort",
-    "doubly-linked-list",
-    "counting-sort",
-    "iterator",
-    "concurrency",
-    "probability-and-statistics",
-    "quickselect",
-    "suffix-array",
-    "bucket-sort",
-    "minimum-spanning-tree",
-    "shell",
-    "line-sweep",
-    "reservoir-sampling",
-    "strongly-connected-component",
-    "eulerian-circuit",
-    "radix-sort",
-    "rejection-sampling",
-    "biconnected-component"
-]
+from leetcode_cli.constants.problem_constants import POSSIBLE_TAGS
 
 def validate_positive_integer(ctx, param, value):
     if value <= 0:

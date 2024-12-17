@@ -2,7 +2,7 @@ import requests
 import time
 from typing import Dict
 from leetcode_cli.exceptions.exceptions import FetchingError
-from leetcode_cli.utils.user_utils import load_problems_metadata, get_problem_by_key_value
+from leetcode_cli.utils.download_problems_utils import load_problems_metadata, get_problem_by_key_value
 
 
 def fetch_submission_result(cookie: str, csrf_token: str, title_slug: str, code: str, language: str) -> Dict:

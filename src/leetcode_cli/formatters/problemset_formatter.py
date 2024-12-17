@@ -1,26 +1,13 @@
-from leetcode_cli.graphics.escape_sequences import ANSI_CODES, ANSI_RESET
-from leetcode_cli.graphics.symbols import SYMBOLS
-import logging
+from leetcode_cli.graphics.ansi_codes import ANSI_RESET
+from leetcode_cli.graphics.mappings.problemset_mappings import PROBLEMSET_FORMATTER_SYMBOLS, PROBLEMSET_FORMATTER_ANSI_CODES
 from leetcode_cli.models.problemset import ProblemSet, ProblemSummary
+from leetcode_cli.exceptions.exceptions import ProblemSetFormatterError
+
+import logging
 
 logger = logging.getLogger(__name__)
 
-class ProblemSetFormatterError(Exception):
-    """Custom exception for ProblemSetFormatter errors."""
-    pass
-
 class ProblemSetFormatter:
-    DIFFICULTY_TO_ANSI = {
-        "Easy": ANSI_CODES["GREEN"],
-        "Medium": ANSI_CODES["ORANGE"],
-        "Hard": ANSI_CODES["RED"]
-    }
-
-    QUESTION_STATUS_TO_COLORED_SYMBOL = {
-        "ac": ANSI_CODES["GREEN"] + SYMBOLS["CHECKMARK"] + ANSI_RESET,
-        "notac": ANSI_CODES["ORANGE"] + SYMBOLS["ATTEMPTED"] + ANSI_RESET,
-        None: " "
-    }
 
     def __init__(self, problemset: ProblemSet):
         if not isinstance(problemset, ProblemSet):
@@ -35,15 +22,16 @@ class ProblemSetFormatter:
         status = q.status
 
         # Colorize difficulty
-        formatted_difficulty = f"{self.DIFFICULTY_TO_ANSI.get(difficulty, '')}{difficulty.ljust(8)}{ANSI_RESET}"
+        formatted_difficulty = f"{PROBLEMSET_FORMATTER_ANSI_CODES.get(difficulty, '')}{difficulty.ljust(8)}{ANSI_RESET}"
 
         # Status symbol
-        status_symbol = self.QUESTION_STATUS_TO_COLORED_SYMBOL.get(status, " ")
+        status_symbol = PROBLEMSET_FORMATTER_SYMBOLS.get(status, " ")
+        colored_status_symbol = f"{PROBLEMSET_FORMATTER_ANSI_CODES.get(status, "")}{status_symbol}{ANSI_RESET}"
 
         # Combine into a formatted string
         # Example format:
         #    [  1] Two Sum                                                                        Easy     (54.34 %)
-        return f"\t{status_symbol}[{question_id}] {title} {formatted_difficulty} ({ac_rate} %)"
+        return f"\t{colored_status_symbol}[{question_id}] {title} {formatted_difficulty} ({ac_rate} %)"
 
     def get_formatted_questions(self) -> str:
         """

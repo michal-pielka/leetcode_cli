@@ -1,20 +1,8 @@
-# submission_formatter.py
-from leetcode_cli.graphics.escape_sequences import ANSI_CODES, ANSI_RESET
-from leetcode_cli.graphics.symbols import SYMBOLS
+from leetcode_cli.graphics.ansi_codes import ANSI_RESET
+from leetcode_cli.graphics.mappings.submission_mappings import SUBMISSION_SYMBOLS, SUBMISSION_ANSI_CODES
 from leetcode_cli.models.submission import SubmissionResult
-from leetcode_cli.utils.user_utils import load_formatting_config
+from leetcode_cli.utils.formatting_config_utils import load_formatting_config
 
-# ANSI color mappings for different statuses
-SUBMISSION_ANSI = {
-    "Accepted": ANSI_CODES["GREEN"] + ANSI_CODES["BOLD"] + SYMBOLS["CHECKMARK"],
-    "Wrong Answer": ANSI_CODES["RED"] + ANSI_CODES["BOLD"] + SYMBOLS["X"],
-    "Memory Limit Exceeded": ANSI_CODES["RED"] + ANSI_CODES["BOLD"] + SYMBOLS["X"],
-    "Output Limit Exceeded": ANSI_CODES["RED"] + ANSI_CODES["BOLD"] + SYMBOLS["X"],
-    "Time Limit Exceeded": ANSI_CODES["RED"] + ANSI_CODES["BOLD"] + SYMBOLS["X"],
-    "Runtime Error": ANSI_CODES["RED"] + ANSI_CODES["BOLD"] + SYMBOLS["X"],
-    "Compile Error": ANSI_CODES["RED"] + ANSI_CODES["BOLD"] + SYMBOLS["X"],
-    "unknown": ANSI_CODES["ORANGE"] + ANSI_CODES["BOLD"] + SYMBOLS["X"],
-}
 
 def _format_field(label: str, value: str, width: int = 25) -> str:
     """
@@ -87,8 +75,8 @@ class SubmissionFormatter:
         full_compile_error = getattr(self.result, 'full_compile_error', None)
 
         # Determine status ANSI code
-        ansi_status = SUBMISSION_ANSI.get(status_msg, SUBMISSION_ANSI["unknown"])
 
+        ansi_status = f"{SUBMISSION_ANSI_CODES.get(status_msg, SUBMISSION_ANSI_CODES["unknown"])}{SUBMISSION_SYMBOLS.get(status_msg, "unknown")}"
         parsed_result = f"\n  {ansi_status} {status_msg} {ANSI_RESET}\n"
 
         # Passed testcases

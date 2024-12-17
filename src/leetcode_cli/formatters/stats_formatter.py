@@ -1,32 +1,19 @@
-
-# leetcode_cli/formatters/stats_formatter.py
 from leetcode_cli.models.stats import UserStatsModel, UserActivityModel
-from leetcode_cli.graphics.escape_sequences import ANSI_CODES, ANSI_RESET
-from leetcode_cli.graphics.symbols import SYMBOLS
 from leetcode_cli.utils.stats_utils import calculate_color
+from leetcode_cli.constants.stats_constants import RECTANGLES_TOTAL, MONTH_SEPARATION, DIFFICULTIES, COLUMNS, MONTH_NAMES
+from leetcode_cli.graphics.mappings.stats_mappings import STATS_FORMATTER_DIFFICULTY_COLORS, STATS_FORMATTER_SYMBOLS
+from leetcode_cli.graphics.ansi_codes import ANSI_RESET
+
 from datetime import datetime, timedelta, timezone
 
 import logging
 logger = logging.getLogger(__name__)
 
-RECTANGLES_TOTAL = 66
-DIFFICULTIES = ["EASY", "MEDIUM", "HARD"]
-MONTH_NAMES = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-]
-MONTH_SEPARATION = 3
-COLUMNS = 100
 
 def format_user_stats(stats: UserStatsModel) -> str:
     """
     Format the user stats model into a string.
     """
-    difficulty_colors = {
-        "EASY": ANSI_CODES["GREEN"],
-        "MEDIUM": ANSI_CODES["ORANGE"],
-        "HARD": ANSI_CODES["RED"]
-    }
 
     stats_lines = []
     for difficulty in DIFFICULTIES:
@@ -43,11 +30,11 @@ def format_user_stats(stats: UserStatsModel) -> str:
         filled = int(round(progress_ratio * RECTANGLES_TOTAL))
         filled = max(0, min(filled, RECTANGLES_TOTAL))
 
-        filled_bar = SYMBOLS['FILLED_SQUARE'] * filled
-        empty_bar = SYMBOLS['EMPTY_SQUARE'] * (RECTANGLES_TOTAL - filled)
+        filled_bar = STATS_FORMATTER_SYMBOLS['FILLED_SQUARE'] * filled
+        empty_bar = STATS_FORMATTER_SYMBOLS['EMPTY_SQUARE'] * (RECTANGLES_TOTAL - filled)
         progress_bar = filled_bar + empty_bar
 
-        color = difficulty_colors.get(difficulty, ANSI_RESET)
+        color = STATS_FORMATTER_DIFFICULTY_COLORS.get(difficulty, ANSI_RESET)
         line = f"{color}{difficulty:<7} {passed:>4}/{total:<4} ({percentage:.2f}%) {progress_bar}{ANSI_RESET}"
         stats_lines.append(line)
 
@@ -90,9 +77,10 @@ def format_user_activity(activity: UserActivityModel) -> str:
         submissions = date_counts.get(date, 0)
         if submissions > 0:
             color = calculate_color(submissions, max_submissions, min_submissions)
-            output[weekday][week_index] = f"{color}{SYMBOLS['FILLED_SQUARE']}{ANSI_RESET}"
+            output[weekday][week_index] = f"{color}{STATS_FORMATTER_SYMBOLS['FILLED_SQUARE']}{ANSI_RESET}"
+
         else:
-            output[weekday][week_index] = f"{ANSI_CODES['GRAY']}{SYMBOLS['FILLED_SQUARE']}{ANSI_RESET}"
+            output[weekday][week_index] = f"{STATS_FORMATTER_DIFFICULTY_COLORS['GRAY']}{STATS_FORMATTER_SYMBOLS['FILLED_SQUARE']}{ANSI_RESET}"
 
         if date.day == 1 and week_index < COLUMNS - 1:
             months_starting_indexes.append(week_index)

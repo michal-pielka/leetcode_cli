@@ -1,12 +1,12 @@
 
 # leetcode_cli/commands/submit.py
 import click
-from leetcode_cli.utils.user_utils import get_cookie, extract_csrf_token
+from leetcode_cli.utils.config_utils import get_cookie, extract_csrf_token
+from leetcode_cli.utils.download_problems_utils import problem_data_from_path
 from leetcode_cli.utils.code_utils import read_code_from_file, determine_language_from_extension
 from leetcode_cli.data_fetching.submission_result_fetcher import fetch_submission_result
 from leetcode_cli.parsers.submission_parser import parse_submission_result
 from leetcode_cli.formatters.submission_formatter import SubmissionFormatter
-from leetcode_cli.utils.user_utils import problem_data_from_path
 
 @click.command(short_help='Submit a solution file')
 @click.argument('file_path', required=True, type=click.Path(exists=True))
