@@ -1,8 +1,6 @@
-# leetcode_cli/cli.py
 import logging
 import click
 
-# Import command groups from separate files
 from leetcode_cli.commands.config import config_cmd
 from leetcode_cli.commands.list_problems import list_cmd
 from leetcode_cli.commands.show_problem import show_cmd
@@ -12,7 +10,6 @@ from leetcode_cli.commands.download_problems import download_problems_cmd
 from leetcode_cli.commands.stats import stats_cmd
 from leetcode_cli.commands.create_solution import create_cmd
 from leetcode_cli.commands.theme import theme_cmd
-from leetcode_cli.utils.theme_utils import initialize_config_and_default_theme
 
 def configure_logging():
     logging.basicConfig(
@@ -47,7 +44,6 @@ cli.add_command(theme_cmd, "theme")
 
 def main():
     configure_logging()
-    initialize_config_and_default_theme() 
     cli()
 
 if __name__ == "__main__":

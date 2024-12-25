@@ -4,7 +4,7 @@ from datetime import datetime
 from leetcode_cli.utils.config_utils import get_username
 from leetcode_cli.data_fetching.stats_fetcher import fetch_user_stats, fetch_user_activity
 from leetcode_cli.parsers.stats_parser import parse_user_stats_data, parse_user_activity_data
-from leetcode_cli.formatters.stats_formatter import format_user_stats, format_user_activity
+from leetcode_cli.formatters.stats_formatter import StatsFormatter
 
 @click.command(short_help='Display user stats')
 @click.argument('username', required=False, default=get_username())
@@ -29,12 +29,14 @@ def stats_cmd(username, include):
     if not include:
         include = ["stats", "calendar"]
 
+    formatter = StatsFormatter()
+
     # Fetch and parse stats
     if 'stats' in include:
         stats_data = fetch_user_stats(username)
         if stats_data:
             user_stats = parse_user_stats_data(stats_data)
-            formatted_stats = format_user_stats(user_stats)
+            formatted_stats = formatter.format_user_stats(user_stats)
             click.echo()
             click.echo(formatted_stats)
             click.echo()
@@ -51,7 +53,7 @@ def stats_cmd(username, include):
 
         if activity_current and activity_previous:
             user_activity = parse_user_activity_data(activity_previous, activity_current)
-            formatted_activity = format_user_activity(user_activity)
+            formatted_activity = formatter.format_user_activity(user_activity)
             click.echo()
             click.echo(formatted_activity)
             click.echo()

@@ -1,11 +1,17 @@
 from bs4 import BeautifulSoup, NavigableString, Tag
-from leetcode_cli.utils.theme_utils import get_theme_data
+
+from leetcode_cli.utils.theme_utils import load_problem_theme_data
 from leetcode_cli.graphics.ansi_codes import ANSI_RESET
+from leetcode_cli.exceptions.exceptions import ThemeError
 
 class ProblemFormatter:
     def __init__(self, problem):
         self.problem = problem
-        self.THEME_DATA = get_theme_data()
+        try:
+            self.THEME_DATA = load_problem_theme_data()
+
+        except ThemeError as e:
+            raise ThemeError(f"Failed to load theme: {str(e)}")
 
     @property
     def title(self) -> str:
@@ -86,6 +92,37 @@ class ProblemFormatter:
         for child in soup.children:
             traverse(child)
         return ansi_str
+
+    def _parse_example_content(self, html_content: str, title: str) -> dict:
+        from bs4 import BeautifulSoup
+        import re
+        soup = BeautifulSoup(html_content, "html.parser")
+        content_text = soup.get_text(separator="\n").strip()
+        example_dict = {"title": title}
+
+        input_match = re.search(r'Input:\s*(.*?)(?:\nOutput:|\Z)', content_text, re.DOTALL)
+        output_match = re.search(r'Output:\s*(.*?)(?:\nExplanation:|\Z)', content_text, re.DOTALL)
+        explanation_match = re.search(r'Explanation:\s*(.*)', content_text, re.DOTALL)
+
+        input_str = input_match.group(1).strip() if input_match else ""
+        input_list = []
+        if input_str:
+            parts = [part.strip() for part in input_str.split(',')]
+            input_list = [p for p in parts if p]
+
+        example_dict['input'] = input_list
+        example_dict['output'] = output_match.group(1).strip() if output_match else ""
+        example_dict['explanation'] = explanation_match.group(1).strip() if explanation_match else ""
+
+        return example_dict
+
+    def _parse_example_section(self, header):
+        example_title = header.get_text(strip=True).rstrip(':')
+        pre_tag = header.find_next('pre')
+        if not pre_tag:
+            return None
+        example_content = pre_tag.decode_contents()
+        return self._parse_example_content(example_content, example_title)
 
     def _format_example(self, example: dict) -> str:
         parts = []

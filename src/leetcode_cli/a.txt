@@ -1,0 +1,3844 @@
+
+File path: cli.py:
+import logging
+import click
+
+from leetcode_cli.commands.config import config_cmd
+from leetcode_cli.commands.list_problems import list_cmd
+from leetcode_cli.commands.show_problem import show_cmd
+from leetcode_cli.commands.submit import submit_cmd
+from leetcode_cli.commands.test_solution import test_cmd
+from leetcode_cli.commands.download_problems import download_problems_cmd
+from leetcode_cli.commands.stats import stats_cmd
+from leetcode_cli.commands.create_solution import create_cmd
+from leetcode_cli.commands.theme import theme_cmd
+
+def configure_logging():
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+        handlers=[
+            logging.StreamHandler()
+        ]
+    )
+
+@click.group(context_settings=dict(help_option_names=['-h', '--help'], max_content_width=200))
+@click.pass_context
+def cli(ctx):
+    """
+    LeetCode CLI Tool
+
+    Manage your LeetCode activities directly from the command line.
+    """
+    if ctx.invoked_subcommand is None:
+        click.echo(cli.get_help(ctx))
+
+# Add subcommands from separate command modules
+cli.add_command(config_cmd, "config")
+cli.add_command(list_cmd, "list")
+cli.add_command(show_cmd, "show")
+cli.add_command(submit_cmd, "submit")
+cli.add_command(test_cmd, "test")
+cli.add_command(download_problems_cmd, "download-problems")
+cli.add_command(stats_cmd, "stats")
+cli.add_command(create_cmd, "create")
+cli.add_command(theme_cmd, "theme")
+
+def main():
+    configure_logging()
+    cli()
+
+if __name__ == "__main__":
+    main()
+
+File path: parsers/interpretation_parser.py:
+from typing import Dict, Any
+
+from leetcode_cli.models.interpretation import InterpretationResult
+from leetcode_cli.exceptions.exceptions import ParsingError
+
+
+def parse_interpretation_result(json_data: Dict[str, Any]) -> InterpretationResult:
+    # Define required fields
+    required_fields = [
+        "status_code",
+        "status_msg",
+        "lang",
+        "run_success",
+        "code_answer",
+        "code_output",
+        "std_output_list",
+        "state",
+        "memory",
+        "status_runtime",
+    ]
+
+    # Validate required fields
+    for field in required_fields:
+        if field not in json_data:
+            raise ParsingError(f"Missing required field '{field}' in interpretation result data.")
+
+    # Parse and assign each field, providing defaults where necessary
+    return InterpretationResult(
+        status_code=int(json_data["status_code"]),
+        lang=str(json_data["lang"]),
+        run_success=bool(json_data["run_success"]),
+        runtime_error= json_data.get("runtime_error"),
+        full_runtime_error= json_data.get("full_runtime_error"),
+        compile_error= json_data.get("compile_error"),
+        full_compile_error= json_data.get("full_compile_error"),
+        status_runtime=str(json_data.get("status_runtime", "")),
+        memory=int(json_data.get("memory", 0)),
+        display_runtime=str(json_data.get("display_runtime", "")),
+        code_answer=list(json_data.get("code_answer", [])),
+        code_output=list(json_data.get("code_output", [])),
+        std_output_list=list(json_data.get("std_output_list", [])),
+        elapsed_time= json_data.get("elapsed_time"),
+        task_finish_time= json_data.get("task_finish_time"),
+        task_name= json_data.get("task_name"),
+        expected_status_code= json_data.get("expected_status_code"),
+        expected_lang= json_data.get("expected_lang"),
+        expected_run_success= json_data.get("expected_run_success"),
+        expected_status_runtime= json_data.get("expected_status_runtime"),
+        expected_memory= json_data.get("expected_memory"),
+        expected_display_runtime= json_data.get("expected_display_runtime"),
+        expected_code_answer= json_data.get("expected_code_answer"),
+        expected_code_output= json_data.get("expected_code_output"),
+        expected_std_output_list= json_data.get("expected_std_output_list"),
+        expected_elapsed_time= json_data.get("expected_elapsed_time"),
+        expected_task_finish_time= json_data.get("expected_task_finish_time"),
+        expected_task_name= json_data.get("expected_task_name"),
+        correct_answer= json_data.get("correct_answer"),
+        compare_result= json_data.get("compare_result"),
+        total_correct= json_data.get("total_correct"),
+        total_testcases= json_data.get("total_testcases"),
+        runtime_percentile= json_data.get("runtime_percentile"),
+        status_memory= json_data.get("status_memory"),
+        memory_percentile= json_data.get("memory_percentile"),
+        pretty_lang= json_data.get("pretty_lang"),
+        submission_id= json_data.get("submission_id"),
+        status_msg=str(json_data["status_msg"]),
+        state=str(json_data["state"])
+    )
+
+File path: parsers/problemset_data_parser.py:
+from typing import Dict, Any
+from leetcode_cli.exceptions.exceptions import ParsingError
+from leetcode_cli.models.problemset import ProblemSet, ProblemSummary
+
+def parse_problemset_data(json_data: Dict[str, Any]) -> ProblemSet:
+    """
+    Parses the JSON returned by fetch_problemset into a ProblemSet model.
+    """
+    if "data" not in json_data or "problemsetQuestionList" not in json_data["data"]:
+        raise ParsingError("Invalid problemset data structure: 'data.problemsetQuestionList' key not found.")
+
+    plist = json_data["data"]["problemsetQuestionList"]
+
+    if "questions" not in plist or "total" not in plist:
+        raise ParsingError("Missing 'questions' or 'total' in problemset data.")
+
+    total = plist["total"]
+    questions_data = plist["questions"]
+
+    questions = []
+    for q in questions_data:
+        # Validate required fields
+        required_fields = ["acRate", "difficulty", "questionId", "topicTags", "frontendQuestionId", "paidOnly", "status", "title", "titleSlug"]
+        for field in required_fields:
+            if field not in q:
+                raise ParsingError(f"Missing '{field}' in question data.")
+
+        # Extract topic tags (list of slugs)
+        topic_slugs = [tag["slug"] for tag in q.get("topicTags", []) if "slug" in tag]
+
+        summary = ProblemSummary(
+            ac_rate=float(q["acRate"]),
+            difficulty=q["difficulty"],
+            question_id=str(q["questionId"]),
+            topic_tags=topic_slugs,
+            frontend_question_id=str(q["frontendQuestionId"]),
+            paid_only=bool(q["paidOnly"]),
+            status=q["status"],
+            title=q["title"],
+            title_slug=q["titleSlug"]
+        )
+        questions.append(summary)
+
+    return ProblemSet(total=total, questions=questions)
+
+File path: parsers/submission_parser.py:
+from typing import Dict, Any
+from leetcode_cli.exceptions.exceptions import ParsingError
+from leetcode_cli.models.submission import SubmissionResult
+
+def parse_submission_result(json_data: Dict[str, Any]) -> SubmissionResult:
+    # Define required fields
+    required_fields = [
+        "status_code",
+        "status_msg",
+        "lang",
+        "run_success",
+        "status_runtime",
+        "memory",
+        "state"
+    ]
+
+    # Validate required fields
+    for field in required_fields:
+        if field not in json_data:
+            raise ParsingError(f"Missing required field '{field}' in submission result data.")
+
+    # Optional: Validate error fields based on 'run_success'
+    run_success = bool(json_data["run_success"])
+    """
+    if not run_success:
+        # If run was unsuccessful, at least one error field should be present
+        error_fields = ["runtime_error", "compile_error"]
+        if not any(json_data.get(error) for error in error_fields):
+            raise ParsingError("Run failed but no error message provided in 'runtime_error' or 'compile_error'.")
+    """
+
+    return SubmissionResult(
+        status_code=int(json_data["status_code"]),
+        lang=str(json_data["lang"]),
+        run_success=bool(json_data["run_success"]),
+        runtime_error=json_data.get("runtime_error"),
+        full_runtime_error=json_data.get("full_runtime_error"),
+        compile_error=json_data.get("compile_error"),
+        full_compile_error=json_data.get("full_compile_error"),
+        status_runtime=str(json_data.get("status_runtime", "")),
+        memory=int(json_data.get("memory", 0)),
+        display_runtime=str(json_data.get("display_runtime", "")),
+        question_id=json_data.get("question_id"),
+        elapsed_time=json_data.get("elapsed_time"),
+        compare_result=json_data.get("compare_result"),
+        code_output=json_data.get("code_output"),
+        std_output=json_data.get("std_output"),
+        last_testcase=json_data.get("last_testcase"),
+        expected_output=json_data.get("expected_output"),
+        task_finish_time=json_data.get("task_finish_time"),
+        task_name=json_data.get("task_name"),
+        finished=json_data.get("finished"),
+        total_correct=json_data.get("total_correct"),
+        total_testcases=json_data.get("total_testcases"),
+        runtime_percentile=json_data.get("runtime_percentile"),
+        status_memory=json_data.get("status_memory"),
+        memory_percentile=json_data.get("memory_percentile"),
+        pretty_lang=json_data.get("pretty_lang"),
+        submission_id=json_data.get("submission_id"),
+        input_formatted=json_data.get("input_formatted"),
+        input=json_data.get("input"),
+        status_msg=str(json_data["status_msg"]),
+        state=str(json_data["state"])
+    )
+
+File path: parsers/problem_parser.py:
+import json
+import re
+from bs4 import BeautifulSoup
+from leetcode_cli.exceptions.exceptions import ParsingError
+from leetcode_cli.models.problem import Problem
+
+def parse_problem_data(json_data):
+    if "data" not in json_data or "question" not in json_data["data"]:
+        raise ParsingError("Invalid problem data structure: 'data.question' key not found.")
+
+    question = json_data["data"]["question"]
+    required_fields = ["title", "questionFrontendId", "content", "categoryTitle", "difficulty", 
+                       "topicTags", "stats", "likes", "dislikes", "isPaidOnly", "solution", "codeSnippets"]
+
+    for field in required_fields:
+        if field not in question:
+            raise ParsingError(f"Missing '{field}' in problem data.")
+
+    # Parse topic tags
+    topic_tags = []
+    for tag_data in question["topicTags"]:
+        if "name" not in tag_data:
+            raise ParsingError("Topic tag data is missing 'name' field.")
+        topic_tags.append(tag_data["name"])
+
+    # Parse stats
+    stats_str = question["stats"]
+    stats_data = json.loads(stats_str)
+    stats_required = ["totalAccepted", "totalSubmission", "totalAcceptedRaw", "totalSubmissionRaw", "acRate"]
+    for sfield in stats_required:
+        if sfield not in stats_data:
+            raise ParsingError(f"Missing '{sfield}' in stats data.")
+
+    stats = {
+        "total_accepted": stats_data["totalAccepted"],
+        "total_submission": stats_data["totalSubmission"],
+        "total_accepted_raw": stats_data["totalAcceptedRaw"],
+        "total_submission_raw": stats_data["totalSubmissionRaw"],
+        "ac_rate": stats_data["acRate"]
+    }
+
+    # Parse solution info
+    solution_data = question["solution"]
+    if solution_data:
+        solution_required = ["id", "paidOnly", "hasVideoSolution", "canSeeDetail"]
+        for sol_field in solution_required:
+            if sol_field not in solution_data:
+                raise ParsingError(f"Missing '{sol_field}' in solution data.")
+
+        solution_info = {
+            "id": solution_data["id"],
+            "paid_only": solution_data["paidOnly"],
+            "has_video_solution": solution_data["hasVideoSolution"],
+            "can_see_detail": solution_data["canSeeDetail"]
+        }
+
+    else:
+        solution_info = None
+
+    # Parse code snippets
+    snippets = []
+    for snippet_data in question["codeSnippets"]:
+        snippet_required = ["lang", "langSlug"]
+        for sn_field in snippet_required:
+            if sn_field not in snippet_data:
+                raise ParsingError(f"Missing '{sn_field}' in code snippet data.")
+
+        snippets.append({
+            "lang": snippet_data["lang"],
+            "lang_slug": snippet_data["langSlug"]
+        })
+
+    # Parse the HTML content for description, examples, and constraints
+    html_content = question["content"]
+    soup = BeautifulSoup(html_content, "html.parser")
+
+    # Find constraints
+    constraints_header = soup.find('strong', string=re.compile(r'Constraints:'))
+    constraints = []
+    if constraints_header:
+        ul_tag = constraints_header.find_next('ul')
+        if ul_tag:
+            # Keep HTML tags in constraints
+            for li in ul_tag.find_all('li'):
+                constraints.append(str(li))
+
+    # Find examples by <strong class="example">
+    example_headers = soup.find_all('strong', class_='example')
+    examples = []
+    for header in example_headers:
+        example = _parse_example_section(header)
+        if example:
+            examples.append(example)
+
+    # Determine earliest stop point
+    stopping_points = []
+    if example_headers:
+        stopping_points.extend(example_headers)
+
+    earliest_stop = None
+    if stopping_points:
+        all_elements = list(soup.find_all())
+        earliest_stop = min(stopping_points, key=lambda el: all_elements.index(el))
+
+    # Text-based slicing of the original HTML up to earliest_stop
+    description_html = "Description not available"
+    if earliest_stop:
+        earliest_html = str(earliest_stop)
+        idx = html_content.find(earliest_html)
+        if idx != -1:
+            # Slice everything up to earliest_stop's occurrence
+            description_html = html_content[:idx]
+        else:
+            # If not found, fallback
+            description_html = html_content
+    else:
+        # If no stop found, entire content is description
+        description_html = html_content
+
+    # Now clean up trailing empty paragraphs
+    # We'll re-parse, remove trailing empty <p>, and then convert back to string.
+    desc_soup = BeautifulSoup(description_html, "html.parser")
+    _remove_trailing_empty_paragraphs(desc_soup)
+    description_html = str(desc_soup).strip()
+
+
+    problem = Problem(
+        title=question["title"],
+        question_frontend_id=question["questionFrontendId"],
+        description=description_html,
+        examples=examples,
+        constraints=constraints,
+        category_title=question["categoryTitle"],
+        difficulty=question["difficulty"],
+        topic_tags=topic_tags,
+        stats=stats,
+        likes=question["likes"],
+        dislikes=question["dislikes"],
+        is_paid_only=question["isPaidOnly"],
+        solution_info=solution_info,
+        code_snippets=snippets
+    )
+
+    return problem
+
+def _parse_example_section(header):
+    example_title = header.get_text(strip=True).rstrip(':')
+    pre_tag = header.find_next('pre')
+    if not pre_tag:
+        return None
+    example_content = pre_tag.decode_contents()
+    return _parse_example_content(example_content, example_title)
+
+def _parse_example_content(html_content: str, title: str) -> dict:
+    soup = BeautifulSoup(html_content, "html.parser")
+    content_text = soup.get_text(separator="\n").strip()
+    example_dict = {"title": title}
+
+    input_match = re.search(r'Input:\s*(.*?)(?:\nOutput:|\Z)', content_text, re.DOTALL)
+    output_match = re.search(r'Output:\s*(.*?)(?:\nExplanation:|\Z)', content_text, re.DOTALL)
+    explanation_match = re.search(r'Explanation:\s*(.*)', content_text, re.DOTALL)
+
+    input_str = input_match.group(1).strip() if input_match else ""
+    input_list = []
+    if input_str:
+        parts = [part.strip() for part in input_str.split(',')]
+        input_list = [p for p in parts if p]
+
+    example_dict['input'] = input_list
+    example_dict['output'] = output_match.group(1).strip() if output_match else ""
+    example_dict['explanation'] = explanation_match.group(1).strip() if explanation_match else ""
+
+    return example_dict
+
+def _remove_trailing_empty_paragraphs(soup: BeautifulSoup):
+    """
+    Removes trailing empty <p> tags (or those containing only &nbsp;) at the end of the document.
+    """
+    # Get all top-level elements
+    elements = soup.find_all(recursive=False)
+    for element in reversed(elements):
+        if element.name == "p":
+            txt = element.get_text(strip=True)
+            if not txt or txt == '\xa0':
+                element.decompose()
+            else:
+                # As soon as we find a non-empty paragraph, we stop removing
+                break
+        else:
+            # Non-p element encountered, stop removing
+            break
+
+File path: parsers/stats_parser.py:
+
+# leetcode_cli/parsers/stats_parser.py
+import logging
+from typing import Dict, Any
+from leetcode_cli.models.stats import UserStatsModel, UserActivityModel
+from leetcode_cli.utils.stats_utils import (
+    join_and_slice_calendars,
+    fill_daily_activity
+)
+from leetcode_cli.exceptions.exceptions import ParsingError
+
+logger = logging.getLogger(__name__)
+
+def parse_user_stats_data(json_data: Dict[str, Any]) -> UserStatsModel:
+    """
+    Parse the raw stats JSON data into a UserStatsModel.
+    """
+    try:
+        user_progress = json_data["data"]["userProfileUserQuestionProgressV2"]
+        accepted = {item["difficulty"].upper(): item["count"] for item in user_progress.get("numAcceptedQuestions", [])}
+        failed = {item["difficulty"].upper(): item["count"] for item in user_progress.get("numFailedQuestions", [])}
+        untouched = {item["difficulty"].upper(): item["count"] for item in user_progress.get("numUntouchedQuestions", [])}
+
+        return UserStatsModel(accepted=accepted, failed=failed, untouched=untouched)
+
+    except KeyError as e:
+        logger.error(f"Missing key in stats data: {e}")
+        raise ParsingError(f"Missing key in stats data: {e}")
+
+    except TypeError as e:
+        logger.error(f"Invalid structure in stats data: {e}")
+        raise ParsingError(f"Invalid structure in stats data: {e}")
+
+def parse_user_activity_data(previous_year_data: Dict[str, Any], current_year_data: Dict[str, Any]) -> UserActivityModel:
+    """
+    Parse the raw calendar activity data from two years into a UserActivityModel.
+    This involves joining, slicing, and filling the daily activity dictionary.
+    """
+    try:
+        joined_activity = join_and_slice_calendars(previous_year_data, current_year_data)
+        filled_activity = fill_daily_activity(joined_activity)
+        return UserActivityModel(daily_activity=filled_activity)
+
+    except Exception as e:
+        logger.error(f"Error parsing user activity data: {e}")
+        raise ParsingError(f"Error parsing user activity data: {e}")
+
+File path: constants/formatting_config_constants.py:
+DEFAULT_FORMATTING_CONFIG = {
+  "interpretation": {
+    "show_language": True,
+    "show_testcases": True,
+    "show_expected_output": True,
+    "show_code_output": True,
+    "show_stdout": True,
+    "show_error_messages": True,
+    "show_detailed_error_messages": True
+  },
+
+  "submission": {
+    "show_language": True,
+    "show_testcases": True,
+    "show_runtime_memory": True,
+    "show_code_output": True,
+    "show_stdout": True,
+    "show_error_messages": True,
+    "show_detailed_error_messages": True,
+    "show_expected_output": True
+  }
+}
+
+File path: constants/stats_constants.py:
+RECTANGLES_TOTAL = 66
+DIFFICULTIES = ["EASY", "MEDIUM", "HARD"]
+MONTH_NAMES = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+]
+MONTH_SEPARATION = 3
+COLUMNS = 100
+
+File path: constants/problem_constants.py:
+POSSIBLE_LANG_SLUGS = ["cpp", "java", "python", "python3", "c", "csharp", "javascript", "typescript", "php", "swift", "kotlin", "dart", "golang", "ruby", "scala", "rust", "racket", "erlang", "elixir"]
+
+POSSIBLE_FILE_EXTENSIONS = ["cpp", "java", "py", "py3", "c", "cs", "js", "ts", "php", "swift", "kt", "dart", "go", "rb", "scala", "rs", "rkt", "erl", "ex"]
+
+EXTENSION_TO_LANG_SLUG = {
+    "cpp": "cpp",
+    "java": "java",
+    "py": "python",
+    "py3": "python3",
+    "c": "c",
+    "cs": "csharp",
+    "js": "javascript",
+    "ts": "typescript",
+    "php": "php",
+    "swift": "swift",
+    "kt": "kotlin",
+    "dart": "dart",
+    "go": "golang",
+    "rb": "ruby",
+    "scala": "scala",
+    "rs": "rust",
+    "rkt": "racket",
+    "erl": "erlang",
+    "ex": "elixir"
+}
+
+LANG_SLUG_TO_EXTENSION = {
+    "cpp": "cpp",
+    "java": "java",
+    "python": "py",
+    "python3": "py3",
+    "c": "c",
+    "csharp": "cs",
+    "javascript": "js",
+    "typescript": "ts",
+    "php": "php",
+    "swift": "swift",
+    "kotlin": "kt",
+    "dart": "dart",
+    "golang": "go",
+    "ruby": "rb",
+    "scala": "scala",
+    "rust": "rs",
+    "racket": "rkt",
+    "erlang": "erl",
+    "elixir": "ex"
+}
+
+POSSIBLE_TAGS = [
+    "array",
+    "string",
+    "hash-table",
+    "dynamic-programming",
+    "math",
+    "sorting",
+    "greedy",
+    "depth-first-search",
+    "binary-search",
+    "database",
+    "matrix",
+    "tree",
+    "breadth-first-search",
+    "bit-manipulation",
+    "two-pointers",
+    "prefix-sum",
+    "heap-priority-queue",
+    "binary-tree",
+    "simulation",
+    "stack",
+    "counting",
+    "graph",
+    "sliding-window",
+    "design",
+    "backtracking",
+    "enumeration",
+    "union-find",
+    "linked-list",
+    "ordered-set",
+    "number-theory",
+    "monotonic-stack",
+    "trie",
+    "segment-tree",
+    "bitmask",
+    "queue",
+    "divide-and-conquer",
+    "recursion",
+    "combinatorics",
+    "binary-search-tree",
+    "hash-function",
+    "memoization",
+    "binary-indexed-tree",
+    "geometry",
+    "string-matching",
+    "topological-sort",
+    "shortest-path",
+    "rolling-hash",
+    "game-theory",
+    "interactive",
+    "data-stream",
+    "monotonic-queue",
+    "brainteaser",
+    "randomized",
+    "merge-sort",
+    "doubly-linked-list",
+    "counting-sort",
+    "iterator",
+    "concurrency",
+    "probability-and-statistics",
+    "quickselect",
+    "suffix-array",
+    "bucket-sort",
+    "minimum-spanning-tree",
+    "shell",
+    "line-sweep",
+    "reservoir-sampling",
+    "strongly-connected-component",
+    "eulerian-circuit",
+    "radix-sort",
+    "rejection-sampling",
+    "biconnected-component"
+]
+
+
+File path: constants/default_theme_constants.py:
+DEFAULT_THEME_FILES = {
+    "ansi_codes.json": {
+        "ANSI_CODES": {
+            "GREEN": "\u001b[32m",
+            "ORANGE": "\u001b[38;5;208m",
+            "RED": "\u001b[31m",
+            "GRAY": "\u001b[90m",
+            "CYAN": "\u001b[96m",
+            "WHITE": "\u001b[38;2;255;255;255m",
+            "BLACK": "\u001b[38;2;0;0;0m",
+            "GREEN1": "\u001b[38;2;1;155;1m",
+            "GREEN2": "\u001b[38;2;16;175;16m",
+            "GREEN3": "\u001b[38;2;33;195;33m",
+            "GREEN4": "\u001b[38;2;61;215;61m",
+            "GREEN5": "\u001b[38;2;82;235;82m",
+            "GREEN6": "\u001b[38;2;100;255;100m",
+            "GRAY_BG": "\u001b[100m",
+            "GREEN_BG": "\u001b[42m",
+            "BABY_BLUE_BG": "\u001b[48;2;66;205;245m",
+            "RED_BG": "\u001b[41m",
+            "ORANGE_BG": "\u001b[48;2;245;158;66m",
+            "BOLD": "\u001b[1m",
+            "ITALIC": "\u001b[3m",
+            "UNDERLINE": "\u001b[4m"
+        }
+    },
+    "symbols.json": {
+        "SYMBOLS": {
+            "FILLED_SQUARE": "◼",
+            "EMPTY_SQUARE": "▫",
+            "CARET": "^",
+            "DOT": "•",
+            "CHECKMARK": "✔",
+            "X": "✘",
+            "ATTEMPTED": "❋"
+        }
+    },
+    "interpretation_mappings.json": {
+        # References to ANSI_CODES and SYMBOLS by their keys
+        "INTERPRETATION_ANSI_CODES": {
+            "Accepted": "GREEN BOLD",    # "GREEN" and "BOLD" can be combined by theme_utils if needed.
+            "Wrong Answer": "RED BOLD",
+            "Memory Limit Exceeded": "RED BOLD",
+            "Output Limit Exceeded": "RED BOLD",
+            "Time Limit Exceeded": "RED BOLD",
+            "Runtime Error": "RED BOLD",
+            "Compile Error": "RED BOLD",
+            "unknown": "ORANGE BOLD"
+        },
+        "INTERPRETATION_SYMBOLS": {
+            "Accepted": "CHECKMARK",
+            "Wrong Answer": "X",
+            "Memory Limit Exceeded": "X",
+            "Output Limit Exceeded": "X",
+            "Time Limit Exceeded": "X",
+            "Runtime Error": "X",
+            "Compile Error": "X",
+            "unknown": "X"
+        }
+    },
+    "problemset_mappings.json": {
+        "PROBLEMSET_FORMATTER_ANSI_CODES": {
+            "Easy": "GREEN",
+            "Medium": "ORANGE",
+            "Hard": "RED",
+            "ac": "GREEN",
+            "notac": "ORANGE"
+        },
+        "PROBLEMSET_FORMATTER_SYMBOLS": {
+            "ac": "CHECKMARK",
+            "notac": "ATTEMPTED"
+        }
+    },
+    "submission_mappings.json": {
+        "SUBMISSION_ANSI_CODES": {
+            "Accepted": "GREEN BOLD",
+            "Wrong Answer": "RED BOLD",
+            "Memory Limit Exceeded": "RED BOLD",
+            "Output Limit Exceeded": "RED BOLD",
+            "Time Limit Exceeded": "RED BOLD",
+            "Runtime Error": "RED BOLD",
+            "Compile Error": "RED BOLD",
+            "unknown": "ORANGE BOLD"
+        },
+        "SUBMISSION_SYMBOLS": {
+            "Accepted": "CHECKMARK",
+            "Wrong Answer": "X",
+            "Memory Limit Exceeded": "X",
+            "Output Limit Exceeded": "X",
+            "Time Limit Exceeded": "X",
+            "Runtime Error": "X",
+            "Compile Error": "X",
+            "unknown": "X"
+        }
+    },
+    "problem_mappings.json": {
+        # Values here are keys that reference ANSI_CODES or SYMBOLS
+        # For compound styles like "GREEN BOLD", the theme_utils would need logic to parse and combine.
+        "PROBLEM_FORMATTER_ANSI_CODES": {
+            "strong": "BOLD",
+            "b": "BOLD",
+            "em": "ITALIC",
+            "i": "ITALIC",
+            "u": "UNDERLINE",
+            "code": "GRAY_BG",
+            "pre": "RED",
+            "tag": "BABY_BLUE_BG WHITE BOLD",
+            "language": "ORANGE_BG BLACK BOLD",
+            "title": "BOLD",
+            "example_title": "BOLD",
+            "example_input_string": "BOLD",
+            "example_output_string": "BOLD",
+            "example_explanation_string": "BOLD",
+            "example_input_data": "GRAY",
+            "example_output_data": "GRAY",
+            "example_explanation_data": "GRAY",
+            "constraints_string": "BOLD",
+            "Easy": "GREEN_BG",
+            "Medium": "ORANGE_BG",
+            "Hard": "RED_BG"
+        },
+        "PROBLEM_FORMATTER_SYMBOLS": {
+            "sup": "CARET",
+            "li": "DOT"
+        }
+    },
+    "stats_mappings.json": {
+        "STATS_FORMATTER_DIFFICULTY_COLORS": {
+            "EASY": "GREEN",
+            "MEDIUM": "ORANGE",
+            "HARD": "RED",
+            "CALENDAR_TIER0": "GRAY",
+            "CALENDAR_TIER1": "GREEN1"
+        },
+        "STATS_FORMATTER_SYMBOLS": {
+            "FILLED_SQUARE": "FILLED_SQUARE",
+            "EMPTY_SQUARE": "EMPTY_SQUARE"
+        }
+    }
+}
+
+File path: constants/theme_validation/submission_validation_constants.py:
+SUBMISSION_ANSI_CODES_REQUIRED = [
+    "Accepted", "Wrong Answer", "Memory Limit Exceeded", "Output Limit Exceeded",
+    "Time Limit Exceeded", "Runtime Error", "Compile Error", "unknown"
+]
+
+SUBMISSION_SYMBOLS_REQUIRED = [
+    "Accepted", "Wrong Answer", "Memory Limit Exceeded", "Output Limit Exceeded",
+    "Time Limit Exceeded", "Runtime Error", "Compile Error", "unknown"
+]
+
+File path: constants/theme_validation/problem_validation_constants.py:
+PROBLEM_FORMATTER_ANSI_CODES_REQUIRED = [
+    "strong", "b", "em", "i", "u", "code", "pre", "tag", "language", "title",
+    "example_title", "example_input_string", "example_output_string",
+    "example_explanation_string", "example_input_data", "example_output_data",
+    "example_explanation_data", "constraints_string", "Easy", "Medium", "Hard"
+]
+
+PROBLEM_FORMATTER_SYMBOLS_REQUIRED = [
+    "sup", "li"
+]
+
+File path: constants/theme_validation/stats_validation_constants.py:
+STATS_FORMATTER_DIFFICULTY_COLORS_REQUIRED = [
+    "EASY", "MEDIUM", "HARD", "CALENDAR_TIER0", "CALENDAR_TIER1"
+]
+
+STATS_FORMATTER_SYMBOLS_REQUIRED = [
+    "FILLED_SQUARE", "EMPTY_SQUARE"
+]
+
+File path: constants/theme_validation/problemset_validation_constants.py:
+PROBLEMSET_FORMATTER_ANSI_CODES_REQUIRED = [
+    "Easy", "Medium", "Hard", "ac", "notac"
+]
+
+PROBLEMSET_FORMATTER_SYMBOLS_REQUIRED = [
+    "ac", "notac"
+]
+
+File path: constants/theme_validation/interpretation_validation_constants.py:
+INTERPRETATION_ANSI_CODES_REQUIRED = [
+    "Accepted", "Wrong Answer", "Memory Limit Exceeded", "Output Limit Exceeded",
+    "Time Limit Exceeded", "Runtime Error", "Compile Error", "unknown"
+]
+
+INTERPRETATION_SYMBOLS_REQUIRED = [
+    "Accepted", "Wrong Answer", "Memory Limit Exceeded", "Output Limit Exceeded",
+    "Time Limit Exceeded", "Runtime Error", "Compile Error", "unknown"
+]
+
+File path: formatters/submission_formatter.py:
+from leetcode_cli.graphics.ansi_codes import ANSI_RESET
+from leetcode_cli.utils.theme_utils import load_submission_theme_data
+from leetcode_cli.models.submission import SubmissionResult
+from leetcode_cli.utils.formatting_config_utils import load_formatting_config
+from leetcode_cli.exceptions.exceptions import ThemeError
+
+
+class SubmissionFormatter:
+    def __init__(self, result: SubmissionResult):
+        self.result = result
+        self.format_conf = load_formatting_config()["submission"]
+        try:
+            self.THEME_DATA = load_submission_theme_data()
+
+        except ThemeError as e:
+            # Re-raise to let caller handle
+            raise ThemeError(f"Failed to load theme: {str(e)}")
+
+    def _format_field(self, label: str, value: str, width: int = 25) -> str:
+        lines = value.split('\n')
+        if not lines:
+            return f"  {label:<{width}} \n"
+
+        formatted = f"  {label:<{width}} {lines[0]}\n"
+        padding = ' ' * (2 + width + 1)
+        for line in lines[1:]:
+            if line.strip() == "":
+                continue
+            formatted += f"{padding}{line}\n"
+        return formatted
+
+    def get_formatted_submission(self) -> str:
+        status_msg = self.result.status_msg
+
+        # Configuration flags
+        show_language = self.format_conf.get("show_language", True)
+        show_testcases = self.format_conf.get("show_testcases", True)
+        show_runtime_memory = self.format_conf.get("show_runtime_memory", True)
+        show_code_output = self.format_conf.get("show_code_output", True)
+        show_stdout = self.format_conf.get("show_stdout", True)
+
+        show_errors = self.format_conf.get("show_error_messages", True)
+        detailed_errors = self.format_conf.get("show_detailed_error_messages", True)
+
+        show_expected_output = self.format_conf.get("show_expected_output", True)
+
+        time_ms = self.result.status_runtime
+        time_beats = self.result.runtime_percentile
+        memory_size = self.result.status_memory
+        memory_beats = self.result.memory_percentile
+        total_correct = self.result.total_correct
+        total_testcases = self.result.total_testcases
+        lang = self.result.pretty_lang or self.result.lang
+
+        last_testcase = self.result.last_testcase
+        expected_output = self.result.expected_output
+        code_output = self.result.code_output
+        std_output = self.result.std_output
+
+        runtime_error = getattr(self.result, 'runtime_error', None)
+        full_runtime_error = getattr(self.result, 'full_runtime_error', None)
+        compile_error = getattr(self.result, 'compile_error', None)
+        full_compile_error = getattr(self.result, 'full_compile_error', None)
+
+        ansi_status = f"{self.THEME_DATA['SUBMISSION_ANSI_CODES'].get(status_msg, self.THEME_DATA['SUBMISSION_ANSI_CODES'].get('unknown', ''))}{self.THEME_DATA['SUBMISSION_SYMBOLS'].get(status_msg, 'unknown')}"
+        parsed_result = f"\n  {ansi_status} {status_msg} {ANSI_RESET}\n"
+
+        if show_language:
+            parsed_result += self._format_field('Language:', lang or "")
+
+        if show_testcases and total_correct is not None and total_testcases is not None:
+            parsed_result += self._format_field('Passed Testcases:', f'{total_correct} / {total_testcases}')
+
+
+        if show_runtime_memory:
+            if time_ms is not None and time_beats is not None:
+                formatted_time_beats = f"{time_beats:.2f}%"
+                parsed_result += self._format_field('Runtime:', f'{time_ms} (Beats: {formatted_time_beats})')
+            if memory_size is not None and memory_beats is not None:
+                formatted_memory_beats = f"{memory_beats:.2f}%"
+                parsed_result += self._format_field('Memory Usage:', f'{memory_size} (Beats: {formatted_memory_beats})')
+
+        if last_testcase and show_testcases:
+            parsed_result += self._format_field('Failed Testcase:', last_testcase.replace("\n", ", "))
+
+        if show_expected_output and expected_output:
+            parsed_result += self._format_field('Expected Output:', expected_output)
+
+        if show_code_output and code_output:
+            if isinstance(code_output, list):
+                code_output_str = "\n".join(code_output)
+            else:
+                code_output_str = str(code_output)
+            parsed_result += self._format_field('Your Output:', code_output_str)
+
+        if show_stdout and std_output:
+            if isinstance(std_output, list):
+                std_output_str = "\n".join(std_output)
+            else:
+                std_output_str = str(std_output)
+            parsed_result += self._format_field('Stdout:', std_output_str)
+
+        if show_errors:
+            if runtime_error:
+                parsed_result += self._format_field('Error Message:', runtime_error)
+            if compile_error:
+                parsed_result += self._format_field('Error Message:', compile_error)
+
+        if detailed_errors:
+            if full_runtime_error:
+                parsed_result += self._format_field('Detailed Error:', full_runtime_error)
+            if full_compile_error:
+                parsed_result += self._format_field('Detailed Error:', full_compile_error)
+
+        return parsed_result
+
+File path: formatters/problemset_formatter.py:
+from leetcode_cli.graphics.ansi_codes import ANSI_RESET
+from leetcode_cli.utils.theme_utils import load_problemset_theme_data
+from leetcode_cli.models.problemset import ProblemSet, ProblemSummary
+from leetcode_cli.exceptions.exceptions import ProblemSetFormatterError, ThemeError
+import logging
+
+logger = logging.getLogger(__name__)
+
+class ProblemSetFormatter:
+    def __init__(self, problemset: ProblemSet):
+        self.problemset = problemset
+
+        try:
+            self.THEME_DATA = load_problemset_theme_data()
+
+        except ThemeError as e:
+            raise ThemeError(f"Failed to load theme: {str(e)}")
+
+    def _format_question(self, q: ProblemSummary) -> str:
+        title = q.title.ljust(79)
+        question_id = q.frontend_question_id.rjust(4)
+        ac_rate = f"{float(q.ac_rate):.2f}"
+        difficulty = q.difficulty
+        status = q.status
+
+        formatted_difficulty = f"{self.THEME_DATA['PROBLEMSET_FORMATTER_ANSI_CODES'].get(difficulty, '')}{difficulty.ljust(8)}{ANSI_RESET}"
+        status_symbol = self.THEME_DATA['PROBLEMSET_FORMATTER_SYMBOLS'].get(status, " ")
+        colored_status_symbol = f"{self.THEME_DATA['PROBLEMSET_FORMATTER_ANSI_CODES'].get(status, '')}{status_symbol}{ANSI_RESET}"
+
+        return f"\t{colored_status_symbol}[{question_id}] {title} {formatted_difficulty} ({ac_rate} %)"
+
+    def get_formatted_questions(self) -> str:
+        if not self.problemset.questions:
+            logger.error("No questions available to format.")
+            raise ProblemSetFormatterError("No questions available to format.")
+
+        parsed_list = [self._format_question(q) for q in self.problemset.questions]
+        return "\n".join(parsed_list)
+
+File path: formatters/stats_formatter.py:
+from datetime import datetime, timedelta, timezone
+import logging
+
+from leetcode_cli.models.stats import UserStatsModel, UserActivityModel
+from leetcode_cli.utils.stats_utils import calculate_color
+from leetcode_cli.constants.stats_constants import (
+    RECTANGLES_TOTAL,
+    MONTH_SEPARATION,
+    DIFFICULTIES,
+    COLUMNS,
+    MONTH_NAMES
+)
+from leetcode_cli.utils.theme_utils import load_stats_theme_data
+from leetcode_cli.graphics.ansi_codes import ANSI_RESET
+from leetcode_cli.exceptions.exceptions import ThemeError
+
+logger = logging.getLogger(__name__)
+
+class StatsFormatter:
+    """
+    A formatter class for LeetCode user stats and activity calendar.
+    Loads and validates only the stats-related theme data in its constructor.
+    """
+    def __init__(self):
+        try:
+            self.THEME_DATA = load_stats_theme_data()
+        except ThemeError as e:
+            raise ThemeError(f"Failed to load theme: {str(e)}")
+
+    def format_user_stats(self, stats: UserStatsModel) -> str:
+        """
+        Formats the user's accepted/failed/untouched stats by difficulty.
+        """
+        stats_lines = []
+        for difficulty in DIFFICULTIES:
+            passed = stats.accepted.get(difficulty, 0)
+            total = (passed +
+                     stats.failed.get(difficulty, 0) +
+                     stats.untouched.get(difficulty, 0))
+            if total == 0:
+                percentage = 0.0
+            else:
+                percentage = (passed / total) * 100
+
+            progress_ratio = passed / total if total > 0 else 0.0
+            filled = int(round(progress_ratio * RECTANGLES_TOTAL))
+            filled = max(0, min(filled, RECTANGLES_TOTAL))
+
+            filled_bar = self.THEME_DATA['STATS_FORMATTER_SYMBOLS']['FILLED_SQUARE'] * filled
+            empty_bar = self.THEME_DATA['STATS_FORMATTER_SYMBOLS']['EMPTY_SQUARE'] * (RECTANGLES_TOTAL - filled)
+            progress_bar = filled_bar + empty_bar
+
+            color = self.THEME_DATA['STATS_FORMATTER_DIFFICULTY_COLORS'].get(difficulty, ANSI_RESET)
+            line = f"{color}{difficulty:<7} {passed:>4}/{total:<4} ({percentage:.2f}%) {progress_bar}{ANSI_RESET}"
+            stats_lines.append(line)
+
+        return "\n".join(stats_lines)
+
+    def format_user_activity(self, activity: UserActivityModel) -> str:
+        """
+        Formats the user's daily submission activity (calendar).
+        """
+        daily_activity = activity.daily_activity
+        if not daily_activity:
+            return "No activity data."
+
+        output = [[' ' for _ in range(COLUMNS)] for _ in range(7)]
+        date_counts = {}
+        for ts, count in daily_activity.items():
+            try:
+                date = datetime.fromtimestamp(int(ts), tz=timezone.utc).date()
+                date_counts[date] = count
+            except (ValueError, OverflowError):
+                continue
+
+        if not date_counts:
+            return "No valid daily activity data."
+
+        min_date = min(date_counts.keys())
+        max_date = max(date_counts.keys())
+        min_submissions = min(date_counts.values())
+        max_submissions = max(date_counts.values())
+
+        total_days = (max_date - min_date).days + 1
+        all_dates = [min_date + timedelta(days=i) for i in range(total_days)]
+
+        # Populate the calendar
+        weekday = all_dates[0].weekday()
+        week_index = 3
+        for date in all_dates:
+            submissions = date_counts.get(date, 0)
+            if submissions > 0:
+                color = calculate_color(submissions, max_submissions, min_submissions)
+                output[weekday][week_index] = f"{color}{self.THEME_DATA['STATS_FORMATTER_SYMBOLS']['FILLED_SQUARE']}{ANSI_RESET}"
+            else:
+                gray_color = self.THEME_DATA['STATS_FORMATTER_DIFFICULTY_COLORS'].get('CALENDAR_TIER0', ANSI_RESET)
+                output[weekday][week_index] = f"{gray_color}{self.THEME_DATA['STATS_FORMATTER_SYMBOLS']['FILLED_SQUARE']}{ANSI_RESET}"
+
+            if date.day == 1 and week_index < COLUMNS - 1:
+                week_index += MONTH_SEPARATION
+            if weekday == 6:
+                weekday = 0
+                week_index += 1
+            else:
+                weekday += 1
+
+        # Mark months
+        output_months = [' ' for _ in range(COLUMNS)]
+        months_starting_indexes = []
+        week_index = 3
+        weekday = all_dates[0].weekday()
+
+        for date in all_dates:
+            if date.day == 1 and week_index < COLUMNS - 1:
+                months_starting_indexes.append(week_index)
+            if weekday == 6:
+                weekday = 0
+                week_index += 1
+            else:
+                weekday += 1
+
+        for idx, start_index in enumerate(months_starting_indexes):
+            month = MONTH_NAMES[(min_date.month + idx - 1) % 12]
+            for i, char in enumerate(month):
+                target_index = start_index - 3 + i
+                if 0 <= target_index < COLUMNS:
+                    output_months[target_index] = char
+
+        months_parsed = ''.join(output_months)
+        calendar_parsed = '\n'.join(''.join(row) for row in output)
+        return f"{months_parsed}\n{calendar_parsed}"
+
+File path: formatters/problem_formatter.py:
+from bs4 import BeautifulSoup, NavigableString, Tag
+
+from leetcode_cli.utils.theme_utils import load_problem_theme_data
+from leetcode_cli.graphics.ansi_codes import ANSI_RESET
+from leetcode_cli.exceptions.exceptions import ThemeError
+
+class ProblemFormatter:
+    def __init__(self, problem):
+        self.problem = problem
+        try:
+            self.THEME_DATA = load_problem_theme_data()
+
+        except ThemeError as e:
+            raise ThemeError(f"Failed to load theme: {str(e)}")
+
+    @property
+    def title(self) -> str:
+        difficulty_color = self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES'].get(self.problem.difficulty, "")
+        title_text = f"[{self.problem.question_frontend_id}] {self.problem.title} {difficulty_color}[{self.problem.difficulty}]{ANSI_RESET}"
+        return f"{self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']['title']}{title_text}{ANSI_RESET}"
+
+    @property
+    def description(self) -> str:
+        if not self.problem.description:
+            return "No description available."
+        return self.html_to_ansi(self.problem.description)
+
+    @property
+    def examples(self) -> str:
+        if not self.problem.examples:
+            return "No examples available."
+        formatted_examples = [self._format_example(ex) for ex in self.problem.examples]
+        return "\n\n".join(formatted_examples)
+
+    @property
+    def constraints(self) -> str:
+        if not self.problem.constraints:
+            return ""
+        constraints = [self.html_to_ansi(c) for c in self.problem.constraints]
+        constraints_str = "\n".join(constraints)
+        return f"{self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']['constraints_string']}Constraints:{ANSI_RESET}\n\n{constraints_str}"
+
+    @property
+    def topic_tags(self) -> str:
+        if not self.problem.topic_tags:
+            return ""
+        formatted_tags = ["Tags:"]
+        for tag in self.problem.topic_tags:
+            tag_name = " " + tag.lower() + " "
+            formatted_tags.append(self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']["tag"] + tag_name + ANSI_RESET + " ")
+        return " ".join(formatted_tags)
+
+    @property
+    def languages(self) -> str:
+        langs = set(sn['lang'] for sn in self.problem.code_snippets if sn.get('lang'))
+        if not langs:
+            return "No code snippets available."
+        formatted_languages = ["Languages:"]
+        for language in langs:
+            formatted_language = f"{self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']['language']} {language} {ANSI_RESET}"
+            formatted_languages.append(formatted_language)
+        return " ".join(formatted_languages)
+
+    def html_to_ansi(self, html_content: str) -> str:
+        if not html_content:
+            return ""
+
+        soup = BeautifulSoup(html_content, "html.parser")
+        ansi_str = ""
+        style_stack = []
+
+        def traverse(element):
+            nonlocal ansi_str
+            if isinstance(element, NavigableString):
+                ansi_str += element
+            elif isinstance(element, Tag):
+                if element.name in self.THEME_DATA['PROBLEM_FORMATTER_SYMBOLS']:
+                    ansi_str += self.THEME_DATA['PROBLEM_FORMATTER_SYMBOLS'][element.name]
+                if element.name in self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']:
+                    ansi_code = self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES'][element.name]
+                    ansi_str += ansi_code
+                    style_stack.append(ansi_code)
+                if element.name in ['p', 'br', 'ul']:
+                    ansi_str += '\n'
+                for child in element.children:
+                    traverse(child)
+                if element.name in self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']:
+                    ansi_str += ANSI_RESET
+                    if style_stack:
+                        style_stack.pop()
+
+        for child in soup.children:
+            traverse(child)
+        return ansi_str
+
+    def _parse_example_content(self, html_content: str, title: str) -> dict:
+        from bs4 import BeautifulSoup
+        import re
+        soup = BeautifulSoup(html_content, "html.parser")
+        content_text = soup.get_text(separator="\n").strip()
+        example_dict = {"title": title}
+
+        input_match = re.search(r'Input:\s*(.*?)(?:\nOutput:|\Z)', content_text, re.DOTALL)
+        output_match = re.search(r'Output:\s*(.*?)(?:\nExplanation:|\Z)', content_text, re.DOTALL)
+        explanation_match = re.search(r'Explanation:\s*(.*)', content_text, re.DOTALL)
+
+        input_str = input_match.group(1).strip() if input_match else ""
+        input_list = []
+        if input_str:
+            parts = [part.strip() for part in input_str.split(',')]
+            input_list = [p for p in parts if p]
+
+        example_dict['input'] = input_list
+        example_dict['output'] = output_match.group(1).strip() if output_match else ""
+        example_dict['explanation'] = explanation_match.group(1).strip() if explanation_match else ""
+
+        return example_dict
+
+    def _parse_example_section(self, header):
+        example_title = header.get_text(strip=True).rstrip(':')
+        pre_tag = header.find_next('pre')
+        if not pre_tag:
+            return None
+        example_content = pre_tag.decode_contents()
+        return self._parse_example_content(example_content, example_title)
+
+    def _format_example(self, example: dict) -> str:
+        parts = []
+        parts.append(f"{self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']['example_title']}{example.get('title', 'Example')}{ANSI_RESET}\n\n")
+        input_lines = example.get('input', [])
+        input_str = ", ".join(input_lines)
+        parts.append(f"| {self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']['example_input_string']}Input: {ANSI_RESET}{self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']['example_input_data']}{input_str}{ANSI_RESET}\n")
+        output_str = example.get('output', '')
+        parts.append(f"| {self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']['example_output_string']}Output: {ANSI_RESET}{self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']['example_output_data']}{output_str}{ANSI_RESET}")
+        explanation = example.get('explanation', '')
+        if explanation:
+            explanation_formatted = explanation.replace("\n", f"{ANSI_RESET}\n| {self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']['example_explanation_data']}")
+            parts.append(f"\n| {self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']['example_explanation_string']}Explanation: {ANSI_RESET}{self.THEME_DATA['PROBLEM_FORMATTER_ANSI_CODES']['example_explanation_data']}{explanation_formatted}{ANSI_RESET}")
+
+        return "".join(parts)
+
+File path: formatters/interpretation_formatter.py:
+from leetcode_cli.utils.theme_utils import load_interpretation_theme_data
+from leetcode_cli.graphics.ansi_codes import ANSI_RESET
+from leetcode_cli.models.interpretation import InterpretationResult
+from leetcode_cli.utils.formatting_config_utils import load_formatting_config
+from leetcode_cli.exceptions.exceptions import ThemeError
+
+
+class InterpretationFormatter:
+    def __init__(self, result: InterpretationResult, testcases: str):
+        self.result = result
+        self.testcases = testcases
+        self.format_conf = load_formatting_config()["interpretation"]
+
+        try:
+            self.THEME_DATA = load_interpretation_theme_data()
+
+        except ThemeError as e:
+            raise ThemeError(f"Failed to load interpretation theme: {str(e)}")
+
+    def _format_field(self, label: str, value: str, width: int = 25) -> str:
+        lines = value.split('\n')
+        if not lines:
+            return f"  {label:<{width}} \n"
+
+        formatted = f"  {label:<{width}} {lines[0]}\n"
+        padding = ' ' * (2 + width + 1)
+        for line in lines[1:]:
+            if line.strip() == "":
+                continue
+            formatted += f"{padding}{line}\n"
+        return formatted
+
+    def get_formatted_interpretation(self) -> str:
+        status_code = self.result.status_code
+        status_msg = self.result.status_msg
+        lang = self.result.pretty_lang or self.result.lang
+        total_testcases = self.result.total_testcases
+
+        show_language = self.format_conf["show_language"]
+        show_testcases = self.format_conf["show_testcases"]
+        show_expected_output = self.format_conf["show_expected_output"]
+        show_code_output = self.format_conf["show_code_output"]
+        show_stdout = self.format_conf["show_stdout"]
+        show_errors = self.format_conf["show_error_messages"]
+        detailed_errors = self.format_conf["show_detailed_error_messages"]
+
+        testcases_split = self.testcases.split("\n") if self.testcases else []
+        parameters_in_testcase = len(testcases_split) // total_testcases if total_testcases else 1
+
+        expected_outputs = self.result.expected_code_answer or []
+        code_outputs = self.result.code_answer or []
+        std_outputs = self.result.std_output_list or []
+
+        runtime_error = getattr(self.result, 'runtime_error', None)
+        full_runtime_error = getattr(self.result, 'full_runtime_error', None)
+        compile_error = getattr(self.result, 'compile_error', None)
+        full_compile_error = getattr(self.result, 'full_compile_error', None)
+
+        parsed_result = ""
+
+        for i, expected_output in enumerate(expected_outputs):
+            if not expected_output:
+                break
+
+            testcase = testcases_split[i * parameters_in_testcase : i * parameters_in_testcase + parameters_in_testcase] if total_testcases else []
+            code_output = code_outputs[i] if i < len(code_outputs) else None
+            std_output = std_outputs[i] if i < len(std_outputs) else None
+
+            if status_code == 10:
+                # Accepted or Wrong Answer
+                if code_output == expected_output:
+                    parsed_result += f"\n  {self.THEME_DATA['INTERPRETATION_ANSI_CODES']['Accepted']}{self.THEME_DATA['INTERPRETATION_SYMBOLS']['Accepted']} Accepted {ANSI_RESET}\n"
+                else:
+                    parsed_result += f"\n  {self.THEME_DATA['INTERPRETATION_ANSI_CODES']['Wrong Answer']}{self.THEME_DATA['INTERPRETATION_SYMBOLS']['Wrong Answer']} Wrong Answer {ANSI_RESET}\n"
+            else:
+                ansi_status = self.THEME_DATA['INTERPRETATION_ANSI_CODES'].get(status_msg, self.THEME_DATA['INTERPRETATION_ANSI_CODES']["unknown"])
+                parsed_result += f"\n  {ansi_status} {status_msg} {ANSI_RESET}\n"
+
+            if show_language:
+                parsed_result += self._format_field('Language:', lang or "")
+
+            if testcase and show_testcases:
+                parsed_result += self._format_field('Testcase:', ", ".join(testcase))
+
+            if show_expected_output:
+                parsed_result += self._format_field('Expected Output:', expected_output)
+
+            if show_code_output and code_output:
+                parsed_result += self._format_field('Your Output:', code_output)
+
+            if show_stdout and std_output:
+                parsed_result += self._format_field('Stdout:', std_output)
+
+            if show_errors:
+                if runtime_error:
+                    parsed_result += self._format_field('Error Message:', runtime_error)
+                if compile_error:
+                    parsed_result += self._format_field('Error Message:', compile_error)
+
+            if detailed_errors:
+                if full_runtime_error:
+                    parsed_result += self._format_field('Detailed Error:', full_runtime_error)
+                if full_compile_error:
+                    parsed_result += self._format_field('Detailed Error:', full_compile_error)
+
+        return parsed_result
+
+File path: utils/stats_utils.py:
+# leetcode_cli/utils/stats_utils.py
+
+import json
+from datetime import datetime, timezone, timedelta
+import logging
+from leetcode_cli.graphics.ansi_codes import ANSI_CODES
+
+logger = logging.getLogger(__name__)
+
+def join_and_slice_calendars(previous_year_calendar: dict, current_year_calendar: dict) -> dict:
+    """
+    Joins and slices the activity calendars from the previous and current years.
+
+    Args:
+        previous_year_calendar (dict): The calendar data for the previous year.
+        current_year_calendar (dict): The calendar data for the current year.
+
+    Returns:
+        dict: A dictionary with timestamps as keys and submission counts as values.
+
+    Raises:
+        Exception: If data is invalid or missing.
+    """
+    if not previous_year_calendar or not current_year_calendar:
+        raise Exception("Previous or current year calendar data is missing.")
+
+    try:
+        # Load activity data from JSON strings
+        previous_activity = json.loads(
+            previous_year_calendar['data']['matchedUser']['userCalendar']['submissionCalendar']
+        )
+        current_activity = json.loads(
+            current_year_calendar['data']['matchedUser']['userCalendar']['submissionCalendar']
+        )
+
+    except KeyError as error:
+        logger.error(f"Missing key in submission_calendar data: {error}")
+        raise Exception(f"Missing key in submission_calendar data: {error}")
+
+    except json.JSONDecodeError as error:
+        logger.error(f"JSON decoding error: {error}")
+        raise Exception(f"JSON decoding error: {error}")
+
+    # Merge activities ensuring the combined dictionary has all timestamps
+    merged_activity = {**previous_activity, **current_activity}
+
+    # Convert keys to integers
+    merged_activity = {int(timestamp): count for timestamp, count in merged_activity.items()}
+
+    # Get today's date in UTC
+    today_utc = datetime.utcnow().date()
+    start_date = today_utc - timedelta(days=365)
+
+    # Create start and end datetime objects
+    start_datetime = datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc)
+    end_datetime = datetime.combine(today_utc, datetime.min.time(), tzinfo=timezone.utc)
+
+    start_timestamp = int(start_datetime.timestamp())
+    end_timestamp = int(end_datetime.timestamp())
+
+    sliced_activity = {
+        timestamp: count for timestamp, count in merged_activity.items()
+        if start_timestamp <= timestamp < end_timestamp
+    }
+
+    return sliced_activity
+
+def fill_daily_activity(daily_activity: dict) -> dict:
+    """
+    Fills the daily activity dictionary to ensure every day in the past year is represented.
+
+    Args:
+        daily_activity (dict): The original activity data.
+
+    Returns:
+        dict: A filled dictionary with timestamps for each day.
+    """
+    filled_activity = {}
+    today_utc = datetime.utcnow().date()
+    start_date = today_utc - timedelta(days=365)
+
+    # Create start and end datetime objects
+    start_datetime = datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc)
+    end_datetime = datetime.combine(today_utc, datetime.min.time(), tzinfo=timezone.utc)
+
+    # Generate all daily timestamps within the past year
+    current_datetime = start_datetime
+
+    while current_datetime <= end_datetime:
+        timestamp = int(current_datetime.timestamp())
+        filled_activity[timestamp] = daily_activity.get(timestamp, 0)
+        current_datetime += timedelta(days=1)
+
+    return filled_activity
+
+def calculate_color(submissions: int, max_submissions: int, min_submissions: int) -> str:
+    """
+    Calculates the color code based on the number of submissions.
+
+    Args:
+        submissions (int): The number of submissions on a particular day.
+        max_submissions (int): The maximum number of submissions in the dataset.
+        min_submissions (int): The minimum number of submissions in the dataset.
+
+    Returns:
+        str: The ANSI color code.
+    """
+    CUSTOM_GREENS = [
+        ANSI_CODES["GREEN1"],
+        ANSI_CODES["GREEN2"],
+        ANSI_CODES["GREEN3"],
+        ANSI_CODES["GREEN4"],
+        ANSI_CODES["GREEN5"],
+        ANSI_CODES["GREEN6"]
+    ]
+
+    if max_submissions == min_submissions:
+        # Avoid division by zero; default to the brightest green
+        return CUSTOM_GREENS[-1]
+
+    # Normalize submissions to a value between 0 and 1
+    normalized = (submissions - min_submissions) / (max_submissions - min_submissions)
+    normalized = max(0.0, min(1.0, normalized))  # Clamp between 0 and 1
+
+    # Determine the index in the CUSTOM_GREENS list
+    index = int(normalized * (len(CUSTOM_GREENS) - 1))
+
+    return CUSTOM_GREENS[index]
+
+
+File path: utils/download_problems_utils.py:
+from leetcode_cli.utils.config_utils import get_config_path
+
+import logging
+import os
+import json
+
+logger = logging.getLogger(__name__)
+
+def get_problems_data_path() -> str:
+    """
+    Determines the path to the problems data file.
+
+    Returns:
+        str: The full path to the problems data file.
+    """
+    config_dir = os.path.dirname(get_config_path())
+    problems_path = os.path.join(config_dir, "problems_metadata.json")
+    return problems_path
+
+def load_problems_metadata() -> dict:
+    """
+    Loads the cached problems metadata from the local JSON file.
+
+    Returns:
+        dict: The loaded problems metadata. Returns an empty dictionary if the file doesn't exist or is corrupted.
+    """
+    problems_path = get_problems_data_path()
+    if os.path.exists(problems_path):
+        try:
+            with open(problems_path, "r") as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            logger.warning("Problems data file is corrupted. Starting with an empty problems data.")
+    return {}
+
+def save_problems_data(data: dict) -> None:
+    """
+    Saves the problems metadata to a local JSON file.
+
+    Args:
+        data (dict): The problems metadata to save.
+    """
+    problems_path = get_problems_data_path()
+    try:
+        os.makedirs(os.path.dirname(problems_path), exist_ok=True)
+        with open(problems_path, "w") as f:
+            json.dump(data, f, indent=4)
+        logger.info(f"Problems data saved to {problems_path}")
+    except OSError as e:
+        logger.error(f"Failed to save problems data: {e}")
+
+
+
+def get_problem_by_key_value(problems_data, key, value):
+    questions = problems_data.get('data', {}).get('problemsetQuestionList', {}).get('questions', [])
+
+    for problem in questions:
+        if str(problem.get(key, "")).lower() == str(value).lower():
+            return problem
+
+    logger.warning(f"Problem with {key}='{value}' not found in cached data.")
+
+    return {}
+
+def filter_problems(problems_data, difficulty=None, tags=None):
+    """
+    Filters the given problems data based on difficulty and tags.
+
+    Args:
+        problems_data (dict): The problems metadata.
+        difficulty (str, optional): The difficulty level ('Easy', 'Medium', 'Hard'). Defaults to None.
+        tags (list of str, optional): A list of tag slugs to filter by. Defaults to None.
+
+    Returns:
+        list: The list of filtered problems.
+    """
+    # Extract the list of questions
+    questions = problems_data.get('data', {}).get('problemsetQuestionList', {}).get('questions', [])
+    
+    if not questions:
+        logger.error("No questions found in problems data.")
+        return None
+
+    # Apply difficulty filter if specified
+    if difficulty:
+        difficulty_capitalize = difficulty.capitalize()
+
+        questions = [q for q in questions if q.get('difficulty', '').capitalize() == difficulty_capitalize]
+        if not questions:
+            logger.warning(f"No problems found with difficulty '{difficulty}'.")
+            return None
+
+    # Apply tags filter if specified
+    if tags:
+        tags_lower = set(tag.lower() for tag in tags)
+        filtered_questions = []
+        for q in questions:
+            problem_tags = q.get('topicTags', [])
+            if not problem_tags:
+                continue 
+
+            problem_tags_slugs = set(tag['slug'].lower() for tag in problem_tags)
+            if tags_lower.issubset(problem_tags_slugs):
+                filtered_questions.append(q)
+
+        questions = filtered_questions
+        if not questions:
+            logger.warning(f"No problems found with tags {', '.join(tags)}.")
+            return None
+
+    return questions
+
+def select_random_problem(questions):
+    """
+    Selects a random problem from the given list of questions.
+
+    Args:
+        questions (list): List of problem metadata dictionaries.
+
+    Returns:
+        dict: The randomly selected problem's data, or None if the list is empty.
+    """
+    if not questions:
+        return None
+
+    import random
+
+    selected_problem = random.choice(questions)
+    logger.info(f"Random problem selected: {selected_problem.get('title', 'Unknown Title')} (Slug: {selected_problem.get('titleSlug', 'N/A')})")
+    return selected_problem
+
+def problem_data_from_path(filepath):
+    filename = os.path.basename(filepath)
+    # Split the filename by the dots to extract parts
+    parts = filename.split('.')
+    if len(parts) != 3:
+        raise ValueError("Invalid filepath format. Expected {question_id}.{title_slug}.{file_extension}")
+    
+    # Extract parts
+    frontend_id = parts[0]
+    title_slug = '.'.join(parts[1:-1])  # Join middle parts as the title_slug can have dots
+    file_extension = parts[-1]
+    
+    return frontend_id, title_slug, file_extension
+
+
+
+
+
+
+
+
+File path: utils/theme_utils.py:
+import os
+import json
+import logging
+from leetcode_cli.utils.config_utils import get_config_path, _load_config, _save_config
+from leetcode_cli.constants.default_theme_constants import DEFAULT_THEME_FILES
+from leetcode_cli.exceptions.exceptions import ThemeError
+
+# Import validation constants
+from leetcode_cli.constants.theme_validation.problem_validation_constants import (
+    PROBLEM_FORMATTER_ANSI_CODES_REQUIRED,
+    PROBLEM_FORMATTER_SYMBOLS_REQUIRED
+)
+from leetcode_cli.constants.theme_validation.interpretation_validation_constants import (
+    INTERPRETATION_ANSI_CODES_REQUIRED,
+    INTERPRETATION_SYMBOLS_REQUIRED
+)
+from leetcode_cli.constants.theme_validation.submission_validation_constants import (
+    SUBMISSION_ANSI_CODES_REQUIRED,
+    SUBMISSION_SYMBOLS_REQUIRED
+)
+from leetcode_cli.constants.theme_validation.problemset_validation_constants import (
+    PROBLEMSET_FORMATTER_ANSI_CODES_REQUIRED,
+    PROBLEMSET_FORMATTER_SYMBOLS_REQUIRED
+)
+from leetcode_cli.constants.theme_validation.stats_validation_constants import (
+    STATS_FORMATTER_DIFFICULTY_COLORS_REQUIRED,
+    STATS_FORMATTER_SYMBOLS_REQUIRED
+)
+
+logger = logging.getLogger(__name__)
+
+def get_themes_dir():
+    config_dir = os.path.dirname(get_config_path())
+    return os.path.join(config_dir, "themes")
+
+def list_themes():
+    themes_dir = get_themes_dir()
+    if not os.path.exists(themes_dir):
+        return []
+    return [d for d in os.listdir(themes_dir) if os.path.isdir(os.path.join(themes_dir, d))]
+
+def set_current_theme(theme_name):
+    available_themes = list_themes()
+    if theme_name not in available_themes:
+        logger.error(f"Theme '{theme_name}' does not exist.")
+        return False
+
+    config = _load_config()
+    config["theme"] = theme_name
+    _save_config(config)
+    logger.info(f"Theme set to '{theme_name}'.")
+    return True
+
+def get_current_theme() -> str:
+    config = _load_config()
+    theme_name = config.get("theme", "default_theme")
+    if not theme_name:
+        logger.debug("Theme not set in config, using 'default_theme'.")
+        theme_name = "default_theme"
+    return theme_name
+
+def initialize_config_and_default_theme():
+    config_path = get_config_path()
+    config_dir = os.path.dirname(config_path)
+    themes_dir = os.path.join(config_dir, "themes")
+    default_theme_dir = os.path.join(themes_dir, "default_theme")
+
+    if not os.path.exists(config_dir):
+        os.makedirs(config_dir, exist_ok=True)
+        logger.info(f"Created configuration directory at '{config_dir}'.")
+
+    if not os.path.exists(themes_dir):
+        os.makedirs(themes_dir, exist_ok=True)
+        logger.info(f"Created themes directory at '{themes_dir}'.")
+
+    if not os.path.exists(default_theme_dir):
+        os.makedirs(default_theme_dir, exist_ok=True)
+        for filename, data in DEFAULT_THEME_FILES.items():
+            file_path = os.path.join(default_theme_dir, filename)
+            with open(file_path, "w") as f:
+                json.dump(data, f, indent=4)
+        logger.info(f"Default theme created at '{default_theme_dir}'.")
+
+
+### Generic Loading and Validation ###
+
+def _load_json_file(theme_name, filename):
+    theme_path = os.path.join(get_themes_dir(), theme_name)
+    file_path = os.path.join(theme_path, filename)
+
+    if not os.path.exists(file_path):
+        error_msg = f"'{filename}' file is missing for theme '{theme_name}'."
+        logger.error(error_msg)
+        raise ThemeError(error_msg)
+
+    try:
+        with open(file_path, "r") as f:
+            data = json.load(f)
+    except json.JSONDecodeError:
+        error_msg = f"'{filename}' in theme '{theme_name}' is not valid JSON."
+        logger.error(error_msg)
+        raise ThemeError(error_msg)
+
+    return data
+
+def _resolve_ansi_refs(mapping_dict, ansi_codes, theme_name):
+    for k, v in mapping_dict.items():
+        if isinstance(v, str):
+            parts = v.split()
+            combined_code = ""
+            for part in parts:
+                code = ansi_codes.get(part)
+                if code is None:
+                    error_msg = f"ANSI code '{part}' referenced in '{k}' not found in 'ANSI_CODES' for theme '{theme_name}'."
+                    logger.error(error_msg)
+                    raise ThemeError(error_msg)
+                combined_code += code
+            mapping_dict[k] = combined_code
+
+def _resolve_symbol_refs(mapping_dict, symbols, theme_name):
+    for k, v in mapping_dict.items():
+        if isinstance(v, str):
+            symbol_code = symbols.get(v)
+            if symbol_code is None:
+                error_msg = f"Symbol '{v}' referenced in '{k}' not found in 'SYMBOLS' for theme '{theme_name}'."
+                logger.error(error_msg)
+                raise ThemeError(error_msg)
+            mapping_dict[k] = symbol_code
+
+def _load_ansi_symbols(theme_name):
+    ansi_data = _load_json_file(theme_name, "ansi_codes.json")
+    symbols_data = _load_json_file(theme_name, "symbols.json")
+
+    if "ANSI_CODES" not in ansi_data:
+        raise ThemeError(f"Missing 'ANSI_CODES' in ansi_codes.json for theme '{theme_name}'.")
+    if "SYMBOLS" not in symbols_data:
+        raise ThemeError(f"Missing 'SYMBOLS' in symbols.json for theme '{theme_name}'.")
+
+    theme_data = {
+        "ANSI_CODES": ansi_data["ANSI_CODES"],
+        "SYMBOLS": symbols_data["SYMBOLS"]
+    }
+    return theme_data
+
+
+### Validation Functions for Each Mappings File ###
+
+def validate_problem_mappings(theme_data, theme_name):
+    if "PROBLEM_FORMATTER_ANSI_CODES" not in theme_data:
+        raise ThemeError(f"Missing 'PROBLEM_FORMATTER_ANSI_CODES' in problem_mappings.json for theme '{theme_name}'.")
+
+    if "PROBLEM_FORMATTER_SYMBOLS" not in theme_data:
+        raise ThemeError(f"Missing 'PROBLEM_FORMATTER_SYMBOLS' in problem_mappings.json for theme '{theme_name}'.")
+
+    for key in PROBLEM_FORMATTER_ANSI_CODES_REQUIRED:
+        if key not in theme_data["PROBLEM_FORMATTER_ANSI_CODES"]:
+            raise ThemeError(f"Missing '{key}' in PROBLEM_FORMATTER_ANSI_CODES for theme '{theme_name}'.")
+
+    for key in PROBLEM_FORMATTER_SYMBOLS_REQUIRED:
+        if key not in theme_data["PROBLEM_FORMATTER_SYMBOLS"]:
+            raise ThemeError(f"Missing '{key}' in PROBLEM_FORMATTER_SYMBOLS for theme '{theme_name}'.")
+
+
+def validate_interpretation_mappings(theme_data, theme_name):
+    if "INTERPRETATION_ANSI_CODES" not in theme_data:
+        raise ThemeError(f"Missing 'INTERPRETATION_ANSI_CODES' in interpretation_mappings.json for theme '{theme_name}'.")
+    if "INTERPRETATION_SYMBOLS" not in theme_data:
+        raise ThemeError(f"Missing 'INTERPRETATION_SYMBOLS' in interpretation_mappings.json for theme '{theme_name}'.")
+
+    for key in INTERPRETATION_ANSI_CODES_REQUIRED:
+        if key not in theme_data["INTERPRETATION_ANSI_CODES"]:
+            raise ThemeError(f"Missing '{key}' in INTERPRETATION_ANSI_CODES for theme '{theme_name}'.")
+
+    for key in INTERPRETATION_SYMBOLS_REQUIRED:
+        if key not in theme_data["INTERPRETATION_SYMBOLS"]:
+            raise ThemeError(f"Missing '{key}' in INTERPRETATION_SYMBOLS for theme '{theme_name}'.")
+
+
+def validate_submission_mappings(theme_data, theme_name):
+    if "SUBMISSION_ANSI_CODES" not in theme_data:
+        raise ThemeError(f"Missing 'SUBMISSION_ANSI_CODES' in submission_mappings.json for theme '{theme_name}'.")
+    if "SUBMISSION_SYMBOLS" not in theme_data:
+        raise ThemeError(f"Missing 'SUBMISSION_SYMBOLS' in submission_mappings.json for theme '{theme_name}'.")
+
+    for key in SUBMISSION_ANSI_CODES_REQUIRED:
+        if key not in theme_data["SUBMISSION_ANSI_CODES"]:
+            raise ThemeError(f"Missing '{key}' in SUBMISSION_ANSI_CODES for theme '{theme_name}'.")
+
+    for key in SUBMISSION_SYMBOLS_REQUIRED:
+        if key not in theme_data["SUBMISSION_SYMBOLS"]:
+            raise ThemeError(f"Missing '{key}' in SUBMISSION_SYMBOLS for theme '{theme_name}'.")
+
+
+def validate_problemset_mappings(theme_data, theme_name):
+    if "PROBLEMSET_FORMATTER_ANSI_CODES" not in theme_data:
+        raise ThemeError(f"Missing 'PROBLEMSET_FORMATTER_ANSI_CODES' in problemset_mappings.json for theme '{theme_name}'.")
+    if "PROBLEMSET_FORMATTER_SYMBOLS" not in theme_data:
+        raise ThemeError(f"Missing 'PROBLEMSET_FORMATTER_SYMBOLS' in problemset_mappings.json for theme '{theme_name}'.")
+
+    for key in PROBLEMSET_FORMATTER_ANSI_CODES_REQUIRED:
+        if key not in theme_data["PROBLEMSET_FORMATTER_ANSI_CODES"]:
+            raise ThemeError(f"Missing '{key}' in PROBLEMSET_FORMATTER_ANSI_CODES for theme '{theme_name}'.")
+
+    for key in PROBLEMSET_FORMATTER_SYMBOLS_REQUIRED:
+        if key not in theme_data["PROBLEMSET_FORMATTER_SYMBOLS"]:
+            raise ThemeError(f"Missing '{key}' in PROBLEMSET_FORMATTER_SYMBOLS for theme '{theme_name}'.")
+
+
+def validate_stats_mappings(theme_data, theme_name):
+    if "STATS_FORMATTER_DIFFICULTY_COLORS" not in theme_data:
+        raise ThemeError(f"Missing 'STATS_FORMATTER_DIFFICULTY_COLORS' in stats_mappings.json for theme '{theme_name}'.")
+    if "STATS_FORMATTER_SYMBOLS" not in theme_data:
+        raise ThemeError(f"Missing 'STATS_FORMATTER_SYMBOLS' in stats_mappings.json for theme '{theme_name}'.")
+
+    for key in STATS_FORMATTER_DIFFICULTY_COLORS_REQUIRED:
+        if key not in theme_data["STATS_FORMATTER_DIFFICULTY_COLORS"]:
+            raise ThemeError(f"Missing '{key}' in STATS_FORMATTER_DIFFICULTY_COLORS for theme '{theme_name}'.")
+
+    for key in STATS_FORMATTER_SYMBOLS_REQUIRED:
+        if key not in theme_data["STATS_FORMATTER_SYMBOLS"]:
+            raise ThemeError(f"Missing '{key}' in STATS_FORMATTER_SYMBOLS for theme '{theme_name}'.")
+
+
+### Partial Loading Functions ###
+
+def load_problem_theme_data():
+    theme_name = get_current_theme()
+    theme_data = _load_ansi_symbols(theme_name)
+    problem_mappings = _load_json_file(theme_name, "problem_mappings.json")
+    theme_data.update(problem_mappings)
+    validate_problem_mappings(theme_data, theme_name)
+    _resolve_ansi_refs(theme_data["PROBLEM_FORMATTER_ANSI_CODES"], theme_data["ANSI_CODES"], theme_name)
+    _resolve_symbol_refs(theme_data["PROBLEM_FORMATTER_SYMBOLS"], theme_data["SYMBOLS"], theme_name)
+    return theme_data
+
+def load_interpretation_theme_data():
+    theme_name = get_current_theme()
+    theme_data = _load_ansi_symbols(theme_name)
+    interpretation_mappings = _load_json_file(theme_name, "interpretation_mappings.json")
+    theme_data.update(interpretation_mappings)
+    validate_interpretation_mappings(theme_data, theme_name)
+    _resolve_ansi_refs(theme_data["INTERPRETATION_ANSI_CODES"], theme_data["ANSI_CODES"], theme_name)
+    _resolve_symbol_refs(theme_data["INTERPRETATION_SYMBOLS"], theme_data["SYMBOLS"], theme_name)
+    return theme_data
+
+def load_submission_theme_data():
+    theme_name = get_current_theme()
+    theme_data = _load_ansi_symbols(theme_name)
+    submission_mappings = _load_json_file(theme_name, "submission_mappings.json")
+    theme_data.update(submission_mappings)
+    validate_submission_mappings(theme_data, theme_name)
+    _resolve_ansi_refs(theme_data["SUBMISSION_ANSI_CODES"], theme_data["ANSI_CODES"], theme_name)
+    _resolve_symbol_refs(theme_data["SUBMISSION_SYMBOLS"], theme_data["SYMBOLS"], theme_name)
+    return theme_data
+
+def load_problemset_theme_data():
+    theme_name = get_current_theme()
+    theme_data = _load_ansi_symbols(theme_name)
+    problemset_mappings = _load_json_file(theme_name, "problemset_mappings.json")
+    theme_data.update(problemset_mappings)
+    validate_problemset_mappings(theme_data, theme_name)
+    _resolve_ansi_refs(theme_data["PROBLEMSET_FORMATTER_ANSI_CODES"], theme_data["ANSI_CODES"], theme_name)
+    _resolve_symbol_refs(theme_data["PROBLEMSET_FORMATTER_SYMBOLS"], theme_data["SYMBOLS"], theme_name)
+    return theme_data
+
+def load_stats_theme_data():
+    theme_name = get_current_theme()
+    theme_data = _load_ansi_symbols(theme_name)
+    stats_mappings = _load_json_file(theme_name, "stats_mappings.json")
+    theme_data.update(stats_mappings)
+    validate_stats_mappings(theme_data, theme_name)
+    _resolve_ansi_refs(theme_data["STATS_FORMATTER_DIFFICULTY_COLORS"], theme_data["ANSI_CODES"], theme_name)
+    _resolve_symbol_refs(theme_data["STATS_FORMATTER_SYMBOLS"], theme_data["SYMBOLS"], theme_name)
+    return theme_data
+
+
+### New: Validate the Entire Theme ###
+
+def validate_entire_theme():
+    """
+    Attempts to load and validate all theme mappings for the current theme.
+    If any partial load or validation fails, raises ThemeError.
+    """
+    load_problem_theme_data()          # Validates problem_mappings.json
+    load_interpretation_theme_data()   # Validates interpretation_mappings.json
+    load_submission_theme_data()       # Validates submission_mappings.json
+    load_problemset_theme_data()       # Validates problemset_mappings.json
+    load_stats_theme_data()            # Validates stats_mappings.json
+
+File path: utils/code_utils.py:
+from leetcode_cli.utils.config_utils import get_language
+from leetcode_cli.constants.problem_constants import LANG_SLUG_TO_EXTENSION, EXTENSION_TO_LANG_SLUG, POSSIBLE_LANG_SLUGS
+
+def read_code_from_file(file_path: str) -> str:
+    with open(file_path, 'r', encoding='utf-8') as f:
+        return f.read()
+
+def determine_language_from_extension(file_extension: str) -> str:
+    lang = EXTENSION_TO_LANG_SLUG.get(file_extension.lower(), None)
+    if not lang:
+        raise ValueError(f"Unsupported file extension '{file_extension}'.")
+
+    return lang
+
+def get_language_and_extension(file_extension=None):
+    """
+    Determine language and extension.
+
+    If file_extension is provided, map it directly to language.
+    If file_extension is None, use default language from config and map that to extension.
+    """
+    if file_extension:
+        lang_slug = EXTENSION_TO_LANG_SLUG.get(file_extension.lower())
+        if not lang_slug:
+            return None, None
+
+        return lang_slug, file_extension.lower()
+    else:
+        # Use default language from config
+        lang_slug = get_language()
+        if not lang_slug or lang_slug.lower() not in POSSIBLE_LANG_SLUGS:
+            return None, None
+
+        file_extension = LANG_SLUG_TO_EXTENSION.get(lang_slug.lower())
+        if not file_extension:
+            return None, None
+
+        return lang_slug.lower(), file_extension.lower()
+
+
+File path: utils/formatting_config_utils.py:
+import json
+import os
+
+from leetcode_cli.utils.config_utils import get_config_path
+from leetcode_cli.constants.formatting_config_constants import DEFAULT_FORMATTING_CONFIG
+
+def load_formatting_config() -> dict:
+    config_dir = os.path.dirname(get_config_path())
+    formatting_config_path = os.path.join(config_dir, "formatting_config.json")
+
+    if not os.path.exists(formatting_config_path):
+        # Create with defaults
+        with open(formatting_config_path, "w") as f:
+            json.dump(DEFAULT_FORMATTING_CONFIG, f, indent=4)
+
+        return DEFAULT_FORMATTING_CONFIG
+
+    try:
+        with open(formatting_config_path, "r") as f:
+            user_config = json.load(f)
+            return _merge_dicts(DEFAULT_FORMATTING_CONFIG, user_config)
+
+    except (json.JSONDecodeError, OSError) as e:
+        return DEFAULT_FORMATTING_CONFIG
+
+
+def _merge_dicts(defaults, user_config):
+    for key, value in defaults.items():
+        if key in user_config:
+            if isinstance(value, dict) and isinstance(user_config[key], dict):
+                _merge_dicts(value, user_config[key])
+
+            else:
+                defaults[key] = user_config[key]
+
+    return defaults
+
+
+File path: utils/config_utils.py:
+import json
+import os
+import platform
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def get_config_path() -> str:
+    """
+    Determines the configuration file path based on the operating system.
+
+    Returns:
+        str: The full path to the configuration file.
+    """
+    if platform.system() == "Windows":
+        config_dir = os.getenv("APPDATA", os.path.expanduser("~\\AppData\\Roaming"))
+        config_path = os.path.join(config_dir, "leetcode", "config.json")
+    else:  # macOS and Linux
+        config_dir = os.path.expanduser("~/.config/leetcode")
+        config_path = os.path.join(config_dir, "config.json")
+    return config_path
+
+
+def _load_config():
+    """
+    Loads the configuration from the config file.
+
+    Returns:
+        dict: The configuration dictionary.
+    """
+    config_path = get_config_path()
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, "r") as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            logger.warning("Config file is corrupted. Starting with an empty config.")
+    return {}
+
+
+
+def _save_config(config):
+    """
+    Saves the configuration dictionary to the config file.
+
+    Args:
+        config (dict): The configuration dictionary to save.
+    """
+    config_path = get_config_path()
+    config_dir = os.path.dirname(config_path)
+    try:
+        os.makedirs(config_dir, exist_ok=True)
+        with open(config_path, "w") as f:
+            json.dump(config, f, indent=4)
+        logger.info(f"Configuration saved to {config_path}")
+    except OSError as e:
+        logger.error(f"Failed to save configuration: {e}")
+
+def set_cookie(cookie: str) -> None:
+    """
+    Sets the user's cookie in the configuration file.
+
+    Args:
+        cookie (str): The cookie string to save.
+    """
+    config = _load_config()
+    config["cookie"] = cookie
+    _save_config(config)
+
+def set_username(username: str) -> None:
+    """
+    Sets the user's username in the configuration file.
+
+    Args:
+        username (str): The username to save.
+    """
+    config = _load_config()
+    config["username"] = username
+    _save_config(config)
+
+def set_language(language: str) -> None:
+    """
+    Sets the user's preferred programming language in the configuration file.
+
+    Args:
+        language (str): The programming language to save.
+    """
+    config = _load_config()
+    config["language"] = language
+    _save_config(config)
+
+def set_chosen_problem(title_slug: str) -> None:
+    """
+    Sets the solution file path in the configuration file.
+
+    Args:
+        file_path (str): The solution file path to save.
+    """
+    config = _load_config()
+    config["chosen_problem"] = title_slug
+    _save_config(config)
+
+def extract_csrf_token(cookie: str) -> str:
+    """
+    Extracts the CSRF token from the cookie string.
+
+    Args:
+        cookie (str): The cookie string.
+
+    Returns:
+        str: The CSRF token if found, else an empty string.
+    """
+    import re
+    try:
+        match = re.search(r'csrftoken=([^;]+)', cookie)
+
+    except Exception:
+        return None
+
+    if match:
+        return match.group(1)
+    else:
+        logger.error("CSRF token not found in the cookie.")
+        return None
+
+def get_cookie():
+    config = _load_config()
+    cookie = config.get("cookie", None)
+
+    if not cookie:
+        logger.error("Cookie not found in configuration.")
+
+    return cookie
+
+def get_username():
+    config = _load_config()
+    username = config.get("username", None)
+
+    if not username:
+        logger.error("Username not found in configuration.")
+        
+    return username
+
+def get_language():
+    config = _load_config()
+    language = config.get("language", None)
+
+    if not language:
+        logger.error("Language not found in configuration.")
+
+    return language
+
+def get_chosen_problem():
+    config = _load_config()
+    chosen_problem = config.get("chosen_problem", None)
+
+    if not chosen_problem:
+        logger.error("Solution file path not found in configuration.")
+
+    return chosen_problem
+
+
+File path: models/submission.py:
+from dataclasses import dataclass
+from typing import Optional
+
+@dataclass
+class SubmissionResult:
+    status_code: int
+    lang: str
+    run_success: bool
+    runtime_error: Optional[str]
+    full_runtime_error: Optional[str]
+    compile_error: Optional[str]
+    full_compile_error: Optional[str]
+    status_runtime: str
+    memory: int
+    display_runtime: str
+    question_id: Optional[str]
+    elapsed_time: Optional[int]
+    compare_result: Optional[str]
+    code_output: Optional[str]
+    std_output: Optional[str]
+    last_testcase: Optional[str]
+    expected_output: Optional[str]
+    task_finish_time: Optional[int]
+    task_name: Optional[str]
+    finished: Optional[bool]
+    total_correct: Optional[int]
+    total_testcases: Optional[int]
+    runtime_percentile: Optional[float]
+    status_memory: Optional[str]
+    memory_percentile: Optional[float]
+    pretty_lang: Optional[str]
+    submission_id: Optional[str]
+    input_formatted: Optional[str]
+    input: Optional[str]
+    status_msg: str
+    state: str
+
+File path: models/interpretation.py:
+from dataclasses import dataclass
+from typing import List, Optional
+
+@dataclass
+class InterpretationResult:
+    status_code: int
+    lang: str
+    run_success: bool
+    runtime_error: Optional[str]
+    full_runtime_error: Optional[str]
+    compile_error: Optional[str]
+    full_compile_error: Optional[str]
+    status_runtime: str
+    memory: int
+    display_runtime: str
+    code_answer: List[str]
+    code_output: List[str]
+    std_output_list: List[str]
+    elapsed_time: Optional[int]
+    task_finish_time: Optional[int]
+    task_name: Optional[str]
+    expected_status_code: Optional[int]
+    expected_lang: Optional[str]
+    expected_run_success: Optional[bool]
+    expected_status_runtime: Optional[str]
+    expected_memory: Optional[int]
+    expected_display_runtime: Optional[str]
+    expected_code_answer: Optional[List[str]]
+    expected_code_output: Optional[List[str]]
+    expected_std_output_list: Optional[List[str]]
+    expected_elapsed_time: Optional[int]
+    expected_task_finish_time: Optional[int]
+    expected_task_name: Optional[str]
+    correct_answer: Optional[bool]
+    compare_result: Optional[str]
+    total_correct: Optional[int]
+    total_testcases: Optional[int]
+    runtime_percentile: Optional[float]
+    status_memory: Optional[str]
+    memory_percentile: Optional[float]
+    pretty_lang: Optional[str]
+    submission_id: Optional[str]
+    status_msg: str
+    state: str
+
+File path: models/problem.py:
+from dataclasses import dataclass, field
+from typing import List, Dict, Optional
+
+@dataclass
+class Problem:
+    title: str
+    question_frontend_id: str
+    description: str
+    examples: List[Dict[str, str]]
+    constraints: List[str]
+    category_title: str
+    difficulty: str
+    topic_tags: List[str]
+    stats: Dict[str, str]
+    likes: int = 0
+    dislikes: int = 0
+    is_paid_only: bool = False
+    solution_info: Optional[Dict] = None
+    code_snippets: List[Dict[str, str]] = field(default_factory=list)
+
+File path: models/stats.py:
+
+# leetcode_cli/models/stats.py
+from dataclasses import dataclass
+from typing import Dict
+
+@dataclass
+class UserStatsModel:
+    """
+    Represents user stats by difficulty, including accepted, failed, and untouched counts.
+    """
+    accepted: Dict[str, int]
+    failed: Dict[str, int]
+    untouched: Dict[str, int]
+
+@dataclass
+class UserActivityModel:
+    """
+    Represents daily submission activity for a user, typically covering the past year.
+    The activity is a dict with timestamps as keys and submission counts as values.
+    """
+    daily_activity: Dict[int, int]
+
+File path: models/problemset.py:
+# models/problemset.py
+from dataclasses import dataclass, field
+from typing import List, Optional
+
+@dataclass
+class ProblemSummary:
+    ac_rate: float
+    difficulty: str
+    question_id: str
+    topic_tags: List[str]
+    frontend_question_id: str
+    paid_only: bool
+    status: Optional[str]
+    title: str
+    title_slug: str
+
+@dataclass
+class ProblemSet:
+    total: int
+    questions: List[ProblemSummary] = field(default_factory=list)
+
+
+File path: exceptions/exceptions.py:
+class FetchingError(Exception):
+    """Raised when there is an error fetching data from the external source."""
+    pass
+
+class ParsingError(Exception):
+    """Raised when there is an error parsing the fetched data into the desired models."""
+    pass
+
+class FormattingError(Exception):
+    """Raised when there is an error formatting the parsed data for output."""
+    pass
+
+class SubmissionError(Exception):
+    """Raised when there is an error during submission or related actions."""
+    pass
+
+class ProblemSetFormatterError(Exception):
+    """Custom exception for ProblemSetFormatter errors."""
+    pass
+
+class ThemeError(Exception):
+    """Raised when there is an error related to theme loading or validation."""
+    pass
+
+File path: leetcode_problem/problem_submitter.py:
+import time
+from leetcode_cli.cli import problem_data_from_path
+import requests
+import logging
+import os
+
+from leetcode_cli.utils.user_utils import get_problem_by_key_value
+from leetcode_cli.utils.user_utils import problem_data_from_path
+from leetcode_cli.utils.user_utils import load_problems_metadata
+
+logger = logging.getLogger(__name__)
+
+class SubmissionError(Exception):
+    """Custom exception for submission errors."""
+    pass
+
+def extract_submission_details(file_path):
+    """
+    Extracts question_id, title_slug, and file_extension from the given file_path.
+
+    Args:
+        file_path (str): Path to the solution file (e.g., /path/to/dir/1.two-sum.py).
+
+    Returns:
+        tuple: (question_id, title_slug, file_extension)
+
+    Raises:
+        SubmissionError: If the file_path format is incorrect.
+    """
+    filename = os.path.basename(file_path)
+    parts = filename.split('.')
+    if len(parts) < 3:
+        raise SubmissionError("Solution file path is incorrect. Expected format: x.y.z (e.g., 1.two-sum.py).")
+    
+    frontend_question_id = parts[0]
+    title_slug = '.'.join(parts[1:-1])  # Handles cases where title_slug contains dots
+    file_extension = parts[-1].lower()
+    
+    if not frontend_question_id.isdigit():
+        raise SubmissionError(f"Invalid question ID '{frontend_question_id}' in file path.")
+    
+    return frontend_question_id, title_slug, file_extension
+
+def map_extension_to_language(file_extension):
+    """
+    Maps a file extension to its corresponding language slug.
+
+    Args:
+        file_extension (str): The file extension (e.g., 'py').
+
+    Returns:
+        str: The language slug (e.g., 'python').
+
+    Raises:
+        SubmissionError: If the file extension is unsupported.
+    """
+    extension_to_lang_slug = {
+        "cpp": "cpp",
+        "java": "java",
+        "py": "python",
+        "py3": "python3",
+        "c": "c",
+        "cs": "csharp",
+        "js": "javascript",
+        "ts": "typescript",
+        "php": "php",
+        "swift": "swift",
+        "kt": "kotlin",
+        "dart": "dart",
+        "go": "golang",
+        "rb": "ruby",
+        "scala": "scala",
+        "rs": "rust",
+        "rkt": "racket",
+        "erl": "erlang",
+        "ex": "elixir"
+    }
+    
+    lang_slug = extension_to_lang_slug.get(file_extension)
+    if not lang_slug:
+        raise SubmissionError(f"Unsupported file extension '{file_extension}'. Supported extensions are: {', '.join(extension_to_lang_slug.keys())}.")
+    
+    return lang_slug
+
+
+def interpret_solution(cookie: str, csrf_token: str, file_path: str, data_input: str) -> str:
+    try:
+        frontend_question_id, title_slug, file_extension = extract_submission_details(file_path)
+        problems_data = load_problems_metadata()
+        question_id = get_problem_by_key_value(problems_data, "titleSlug", title_slug)["questionId"]
+
+    except SubmissionError as e:
+        raise SubmissionError(f"Error extracting submission details: {e}")
+
+    submit_url = f"https://leetcode.com/problems/{title_slug}/interpret_solution/"
+
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            code = file.read()
+
+    except IOError as e:
+        raise SubmissionError(f"Error reading solution file: {e}")
+
+    # Map file extension to language slug
+    try:
+        language = map_extension_to_language(file_extension)
+
+    except SubmissionError as e:
+        raise SubmissionError(e)
+
+    # Create submission payload
+    payload = {
+        "data_input": data_input,
+        "lang": language,
+        "question_id": str(question_id),
+        "typed_code": code,
+    }
+
+    # Set headers
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0",
+        "Cookie": cookie,
+        "x-csrftoken": csrf_token,
+        "Referer": f"https://leetcode.com/problems/{title_slug}/",
+    }
+
+    # Submit code
+    try:
+        response = requests.post(submit_url, json=payload, headers=headers)
+        response.raise_for_status()
+        submission = response.json()
+
+    except requests.RequestException as e:
+        raise SubmissionError(f"Submission failed: {e}")
+
+    except ValueError:
+        raise SubmissionError("Invalid response format received from LeetCode.")
+
+    interpret_id = submission.get('interpret_id')
+    if not interpret_id:
+        raise SubmissionError("Submission ID not received.")
+
+    return interpret_id
+
+
+def submit_solution(cookie: str, csrf_token: str, file_path: str) -> str:
+    """
+    Submits the solution code to LeetCode.
+
+    Args:
+        cookie (str): User authentication cookie.
+        csrf_token (str): CSRF token extracted from the cookie.
+        file_path (str): Path to the solution file (e.g., /path/to/dir/1.two-sum.py).
+
+    Returns:
+        str: The submission ID.
+
+    Raises:
+        SubmissionError: If submission fails.
+    """
+    try:
+        frontend_question_id, title_slug, file_extension = extract_submission_details(file_path)
+        problems_data = load_problems_metadata()
+        question_id = get_problem_by_key_value(problems_data, "titleSlug", title_slug)["questionId"]
+
+    except SubmissionError as e:
+        raise SubmissionError(f"Error extracting submission details: {e}")
+
+    submit_url = f"https://leetcode.com/problems/{title_slug}/submit/"
+
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            code = file.read()
+    except IOError as e:
+        raise SubmissionError(f"Error reading solution file: {e}")
+
+    # Map file extension to language slug
+    try:
+        language = map_extension_to_language(file_extension)
+    except SubmissionError as e:
+        raise SubmissionError(e)
+
+    # Create submission payload
+    payload = {
+        "lang": language,
+        "question_id": str(question_id),
+        "typed_code": code,
+    }
+
+    # Set headers
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0",
+        "Cookie": cookie,
+        "x-csrftoken": csrf_token,
+        "Referer": f"https://leetcode.com/problems/{title_slug}/",
+    }
+
+    # Submit code
+    try:
+        response = requests.post(submit_url, json=payload, headers=headers)
+        response.raise_for_status()
+        submission = response.json()
+    except requests.RequestException as e:
+        raise SubmissionError(f"Submission failed: {e}")
+    except ValueError:
+        raise SubmissionError("Invalid response format received from LeetCode.")
+
+    submission_id = submission.get('submission_id')
+    if not submission_id:
+        raise SubmissionError("Submission ID not received.")
+
+    return submission_id
+
+def check_submission(cookie: str, csrf_token: str, submission_id: str, title_slug: str) -> dict:
+    """
+    Checks the status of the submission until it's complete.
+
+    Args:
+        cookie (str): User authentication cookie.
+        csrf_token (str): CSRF token extracted from the cookie.
+        submission_id (str): The submission ID.
+        title_slug (str): The title slug of the problem.
+
+    Returns:
+        dict: The submission result data.
+
+    Raises:
+        SubmissionError: If checking submission fails.
+    """
+    check_submission_url = f"https://leetcode.com/submissions/detail/{submission_id}/check/"
+
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0",
+        "Cookie": cookie,
+        "x-csrftoken": csrf_token,
+        "Referer": f"https://leetcode.com/problems/{title_slug}/",
+    }
+
+    while True:
+        try:
+            response = requests.get(check_submission_url, headers=headers)
+            response.raise_for_status()
+            submission_result = response.json()
+        except requests.RequestException as e:
+            raise SubmissionError(f"Failed to check submission: {e}")
+        except ValueError:
+            raise SubmissionError("Invalid response format received from LeetCode.")
+
+        if submission_result.get('state') == "SUCCESS":
+            return submission_result
+
+        time.sleep(0.25)  # Sleep for 250ms before the next check
+
+def interpret_and_get_result(cookie: str, csrf_token: str, file_path: str, data_input: str) -> dict:
+    interpret_id = interpret_solution(cookie, csrf_token, file_path, data_input)
+
+    # Extract title_slug from file_path for checking submission
+    try:
+        _, title_slug, _ = problem_data_from_path(file_path)
+
+    except SubmissionError as e:
+        raise SubmissionError(f"Error extracting title_slug for checking submission: {e}")
+
+    # Check the submission status
+    interpret_result = check_submission(cookie, csrf_token, interpret_id, title_slug)
+    return interpret_result
+
+def submit_and_get_result(cookie: str, csrf_token: str, file_path: str) -> dict:
+    """
+    Submits the solution and retrieves the result.
+
+    Args:
+        cookie (str): User authentication cookie.
+        csrf_token (str): CSRF token extracted from the cookie.
+        file_path (str): Path to the solution file.
+
+    Returns:
+        dict: The submission result data.
+
+    Raises:
+        SubmissionError: If submission or result retrieval fails.
+    """
+    # Submit the solution
+    submission_id = submit_solution(cookie, csrf_token, file_path)
+
+    # Extract title_slug from file_path for checking submission
+    try:
+        _, title_slug, _ = extract_submission_details(file_path)
+    except SubmissionError as e:
+        raise SubmissionError(f"Error extracting title_slug for checking submission: {e}")
+
+    # Check the submission status
+    submission_result = check_submission(cookie, csrf_token, submission_id, title_slug)
+    return submission_result
+
+File path: leetcode_problem/create_solution_file.py:
+# leetcode_cli/leetcode_problem/create_solution_file.py
+import os
+import logging
+
+logger = logging.getLogger(__name__)
+
+def create_solution_file(question_id: str, title_slug: str, file_extension: str, code_snippet: str) -> None:
+    """
+    Creates a solution file with the provided code snippet.
+
+    code_snippet is expected to be a dictionary containing at least a 'code' key with the snippet string.
+    If code_snippet is None or doesn't have code, fall back to a default template.
+    """
+
+    file_name = f"{question_id}.{title_slug}.{file_extension}"
+
+    if os.path.exists(file_name):
+        logger.warning(f"File '{file_name}' already exists. Not overwriting.")
+        return
+
+    try:
+        with open(file_name, 'w', encoding='utf-8') as f:
+            f.write(code_snippet)
+        logger.info(f"Solution file '{file_name}' created successfully.")
+    except OSError as e:
+        logger.error(f"Failed to create solution file '{file_name}': {e}")
+        raise
+
+File path: commands/test_solution.py:
+# leetcode_cli/commands/test_solution.py
+import click
+from leetcode_cli.utils.config_utils import get_cookie, extract_csrf_token
+from leetcode_cli.utils.code_utils import read_code_from_file, determine_language_from_extension
+from leetcode_cli.utils.download_problems_utils import problem_data_from_path
+from leetcode_cli.data_fetching.problem_fetcher import fetch_problem_testcases
+from leetcode_cli.data_fetching.interpretation_result_fetcher import fetch_interpretation_result
+from leetcode_cli.parsers.interpretation_parser import parse_interpretation_result
+from leetcode_cli.formatters.interpretation_formatter import InterpretationFormatter
+
+@click.command(short_help='Test a solution file')
+@click.argument('file_path', required=True, type=click.Path(exists=True))
+def test_cmd(file_path):
+    """Test a solution file with example testcases."""
+    cookie = get_cookie()
+    csrf_token = extract_csrf_token(cookie)
+    if not cookie or not csrf_token:
+        click.echo("Error: Missing authentication tokens.")
+        return
+
+    _, title_slug, file_extension = problem_data_from_path(file_path)
+    code = read_code_from_file(file_path)
+    language = determine_language_from_extension(file_extension)
+
+    # Fetch testcases
+    testcases_data = fetch_problem_testcases(title_slug)
+    problem_testcases = testcases_data['data']['question']['exampleTestcases']
+
+    raw_interpretation = fetch_interpretation_result(cookie, csrf_token, title_slug, code, language, problem_testcases)
+    interpretation_res = parse_interpretation_result(raw_interpretation)
+    formatter = InterpretationFormatter(interpretation_res, problem_testcases)
+    click.echo(formatter.get_formatted_interpretation())
+
+File path: commands/submit.py:
+
+# leetcode_cli/commands/submit.py
+import click
+from leetcode_cli.utils.config_utils import get_cookie, extract_csrf_token
+from leetcode_cli.utils.download_problems_utils import problem_data_from_path
+from leetcode_cli.utils.code_utils import read_code_from_file, determine_language_from_extension
+from leetcode_cli.data_fetching.submission_result_fetcher import fetch_submission_result
+from leetcode_cli.parsers.submission_parser import parse_submission_result
+from leetcode_cli.formatters.submission_formatter import SubmissionFormatter
+
+@click.command(short_help='Submit a solution file')
+@click.argument('file_path', required=True, type=click.Path(exists=True))
+def submit_cmd(file_path):
+    """Submit a solution file to LeetCode."""
+    cookie = get_cookie()
+    csrf_token = extract_csrf_token(cookie)
+    if not cookie or not csrf_token:
+        click.echo("Error: Missing authentication. Set cookie with 'leetcode config cookie <value>'")
+        return
+
+    # Extract title_slug from file path
+    _, title_slug, file_extension = problem_data_from_path(file_path)
+    code = read_code_from_file(file_path)
+    language = determine_language_from_extension(file_extension)
+
+    raw_submission = fetch_submission_result(cookie, csrf_token, title_slug, code, language)
+    submission_res = parse_submission_result(raw_submission)
+    formatter = SubmissionFormatter(submission_res)
+    click.echo(formatter.get_formatted_submission())
+
+File path: commands/create_solution.py:
+# leetcode_cli/commands/create_solution.py
+import click
+
+
+from leetcode_cli.utils.config_utils import get_chosen_problem
+from leetcode_cli.utils.download_problems_utils import load_problems_metadata, get_problem_by_key_value
+from leetcode_cli.utils.code_utils import get_language_and_extension
+from leetcode_cli.data_fetching.problem_fetcher import fetch_problem_id
+from leetcode_cli.data_fetching.code_snippet_fetcher import fetch_code_snippet
+from leetcode_cli.leetcode_problem.create_solution_file import create_solution_file
+
+@click.command(short_help='Create solution file')
+@click.argument('title_slug_or_id', required=False)
+def create_cmd(title_slug_or_id):
+    """
+    Create a solution file for the given TITLE_SLUG or ID.
+
+    If no argument is given, uses chosen problem and default language.
+    If argument given with extension, uses that extension.
+    Otherwise tries to map default language to extension.
+
+    Possible cases:
+    1) No argument: Use chosen problem and default language.
+    2) Argument starts with '.' (e.g. ".cpp"): Use chosen problem and provided extension.
+    3) Argument has '.' inside (e.g. "two-sum.py" or "1.two-sum.py"):
+       - If "1.two-sum.py": question_id=1, title_slug="two-sum"
+       - If "two-sum.py": title_slug="two-sum", fetch question_id
+    4) Argument no dot (e.g. "two-sum"): Just a slug, use default language and fetch question_id.
+    """
+
+    def create_file(question_id, title_slug, lang_slug, file_extension):
+        # Fetch code snippet data
+        code_data = fetch_code_snippet(title_slug, lang_slug)
+        # Extract the code snippet string
+        snippet_list = code_data.get('data', {}).get('question', {}).get('codeSnippets', [])
+        code_str = ""
+        for sn in snippet_list:
+            if sn.get('langSlug') == lang_slug:
+                code_str = sn.get('code', "")
+                break
+
+        if not code_str:
+            # If no snippet found for this language, fallback to a default comment
+            code_str = f"# {title_slug} solution in {lang_slug}\n\n"
+
+        # Create solution file (question_id.title_slug.file_extension)
+        create_solution_file(question_id, title_slug, file_extension, code_str)
+        file_name = f"{question_id}.{title_slug}.{file_extension}"
+        click.echo(f"Solution file '{file_name}' has been created successfully.")
+
+    def get_question_id_for_slug(title_slug: str) -> str:
+        # fetch_problem_id returns a dict like {'data': {'question': {'questionFrontendId': '3000'}}}
+        question_id_data = fetch_problem_id(title_slug)
+        # Extract the frontend question ID as a string
+        question_id = question_id_data['data']['question']['questionFrontendId']
+        return question_id
+
+    # Case 1: No argument
+    if not title_slug_or_id:
+        title_slug = get_chosen_problem()
+        if not title_slug:
+            click.echo("Error: No chosen problem found. Please specify a problem or 'leetcode show' to select one.")
+            return
+
+        lang_slug, file_extension = get_language_and_extension()
+        if not lang_slug or not file_extension:
+            click.echo("Error: No default language set or unsupported language.")
+            return
+
+        question_id = get_question_id_for_slug(title_slug)
+        create_file(question_id, title_slug, lang_slug, file_extension)
+        return
+
+    # Case 2: Argument starts with '.' (extension only)
+    if title_slug_or_id.startswith('.'):
+        file_extension = title_slug_or_id.lstrip('.').lower()
+        lang_slug, file_extension = get_language_and_extension(file_extension)
+        if not lang_slug:
+            click.echo(f"Error: Unsupported file extension '{file_extension}'.")
+            return
+
+        title_slug = get_chosen_problem()
+        if not title_slug:
+            click.echo("Error: No chosen problem found. Please specify a problem or use 'leetcode show' to select one.")
+            return
+
+        question_id = get_question_id_for_slug(title_slug)
+        create_file(question_id, title_slug, lang_slug, file_extension)
+        return
+
+    # Case 3: Argument has '.' inside
+    if '.' in title_slug_or_id:
+        parts = title_slug_or_id.split('.')
+        if len(parts) == 3:
+            # Format: question_id.title_slug.extension
+            frontend_id, title_slug, file_extension = parts[0], parts[1], parts[2].lower()
+
+            if not frontend_id.isdigit():
+                click.echo("Error: Question ID in the filename is not a digit.")
+                return
+            question_id = frontend_id
+            lang_slug, file_extension = get_language_and_extension(file_extension)
+            if not lang_slug:
+                click.echo(f"Error: Unsupported file extension '{file_extension}'.")
+                return
+
+        elif len(parts) == 2:
+            # Format: title_slug.extension
+            title_slug, file_extension = parts[0], parts[1].lower()
+            lang_slug, file_extension = get_language_and_extension(file_extension)
+            if not lang_slug:
+                click.echo(f"Error: Unsupported file extension '{file_extension}'.")
+                return
+            question_id = get_question_id_for_slug(title_slug)
+        else:
+            # Unexpected format
+            click.echo("Error: File name format is incorrect. Expected {id}.{title_slug}.{extension} or {title_slug}.{extension}")
+            return
+
+        create_file(question_id, title_slug, lang_slug, file_extension)
+        return
+
+    # Case 4: Argument has no dot
+    if title_slug_or_id.isdigit():
+        problems_data = load_problems_metadata()
+        if not problems_data:
+            click.echo("Error: problems' metadata not found, use leetcode download-problems.")
+            return
+
+        selected_problem = get_problem_by_key_value(problems_data, "frontendQuestionId", title_slug_or_id)
+        title_slug = selected_problem.get("titleSlug", None)
+
+        if not title_slug:
+            click.echo("Error: no problem for specified id in problems' metadata.")
+            return
+
+        lang_slug, file_extension = get_language_and_extension()
+        create_file(title_slug_or_id, title_slug, lang_slug, file_extension)
+
+        return
+    else:
+        # It's a slug
+        title_slug = title_slug_or_id
+        lang_slug, file_extension = get_language_and_extension()
+        if not lang_slug or not file_extension:
+            click.echo("Error: No default language set or unsupported language.")
+            return
+
+        question_id = get_question_id_for_slug(title_slug)
+        create_file(question_id, title_slug, lang_slug, file_extension)
+
+File path: commands/config.py:
+# leetcode_cli/commands/config.py
+import click
+from leetcode_cli.graphics.ansi_codes import ANSI_RESET, ANSI_CODES
+from leetcode_cli.utils.config_utils import set_cookie, set_username, set_language
+
+valid_keys = ['cookie', 'username', 'language']
+
+@click.command(short_help='Configure user settings')
+@click.argument('key')
+@click.argument('value')
+def config_cmd(key, value):
+    """
+    Configure user settings.
+
+    KEY can be 'cookie', 'username', or 'language'.
+    """
+    if key not in valid_keys:
+        click.echo(f"Error: Invalid configuration key {ANSI_CODES['ITALIC']}{key}{ANSI_RESET}. Valid keys: {', '.join(valid_keys)}")
+        return
+
+    if key == 'cookie':
+        set_cookie(value)
+        click.echo("Cookie set successfully.")
+
+    elif key == 'username':
+        set_username(value)
+        click.echo(f"Username set to {ANSI_CODES['ITALIC']}{value}{ANSI_RESET}.")
+
+    elif key == 'language':
+        set_language(value)
+        click.echo(f"Preferred language set to {ANSI_CODES['ITALIC']}{value}{ANSI_RESET}.")
+
+File path: commands/theme.py:
+import click
+from leetcode_cli.utils.theme_utils import (
+    list_themes,
+    set_current_theme,
+    get_current_theme,
+    validate_entire_theme
+)
+from leetcode_cli.exceptions.exceptions import ThemeError
+
+@click.command(short_help='change or list themes')
+@click.argument('theme_name', required=False)
+def theme_cmd(theme_name):
+    """
+    Change or list available themes.
+
+    If theme_name is provided, set that theme as the current theme.
+    Otherwise, list all available themes.
+    """
+    if not theme_name:
+        current_theme = get_current_theme()
+        themes = list_themes()
+
+        if not themes:
+            click.echo("No themes found.")
+            return
+
+        click.echo(f"Current theme: {current_theme}")
+        click.echo("Available themes:")
+        for t in themes:
+            click.echo(f" - {t}")
+
+        return
+
+    # Attempt to set the new theme
+    old_theme = get_current_theme()
+    success = set_current_theme(theme_name)
+    if not success:
+        click.echo(f"Error: Theme '{theme_name}' not found.")
+        return
+
+    # Validate the newly set theme by attempting to load *all* partial theme data
+    try:
+        validate_entire_theme()
+        click.echo(f"Theme set to '{theme_name}'.")
+    except ThemeError as e:
+        # Revert to old theme since new one is invalid
+        set_current_theme(old_theme)
+        click.echo(f"Error: Failed to load theme '{theme_name}'. {str(e)}")
+        click.echo("Reverted to the previous theme.")
+
+File path: commands/show_problem.py:
+# leetcode_cli/commands/show_problem.py
+import click
+
+from leetcode_cli.utils.config_utils import set_chosen_problem
+from leetcode_cli.utils.download_problems_utils import filter_problems, load_problems_metadata, get_problem_by_key_value, select_random_problem
+from leetcode_cli.data_fetching.problem_fetcher import fetch_problem_data
+from leetcode_cli.parsers.problem_parser import parse_problem_data
+from leetcode_cli.formatters.problem_formatter import ProblemFormatter
+from leetcode_cli.data_fetching.problem_fetcher import fetch_random_title_slug
+from leetcode_cli.constants.problem_constants import POSSIBLE_TAGS
+
+def is_title_slug(value):
+    return not value.isdigit()
+
+@click.command(short_help='Show problem details')
+@click.argument('title_slug_or_id', required=False)
+@click.option('--include', multiple=True,
+    type=click.Choice(["title", "tags", "langs", "description", "examples", "constraints"], case_sensitive=False),
+    help='Sections to display. (default: all sections)')
+@click.option('--random', is_flag=True, help='Show a random problem')
+@click.option('--difficulty', type=click.Choice(["EASY", "MEDIUM", "HARD"], case_sensitive=False),
+              help='Filter random problems by difficulty (Requires --random) (default: all difficulties).')
+@click.option('--tag', multiple=True, type=click.Choice(POSSIBLE_TAGS, case_sensitive=False),
+              help='Filter random problems by tag (Requires --random) (default: all tags).')
+@click.option('--use-downloaded', is_flag=True, help='Use downloaded problems metadata')
+def show_cmd(title_slug_or_id, include, random, difficulty, tag, use_downloaded):
+    """Show problem details."""
+    if random:
+        if not use_downloaded:
+            random_problem = fetch_random_title_slug(difficulty, tag)
+
+            if not random_problem.get("data", {}).get("randomQuestion", None):
+                click.echo("No matching problems found.")
+                return
+
+            title_slug = random_problem.get("data", {}).get("randomQuestion", {}).get("titleSlug", None)
+
+        else:
+            problems_data = load_problems_metadata()
+
+            if not problems_data:
+                click.echo("Error: problems' metadata not found, use leetcode download-problems.")
+
+            filtered_problems = filter_problems(problems_data, difficulty, tag)
+
+            if not filtered_problems:
+                click.echo("No matching problems found.")
+                return
+
+            problem_data = select_random_problem(filtered_problems)
+            title_slug = problem_data.get("titleSlug", None)
+    else:
+        if difficulty or tag:
+            click.echo("Error: --difficulty/--tag only work with --random.")
+            return
+
+        if not title_slug_or_id:
+            click.echo("Error: Need title slug or id.")
+            return
+
+        if use_downloaded:
+            problems_data = load_problems_metadata()
+            if not problems_data:
+                click.echo("Error: problems' metadata not found, use leetcode download-problems.")
+
+            if title_slug_or_id.isdigit():
+                problem_data = get_problem_by_key_value(problems_data, "frontendQuestionId", title_slug_or_id)
+
+            else:
+                problem_data = get_problem_by_key_value(problems_data, "titleSlug", title_slug_or_id)
+            title_slug = problem_data.get("titleSlug")
+        else:
+            # If not using downloaded, title_slug_or_id is assumed to be title_slug
+            if is_title_slug(title_slug_or_id):
+                title_slug = title_slug_or_id
+
+            else:
+                click.echo("Error: Show by ID requires --use-downloaded.")
+                return
+
+    if not title_slug:
+        click.echo("Error: Unable to determine title_slug.")
+        return
+
+    raw_data = fetch_problem_data(title_slug)
+    if not raw_data or 'data' not in raw_data or 'question' not in raw_data['data'] or not raw_data['data']['question']:
+        click.echo("Error: Could not fetch problem data.")
+        return
+
+    problem = parse_problem_data(raw_data)
+    set_chosen_problem(title_slug)
+
+    formatter = ProblemFormatter(problem)
+    all_sections = {
+        'title': formatter.title,
+        'tags': formatter.topic_tags,
+        'langs': formatter.languages,
+        'description': formatter.description,
+        'examples': formatter.examples,
+        'constraints': formatter.constraints
+    }
+
+    if not include:
+        sections = all_sections.keys()
+    else:
+        sections = include
+
+    click.echo()
+    for sec in sections:
+        content = all_sections.get(sec)
+        if content:
+            click.echo(content)
+            click.echo()
+
+File path: commands/download_problems.py:
+
+# leetcode_cli/commands/download_problems.py
+import click
+from leetcode_cli.data_fetching.problemset_fetcher import fetch_problemset
+from leetcode_cli.utils.download_problems_utils import get_problems_data_path, save_problems_data
+
+@click.command(short_help='Download all problems metadata')
+def download_problems_cmd():
+    """
+    Download all LeetCode problems metadata and save locally.
+    """
+    problems_data = fetch_problemset(cookie=None, csrf_token=None, tags=None, difficulty=None, limit=100000, skip=0)
+    if not problems_data:
+        click.echo("Error: Failed to fetch problems metadata.")
+        return
+
+    save_problems_data(problems_data)
+    problems_path = get_problems_data_path()
+    click.echo(f"Problems metadata downloaded to '{problems_path}'.")
+
+File path: commands/stats.py:
+# leetcode_cli/commands/stats.py
+import click
+from datetime import datetime
+from leetcode_cli.utils.config_utils import get_username
+from leetcode_cli.data_fetching.stats_fetcher import fetch_user_stats, fetch_user_activity
+from leetcode_cli.parsers.stats_parser import parse_user_stats_data, parse_user_activity_data
+from leetcode_cli.formatters.stats_formatter import StatsFormatter
+
+@click.command(short_help='Display user stats')
+@click.argument('username', required=False, default=get_username())
+@click.option(
+    '--include',
+    multiple=True,
+    type=click.Choice(["stats", "calendar"], case_sensitive=False),
+    help='Sections to display (default: all). Options: stats, calendar'
+)
+def stats_cmd(username, include):
+    """
+    Display LeetCode user statistics.
+
+    Usage:
+        leetcode stats
+        leetcode stats USERNAME
+    """
+    if not username:
+        click.echo("Error: Username not set. Use 'leetcode config username <user>'.")
+        return
+
+    if not include:
+        include = ["stats", "calendar"]
+
+    formatter = StatsFormatter()
+
+    # Fetch and parse stats
+    if 'stats' in include:
+        stats_data = fetch_user_stats(username)
+        if stats_data:
+            user_stats = parse_user_stats_data(stats_data)
+            formatted_stats = formatter.format_user_stats(user_stats)
+            click.echo()
+            click.echo(formatted_stats)
+            click.echo()
+        else:
+            click.echo("Error: Failed to fetch stats data.")
+
+    # Fetch and parse activity calendar
+    if 'calendar' in include:
+        current_year = datetime.now().year
+        previous_year = current_year - 1
+
+        activity_current = fetch_user_activity(username, current_year)
+        activity_previous = fetch_user_activity(username, previous_year)
+
+        if activity_current and activity_previous:
+            user_activity = parse_user_activity_data(activity_previous, activity_current)
+            formatted_activity = formatter.format_user_activity(user_activity)
+            click.echo()
+            click.echo(formatted_activity)
+            click.echo()
+        else:
+            click.echo("Error: Failed to fetch activity data.")
+
+File path: commands/list_problems.py:
+# leetcode_cli/commands/list_problems.py
+import click
+
+from leetcode_cli.utils.config_utils import get_cookie, extract_csrf_token
+from leetcode_cli.utils.download_problems_utils import load_problems_metadata, filter_problems
+from leetcode_cli.data_fetching.problemset_fetcher import fetch_problemset
+from leetcode_cli.parsers.problemset_data_parser import parse_problemset_data
+from leetcode_cli.formatters.problemset_formatter import ProblemSetFormatter
+from leetcode_cli.constants.problem_constants import POSSIBLE_TAGS
+
+def validate_positive_integer(ctx, param, value):
+    if value <= 0:
+        raise click.BadParameter('Must be greater than 0.')
+    return value
+
+@click.command(short_help='List problems')
+@click.option('--difficulty', type=click.Choice(["EASY", "MEDIUM", "HARD"], case_sensitive=False), help='Filter by difficulty (default: all difficulties).')
+@click.option('--tag', multiple=True, type=click.Choice(POSSIBLE_TAGS, case_sensitive=False), help='Filter by tag (default: all tags).')
+@click.option('--limit', type=int, default=50, callback=validate_positive_integer, help='Limit results (default: 50)')
+@click.option('--page', type=int, default=1, callback=validate_positive_integer, help='Page number (default: 1)')
+@click.option('--use-downloaded', is_flag=True, help='Use downloaded problems metadata.')
+def list_cmd(difficulty, tag, limit, page, use_downloaded):
+    """List LeetCode problems with optional filters."""
+    skip = (page - 1) * limit
+
+    if use_downloaded:
+        problems_data = load_problems_metadata()
+        if not problems_data:
+            click.echo("No local metadata found. Use 'leetcode download_problems' first.")
+            return
+
+        filtered_problems = filter_problems(problems_data, difficulty, tag)
+        if not filtered_problems:
+            click.echo("No problems found with these filters.")
+            return
+
+        if skip >= len(filtered_problems):
+            click.echo("No problems on this page.")
+            return
+
+        filtered_problems = filtered_problems[skip:skip+limit]
+        mock_data = {
+            "data": {
+                "problemsetQuestionList": {
+                    "total": len(filtered_problems),
+                    "questions": filtered_problems
+                }
+            }
+        }
+
+        problemset = parse_problemset_data(mock_data)
+
+    else:
+        cookie = get_cookie()
+        csrf_token = extract_csrf_token(cookie)
+        raw = fetch_problemset(cookie=cookie, csrf_token=csrf_token, tags=tag, difficulty=difficulty, limit=limit, skip=skip)
+
+        if not raw:
+            click.echo("Error: No data returned from server.")
+            return
+
+        problemset = parse_problemset_data(raw)
+
+    formatter = ProblemSetFormatter(problemset)
+    click.echo(formatter.get_formatted_questions())
+
+File path: graphics/symbols.py:
+SYMBOLS = {
+    "FILLED_SQUARE": "◼",
+    "EMPTY_SQUARE": "▫",
+    "CARET": "^",
+    "DOT": "•",
+    "CHECKMARK": "✔",
+    "X": "✘",
+    "ATTEMPTED": "❋"
+}
+
+File path: graphics/ansi_codes.py:
+ANSI_RESET = "\033[0m"       # Reset all styles
+
+ANSI_CODES = {
+    # Foreground colors
+    "GREEN": "\033[32m",
+    "ORANGE": "\033[38;5;208m",
+    "RED": "\033[31m",
+    "GRAY": "\033[90m",
+    "CYAN": "\033[96m",
+    "WHITE": "\033[38;2;255;255;255m",
+    "BLACK": "\033[38;2;0;0;0m",
+
+    # Custom shades of green for stats
+    "GREEN1": "\033[38;2;1;155;1m",
+    "GREEN2": "\033[38;2;16;175;16m",
+    "GREEN3": "\033[38;2;33;195;33m",
+    "GREEN4": "\033[38;2;61;215;61m",
+    "GREEN5": "\033[38;2;82;235;82m",
+    "GREEN6": "\033[38;2;100;255;100m",
+
+    # Background colors
+    "GRAY_BG": "\033[100m",
+    "GREEN_BG": "\033[42m",
+    "BABY_BLUE_BG": "\033[48;2;66;205;245m",
+    "RED_BG": "\033[41m",
+    "ORANGE_BG": "\033[48;2;245;158;66m",
+
+    # Text styles
+    "BOLD": "\033[1m",
+    "ITALIC": "\033[3m",
+    "UNDERLINE": "\033[4m",
+}
+
+File path: data_fetching/stats_fetcher.py:
+import requests
+import logging
+
+from leetcode_cli.data_fetching.graphql_queries import GRAPHQL_URL, GRAPHQL_QUERIES
+from leetcode_cli.exceptions.exceptions import FetchingError
+
+logger = logging.getLogger(__name__)
+
+def fetch_user_stats(username):
+    query = GRAPHQL_QUERIES['user_problem_stats']
+    payload = {
+        "query": query,
+        "variables": {"userSlug": username},
+        "operationName": "userProfileUserQuestionProgressV2"
+    }
+
+    try:
+        response = requests.post(GRAPHQL_URL, json=payload)
+        response.raise_for_status()
+        result = response.json()
+
+    except requests.RequestException as e:
+        raise FetchingError(f"Network error while fetching stats for user {username}: {e}")
+    except ValueError:
+        raise FetchingError("Failed to parse JSON response while fetching user stats.")
+
+    return result
+
+def fetch_user_activity(username, year):
+    query = GRAPHQL_QUERIES['user_calendar']
+    payload = {
+        "query": query,
+        "variables": {"username": username, "year": year},
+        "operationName": "userProfileCalendar"
+    }
+
+    try:
+        response = requests.post(GRAPHQL_URL, json=payload)
+        response.raise_for_status()
+        result = response.json()
+
+    except requests.RequestException as e:
+        raise FetchingError(f"Network error while fetching user activity for {username} in {year}: {e}")
+    except ValueError:
+        raise FetchingError("Failed to parse JSON response while fetching user activity.")
+
+    return result
+
+File path: data_fetching/problemset_fetcher.py:
+import requests
+import logging
+
+from leetcode_cli.data_fetching.graphql_queries import GRAPHQL_QUERIES, GRAPHQL_URL
+from leetcode_cli.exceptions.exceptions import FetchingError
+
+logger = logging.getLogger(__name__)
+
+def fetch_problemset(cookie=None, csrf_token=None, tags=None, difficulty=None, limit=50, skip=0, category_slug="all-code-essentials"):
+    query = GRAPHQL_QUERIES['problemset_data']
+    payload = {
+        "query": query,
+        "variables": {
+            "categorySlug": category_slug,
+            "skip": skip,
+            "limit": limit,
+            "filters": {}
+        },
+        "operationName": "problemsetQuestionList"
+    }
+
+    if tags:
+        payload["variables"]["filters"]["tags"] = tags
+
+    if difficulty:
+        payload["variables"]["filters"]["difficulty"] = difficulty
+
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0",
+    }
+
+    if cookie and csrf_token:
+        headers["Cookie"] = cookie
+        headers["x-csrftoken"] = csrf_token
+        headers["Referer"] = "https://leetcode.com/problemset/"
+
+    try:
+        response = requests.post(GRAPHQL_URL, json=payload, headers=headers)
+        response.raise_for_status()
+        result = response.json()
+    except requests.RequestException as e:
+        raise FetchingError(f"Network error while fetching problemset: {e}")
+    except ValueError:
+        raise FetchingError("Failed to parse JSON response while fetching problemset.")
+
+    return result
+
+File path: data_fetching/code_snippet_fetcher.py:
+import requests
+import logging
+
+from leetcode_cli.data_fetching.graphql_queries import GRAPHQL_URL, GRAPHQL_QUERIES
+from leetcode_cli.exceptions.exceptions import FetchingError
+
+logger = logging.getLogger(__name__)
+
+def fetch_code_snippet(title_slug, lang_slug):
+    query = GRAPHQL_QUERIES["code_snippets"]
+    payload = {
+        "query": query,
+        "variables": {"titleSlug": title_slug}
+    }
+
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0"
+    }
+
+    try:
+        response = requests.post(GRAPHQL_URL, headers=headers, json=payload)
+        response.raise_for_status()
+        result = response.json()
+        
+    except requests.RequestException as e:
+        raise FetchingError(f"Network error while fetching code snippet for {title_slug} in {lang_slug}: {e}")
+
+    except ValueError:
+        raise FetchingError("Failed to parse JSON response while fetching code snippet.")
+
+    return result
+
+File path: data_fetching/interpretation_result_fetcher.py:
+import requests
+import time
+from typing import Dict
+from leetcode_cli.exceptions.exceptions import FetchingError
+from leetcode_cli.utils.download_problems_utils import load_problems_metadata, get_problem_by_key_value
+from leetcode_cli.data_fetching.problem_fetcher import fetch_problem_id
+
+
+def fetch_interpretation_result(cookie: str, csrf_token: str, title_slug: str, code: str, language: str, testcases: str) -> Dict:
+    """
+    Fetches the interpretation (run code test) result from LeetCode.
+    Instead of reading code from file or extracting title_slug, the user passes them directly.
+
+    Args:
+        cookie (str): User authentication cookie.
+        csrf_token (str): CSRF token.
+        title_slug (str): The problem's title slug.
+        code (str): The solution code as a string.
+        language (str): The language slug (e.g., 'python', 'cpp').
+        data_input (str): The test input for interpretation.
+
+    Returns:
+        dict: The raw JSON result from LeetCode after interpretation is complete.
+    """
+    problems_data = load_problems_metadata()
+
+    if not problems_data:
+        question_id = fetch_problem_id(title_slug).get("data", {}).get("question", {}).get("questionId", None)
+
+        if not question_id:
+            raise FetchingError(f"Unable to find questionId for {title_slug}")
+
+    else:
+        question_data = get_problem_by_key_value(problems_data, "titleSlug", title_slug)
+
+        if not question_data or "questionId" not in question_data:
+            raise FetchingError(f"Unable to find questionId for {title_slug}")
+
+        question_id = question_data["questionId"]
+
+    submit_url = f"https://leetcode.com/problems/{title_slug}/interpret_solution/"
+
+    payload = {
+        "data_input": testcases,
+        "lang": language,
+        "question_id": question_id,
+        "typed_code": code,
+    }
+
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0",
+        "Cookie": cookie,
+        "x-csrftoken": csrf_token,
+        "Referer": f"https://leetcode.com/problems/{title_slug}/",
+    }
+
+    try:
+        response = requests.post(submit_url, json=payload, headers=headers)
+        response.raise_for_status()
+        submission = response.json()
+
+    except requests.RequestException as e:
+        raise FetchingError(f"Submission failed: {e}")
+
+    except ValueError:
+        raise FetchingError("Invalid response format from LeetCode.")
+
+    interpret_id = submission.get('interpret_id')
+    if not interpret_id:
+        raise FetchingError("Interpretation ID not received.")
+
+    # Check interpretation status until complete
+    check_submission_url = f"https://leetcode.com/submissions/detail/{interpret_id}/check/"
+    while True:
+        try:
+            r = requests.get(check_submission_url, headers=headers)
+            r.raise_for_status()
+            result = r.json()
+        except requests.RequestException as e:
+            raise FetchingError(f"Failed to check interpretation: {e}")
+        except ValueError:
+            raise FetchingError("Invalid response format.")
+
+        if result.get('state') == "SUCCESS":
+            return result
+        time.sleep(0.10)
+
+
+File path: data_fetching/submission_result_fetcher.py:
+import requests
+import time
+from typing import Dict
+from leetcode_cli.exceptions.exceptions import FetchingError
+from leetcode_cli.utils.download_problems_utils import load_problems_metadata, get_problem_by_key_value
+
+
+def fetch_submission_result(cookie: str, csrf_token: str, title_slug: str, code: str, language: str) -> Dict:
+    """
+    Fetches the final submission result from LeetCode.
+    User provides title_slug, code, and language directly.
+
+    Args:
+        cookie (str): User authentication cookie.
+        csrf_token (str): CSRF token.
+        title_slug (str): The problem's title slug.
+        code (str): The solution code as a string.
+        language (str): The language slug.
+
+    Returns:
+        dict: The raw JSON result from LeetCode after final submission is complete.
+    """
+    problems_data = load_problems_metadata()
+    question_data = get_problem_by_key_value(problems_data, "titleSlug", title_slug)
+    if not question_data or "questionId" not in question_data:
+        raise FetchingError(f"Unable to find questionId for {title_slug}")
+
+    question_id = question_data["questionId"]
+    submit_url = f"https://leetcode.com/problems/{title_slug}/submit/"
+
+    payload = {
+        "lang": language,
+        "question_id": str(question_id),
+        "typed_code": code,
+    }
+
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0",
+        "Cookie": cookie,
+        "x-csrftoken": csrf_token,
+        "Referer": f"https://leetcode.com/problems/{title_slug}/",
+    }
+
+    try:
+        response = requests.post(submit_url, json=payload, headers=headers)
+        response.raise_for_status()
+        submission = response.json()
+    except requests.RequestException as e:
+        raise FetchingError(f"Submission failed: {e}")
+    except ValueError:
+        raise FetchingError("Invalid response format from LeetCode.")
+
+    submission_id = submission.get('submission_id')
+    if not submission_id:
+        raise FetchingError("Submission ID not received.")
+
+    # Check final submission result
+    check_submission_url = f"https://leetcode.com/submissions/detail/{submission_id}/check/"
+    while True:
+        try:
+            r = requests.get(check_submission_url, headers=headers)
+            r.raise_for_status()
+            result = r.json()
+        except requests.RequestException as e:
+            raise FetchingError(f"Failed to check submission: {e}")
+        except ValueError:
+            raise FetchingError("Invalid response format.")
+
+        if result.get('state') == "SUCCESS":
+            return result
+        time.sleep(0.25)
+
+File path: data_fetching/graphql_queries.py:
+GRAPHQL_URL = "https://leetcode.com/graphql"
+
+GRAPHQL_QUERIES = {
+    "user_problem_stats": """
+        query userProfileUserQuestionProgressV2($userSlug: String!) {
+          userProfileUserQuestionProgressV2(userSlug: $userSlug) {
+            numAcceptedQuestions {
+              count
+              difficulty
+            }
+            numFailedQuestions {
+              count
+              difficulty
+            }
+            numUntouchedQuestions {
+              count
+              difficulty
+            }
+            userSessionBeatsPercentage {
+              difficulty
+              percentage
+            }
+            totalQuestionBeatsPercentage
+          }
+        }
+    """,
+
+    "user_calendar": """
+        query userProfileCalendar($username: String!, $year: Int) {
+          matchedUser(username: $username) {
+            userCalendar(year: $year) {
+              activeYears
+              streak
+              totalActiveDays
+              dccBadges {
+                timestamp
+                badge {
+                  name
+                  icon
+                }
+              }
+              submissionCalendar
+            }
+          }
+        }
+    """,
+
+    "problemset_data": """
+        query problemsetQuestionList($categorySlug: String, $limit: Int, $skip: Int, $filters: QuestionListFilterInput) {
+          problemsetQuestionList: questionList(
+            categorySlug: $categorySlug
+            limit: $limit
+            skip: $skip
+            filters: $filters
+          ) {
+            total: totalNum
+            questions: data {
+              acRate
+              difficulty
+              questionId
+              topicTags {
+                slug
+              }
+              frontendQuestionId: questionFrontendId
+              paidOnly: isPaidOnly
+              status
+              title
+              titleSlug
+            }
+          }
+        }
+    """,
+
+    "code_snippets": """
+        query getQuestionDetail($titleSlug: String!) {
+          question(titleSlug: $titleSlug) {
+            questionId
+            titleSlug
+            codeSnippets {
+              lang
+              langSlug
+              code
+            }
+          }
+        }
+    """,
+
+    "problem_detail": """
+        query questionDetail($titleSlug: String!) {
+          question(titleSlug: $titleSlug) {
+            title
+            questionFrontendId
+            questionTitle
+            content
+            categoryTitle
+            difficulty
+            topicTags {
+              name
+            }
+            stats
+            likes
+            dislikes
+            isPaidOnly
+            solution {
+              id
+              paidOnly
+              hasVideoSolution
+              canSeeDetail
+            }
+            codeSnippets {
+              lang
+              langSlug
+            }
+          }
+        }
+    """,
+
+    "random_title_slug": """
+        query randomQuestion($categorySlug: String, $filters: QuestionListFilterInput) {
+            randomQuestion(categorySlug: $categorySlug, filters: $filters) {
+                titleSlug
+            }
+        }
+    """,
+
+    "problem_id": """
+        query questionDetail($titleSlug: String!) {
+          question(titleSlug: $titleSlug) {
+            questionFrontendId
+          }
+        }
+    """,
+
+    "problem_testcases": """
+        query questionData($titleSlug: String!) {
+          question(titleSlug: $titleSlug) {
+            exampleTestcases
+          }
+        }
+    """
+}
+
+File path: data_fetching/problem_fetcher.py:
+import requests
+import logging
+from leetcode_cli.data_fetching.graphql_queries import GRAPHQL_URL, GRAPHQL_QUERIES
+from leetcode_cli.exceptions.exceptions import FetchingError
+
+logger = logging.getLogger(__name__)
+
+def fetch_problem_testcases(title_slug):
+    query = GRAPHQL_QUERIES['problem_testcases']
+    payload = {
+        "query": query,
+        "variables": {"titleSlug": title_slug},
+        "operationName": "questionData"
+    }
+
+    try:
+        response = requests.post(GRAPHQL_URL, json=payload)
+        response.raise_for_status()
+        result = response.json()
+
+    except requests.RequestException as e:
+        raise FetchingError(f"Network error while fetching testcases for {title_slug}: {e}")
+
+    except ValueError:
+        raise FetchingError("Failed to parse JSON response while fetching problem testcases.")
+
+    return result
+
+
+def fetch_problem_id(title_slug):
+    query = GRAPHQL_QUERIES["problem_id"]
+    payload = {
+        "query": query,
+        "variables": {"titleSlug": title_slug},
+        "operationName": "questionDetail"
+    }
+    try:
+        response = requests.post(GRAPHQL_URL, json=payload)
+        response.raise_for_status()
+        result = response.json()
+
+    except requests.RequestException as e:
+        raise FetchingError(f"Network error while fetching problem ID for {title_slug}: {e}")
+
+    except ValueError:
+        raise FetchingError("Failed to parse JSON response while fetching problem ID.")
+
+    return result
+
+
+def fetch_random_title_slug(difficulty, tags):
+    query = GRAPHQL_QUERIES["random_title_slug"]
+    payload = {
+        "query": query,
+        "variables": {
+            "categorySlug": "all-code-essentials",
+            "filters": {}
+        },
+        "operationName": "randomQuestion"
+    }
+
+    if difficulty:
+        payload["variables"]["filters"]["difficulty"] = difficulty
+
+    if tags:
+        payload["variables"]["filters"]["tags"] = tags
+
+    try:
+        response = requests.post(GRAPHQL_URL, json=payload)
+        response.raise_for_status()
+        result = response.json()
+
+    except requests.RequestException as e:
+        raise FetchingError(f"Netword error while fetching random title slug: {e}")
+
+    except ValueError:
+        raise FetchingError("Failed to parse JSON response while fetching random title slug.")
+
+    return result
+
+
+
+def fetch_problem_data(title_slug):
+    query = GRAPHQL_QUERIES["problem_detail"]
+    payload = {
+        "query": query,
+        "variables": {"titleSlug": title_slug},
+        "operationName": "questionDetail"
+    }
+
+    try:
+        response = requests.post(GRAPHQL_URL, json=payload)
+        response.raise_for_status()
+        result = response.json()
+
+    except requests.RequestException as e:
+        raise FetchingError(f"Network error while fetching problem data for {title_slug}: {e}")
+
+    except ValueError:
+        raise FetchingError("Failed to parse JSON response while fetching problem data.")
+
+    return result

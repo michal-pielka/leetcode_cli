@@ -1,20 +1,20 @@
-# leetcode_cli/formatters/problemset_formatter.py
 from leetcode_cli.graphics.ansi_codes import ANSI_RESET
-from leetcode_cli.utils.theme_utils import get_theme_data
+from leetcode_cli.utils.theme_utils import load_problemset_theme_data
 from leetcode_cli.models.problemset import ProblemSet, ProblemSummary
-from leetcode_cli.exceptions.exceptions import ProblemSetFormatterError
-
+from leetcode_cli.exceptions.exceptions import ProblemSetFormatterError, ThemeError
 import logging
 
 logger = logging.getLogger(__name__)
 
 class ProblemSetFormatter:
-
     def __init__(self, problemset: ProblemSet):
-        if not isinstance(problemset, ProblemSet):
-            raise ProblemSetFormatterError("ProblemSetFormatter requires a ProblemSet instance.")
         self.problemset = problemset
-        self.THEME_DATA = get_theme_data()
+
+        try:
+            self.THEME_DATA = load_problemset_theme_data()
+
+        except ThemeError as e:
+            raise ThemeError(f"Failed to load theme: {str(e)}")
 
     def _format_question(self, q: ProblemSummary) -> str:
         title = q.title.ljust(79)

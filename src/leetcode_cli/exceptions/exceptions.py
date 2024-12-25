@@ -1,5 +1,5 @@
 class FetchingError(Exception):
-    """Raised when there is an error fetching data from the external source (e.g., network issues, invalid responses)."""
+    """Raised when there is an error fetching data from the external source."""
     pass
 
 class ParsingError(Exception):
@@ -11,9 +11,13 @@ class FormattingError(Exception):
     pass
 
 class SubmissionError(Exception):
-    """Raised when there is an error..."""
+    """Raised when there is an error during submission or related actions."""
     pass
 
 class ProblemSetFormatterError(Exception):
     """Custom exception for ProblemSetFormatter errors."""
+    pass
+
+class ThemeError(Exception):
+    """Raised when there is an error related to theme loading or validation."""
     pass

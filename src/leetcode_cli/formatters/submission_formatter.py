@@ -1,28 +1,33 @@
-# leetcode_cli/formatters/submission_formatter.py
 from leetcode_cli.graphics.ansi_codes import ANSI_RESET
-from leetcode_cli.utils.theme_utils import get_theme_data
+from leetcode_cli.utils.theme_utils import load_submission_theme_data
 from leetcode_cli.models.submission import SubmissionResult
 from leetcode_cli.utils.formatting_config_utils import load_formatting_config
+from leetcode_cli.exceptions.exceptions import ThemeError
 
-THEME_DATA = get_theme_data()
-
-def _format_field(label: str, value: str, width: int = 25) -> str:
-    lines = value.split('\n')
-    if not lines:
-        return f"  {label:<{width}} \n"
-
-    formatted = f"  {label:<{width}} {lines[0]}\n"
-    padding = ' ' * (2 + width + 1)
-    for line in lines[1:]:
-        if line.strip() == "":
-            continue
-        formatted += f"{padding}{line}\n"
-    return formatted
 
 class SubmissionFormatter:
     def __init__(self, result: SubmissionResult):
         self.result = result
         self.format_conf = load_formatting_config()["submission"]
+        try:
+            self.THEME_DATA = load_submission_theme_data()
+
+        except ThemeError as e:
+            # Re-raise to let caller handle
+            raise ThemeError(f"Failed to load theme: {str(e)}")
+
+    def _format_field(self, label: str, value: str, width: int = 25) -> str:
+        lines = value.split('\n')
+        if not lines:
+            return f"  {label:<{width}} \n"
+
+        formatted = f"  {label:<{width}} {lines[0]}\n"
+        padding = ' ' * (2 + width + 1)
+        for line in lines[1:]:
+            if line.strip() == "":
+                continue
+            formatted += f"{padding}{line}\n"
+        return formatted
 
     def get_formatted_submission(self) -> str:
         status_msg = self.result.status_msg
@@ -52,70 +57,59 @@ class SubmissionFormatter:
         code_output = self.result.code_output
         std_output = self.result.std_output
 
-        # Error fields
         runtime_error = getattr(self.result, 'runtime_error', None)
         full_runtime_error = getattr(self.result, 'full_runtime_error', None)
         compile_error = getattr(self.result, 'compile_error', None)
         full_compile_error = getattr(self.result, 'full_compile_error', None)
 
-        ansi_status = f"{THEME_DATA['SUBMISSION_ANSI_CODES'].get(status_msg, THEME_DATA['SUBMISSION_ANSI_CODES'].get('unknown', ''))}{THEME_DATA['SUBMISSION_SYMBOLS'].get(status_msg, 'unknown')}"
+        ansi_status = f"{self.THEME_DATA['SUBMISSION_ANSI_CODES'].get(status_msg, self.THEME_DATA['SUBMISSION_ANSI_CODES'].get('unknown', ''))}{self.THEME_DATA['SUBMISSION_SYMBOLS'].get(status_msg, 'unknown')}"
         parsed_result = f"\n  {ansi_status} {status_msg} {ANSI_RESET}\n"
 
-        # Passed testcases
-        if show_testcases and total_correct is not None and total_testcases is not None:
-            parsed_result += _format_field('Passed Testcases:', f'{total_correct} / {total_testcases}')
-
-        # Language
         if show_language:
-            parsed_result += _format_field('Language:', lang or "")
+            parsed_result += self._format_field('Language:', lang or "")
 
-        # Runtime and Memory
+        if show_testcases and total_correct is not None and total_testcases is not None:
+            parsed_result += self._format_field('Passed Testcases:', f'{total_correct} / {total_testcases}')
+
+
         if show_runtime_memory:
             if time_ms is not None and time_beats is not None:
                 formatted_time_beats = f"{time_beats:.2f}%"
-                parsed_result += _format_field('Runtime:', f'{time_ms} (Beats: {formatted_time_beats})')
-
+                parsed_result += self._format_field('Runtime:', f'{time_ms} (Beats: {formatted_time_beats})')
             if memory_size is not None and memory_beats is not None:
                 formatted_memory_beats = f"{memory_beats:.2f}%"
-                parsed_result += _format_field('Memory Usage:', f'{memory_size} (Beats: {formatted_memory_beats})')
+                parsed_result += self._format_field('Memory Usage:', f'{memory_size} (Beats: {formatted_memory_beats})')
 
-        # Failed Testcase
         if last_testcase and show_testcases:
-            parsed_result += _format_field('Failed Testcase:', last_testcase.replace("\n", ", "))
+            parsed_result += self._format_field('Failed Testcase:', last_testcase.replace("\n", ", "))
 
-        # Expected Output
         if show_expected_output and expected_output:
-            parsed_result += _format_field('Expected Output:', expected_output)
+            parsed_result += self._format_field('Expected Output:', expected_output)
 
-        # Your Output
         if show_code_output and code_output:
             if isinstance(code_output, list):
                 code_output_str = "\n".join(code_output)
             else:
                 code_output_str = str(code_output)
-            parsed_result += _format_field('Your Output:', code_output_str)
+            parsed_result += self._format_field('Your Output:', code_output_str)
 
-        # Stdout
         if show_stdout and std_output:
             if isinstance(std_output, list):
                 std_output_str = "\n".join(std_output)
             else:
                 std_output_str = str(std_output)
-            parsed_result += _format_field('Stdout:', std_output_str)
+            parsed_result += self._format_field('Stdout:', std_output_str)
 
-        # Error Messages
         if show_errors:
             if runtime_error:
-                parsed_result += _format_field('Error Message:', runtime_error)
-
+                parsed_result += self._format_field('Error Message:', runtime_error)
             if compile_error:
-                parsed_result += _format_field('Error Message:', compile_error)
+                parsed_result += self._format_field('Error Message:', compile_error)
 
         if detailed_errors:
             if full_runtime_error:
-                parsed_result += _format_field('Detailed Error:', full_runtime_error)
-
+                parsed_result += self._format_field('Detailed Error:', full_runtime_error)
             if full_compile_error:
-                parsed_result += _format_field('Detailed Error:', full_compile_error)
+                parsed_result += self._format_field('Detailed Error:', full_compile_error)
 
         return parsed_result
