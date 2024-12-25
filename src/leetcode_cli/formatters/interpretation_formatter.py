@@ -1,15 +1,14 @@
 from leetcode_cli.utils.theme_utils import load_interpretation_theme_data
 from leetcode_cli.graphics.ansi_codes import ANSI_RESET
 from leetcode_cli.models.interpretation import InterpretationResult
-from leetcode_cli.utils.formatting_config_utils import load_formatting_config
 from leetcode_cli.exceptions.exceptions import ThemeError
 
 
 class InterpretationFormatter:
-    def __init__(self, result: InterpretationResult, testcases: str):
+    def __init__(self, result: InterpretationResult, testcases: str, format_conf: dict):
         self.result = result
         self.testcases = testcases
-        self.format_conf = load_formatting_config()["interpretation"]
+        self.format_conf = format_conf
 
         try:
             self.THEME_DATA = load_interpretation_theme_data()
@@ -31,9 +30,11 @@ class InterpretationFormatter:
         return formatted
 
     def get_formatted_interpretation(self) -> str:
+        testcases_split = self.testcases.split("\n") if self.testcases else []
+
         status_code = self.result.status_code
         status_msg = self.result.status_msg
-        lang = self.result.pretty_lang or self.result.lang
+        lang = self.result.pretty_lang
         total_testcases = self.result.total_testcases
 
         show_language = self.format_conf["show_language"]
@@ -44,7 +45,6 @@ class InterpretationFormatter:
         show_errors = self.format_conf["show_error_messages"]
         detailed_errors = self.format_conf["show_detailed_error_messages"]
 
-        testcases_split = self.testcases.split("\n") if self.testcases else []
         parameters_in_testcase = len(testcases_split) // total_testcases if total_testcases else 1
 
         expected_outputs = self.result.expected_code_answer or []
@@ -76,13 +76,13 @@ class InterpretationFormatter:
                 ansi_status = self.THEME_DATA['INTERPRETATION_ANSI_CODES'].get(status_msg, self.THEME_DATA['INTERPRETATION_ANSI_CODES']["unknown"])
                 parsed_result += f"\n  {ansi_status} {status_msg} {ANSI_RESET}\n"
 
-            if show_language:
-                parsed_result += self._format_field('Language:', lang or "")
+            if show_language and lang:
+                parsed_result += self._format_field('Language:', lang)
 
             if testcase and show_testcases:
                 parsed_result += self._format_field('Testcase:', ", ".join(testcase))
 
-            if show_expected_output:
+            if show_expected_output and expected_output:
                 parsed_result += self._format_field('Expected Output:', expected_output)
 
             if show_code_output and code_output:
@@ -94,12 +94,14 @@ class InterpretationFormatter:
             if show_errors:
                 if runtime_error:
                     parsed_result += self._format_field('Error Message:', runtime_error)
+
                 if compile_error:
                     parsed_result += self._format_field('Error Message:', compile_error)
 
             if detailed_errors:
                 if full_runtime_error:
                     parsed_result += self._format_field('Detailed Error:', full_runtime_error)
+
                 if full_compile_error:
                     parsed_result += self._format_field('Detailed Error:', full_compile_error)
 

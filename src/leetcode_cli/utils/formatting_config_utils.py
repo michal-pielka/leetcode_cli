@@ -2,7 +2,7 @@ import json
 import os
 
 from leetcode_cli.utils.config_utils import get_config_path
-from leetcode_cli.constants.formatting_config_constants import DEFAULT_FORMATTING_CONFIG
+from leetcode_cli.constants.default_formatting_config import DEFAULT_FORMATTING_CONFIG
 
 def load_formatting_config() -> dict:
     config_dir = os.path.dirname(get_config_path())

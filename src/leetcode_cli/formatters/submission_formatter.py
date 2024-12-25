@@ -6,14 +6,14 @@ from leetcode_cli.exceptions.exceptions import ThemeError
 
 
 class SubmissionFormatter:
-    def __init__(self, result: SubmissionResult):
+    def __init__(self, result: SubmissionResult, format_conf: dict):
         self.result = result
-        self.format_conf = load_formatting_config()["submission"]
+        self.format_conf = format_conf
+
         try:
             self.THEME_DATA = load_submission_theme_data()
 
         except ThemeError as e:
-            # Re-raise to let caller handle
             raise ThemeError(f"Failed to load theme: {str(e)}")
 
     def _format_field(self, label: str, value: str, width: int = 25) -> str:
@@ -65,18 +65,18 @@ class SubmissionFormatter:
         ansi_status = f"{self.THEME_DATA['SUBMISSION_ANSI_CODES'].get(status_msg, self.THEME_DATA['SUBMISSION_ANSI_CODES'].get('unknown', ''))}{self.THEME_DATA['SUBMISSION_SYMBOLS'].get(status_msg, 'unknown')}"
         parsed_result = f"\n  {ansi_status} {status_msg} {ANSI_RESET}\n"
 
-        if show_language:
+        if show_language and lang:
             parsed_result += self._format_field('Language:', lang or "")
 
-        if show_testcases and total_correct is not None and total_testcases is not None:
+        if show_testcases and total_correct and total_testcases:
             parsed_result += self._format_field('Passed Testcases:', f'{total_correct} / {total_testcases}')
 
-
         if show_runtime_memory:
-            if time_ms is not None and time_beats is not None:
+            if time_ms and time_beats:
                 formatted_time_beats = f"{time_beats:.2f}%"
                 parsed_result += self._format_field('Runtime:', f'{time_ms} (Beats: {formatted_time_beats})')
-            if memory_size is not None and memory_beats is not None:
+
+            if memory_size and memory_beats:
                 formatted_memory_beats = f"{memory_beats:.2f}%"
                 parsed_result += self._format_field('Memory Usage:', f'{memory_size} (Beats: {formatted_memory_beats})')
 
@@ -91,6 +91,7 @@ class SubmissionFormatter:
                 code_output_str = "\n".join(code_output)
             else:
                 code_output_str = str(code_output)
+
             parsed_result += self._format_field('Your Output:', code_output_str)
 
         if show_stdout and std_output:
@@ -98,17 +99,20 @@ class SubmissionFormatter:
                 std_output_str = "\n".join(std_output)
             else:
                 std_output_str = str(std_output)
+
             parsed_result += self._format_field('Stdout:', std_output_str)
 
         if show_errors:
             if runtime_error:
                 parsed_result += self._format_field('Error Message:', runtime_error)
+
             if compile_error:
                 parsed_result += self._format_field('Error Message:', compile_error)
 
         if detailed_errors:
             if full_runtime_error:
                 parsed_result += self._format_field('Detailed Error:', full_runtime_error)
+                
             if full_compile_error:
                 parsed_result += self._format_field('Detailed Error:', full_compile_error)
 

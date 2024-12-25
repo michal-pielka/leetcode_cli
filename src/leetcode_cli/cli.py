@@ -32,15 +32,15 @@ def cli(ctx):
         click.echo(cli.get_help(ctx))
 
 # Add subcommands from separate command modules
-cli.add_command(config_cmd, "config")
 cli.add_command(list_cmd, "list")
 cli.add_command(show_cmd, "show")
-cli.add_command(submit_cmd, "submit")
-cli.add_command(test_cmd, "test")
-cli.add_command(download_problems_cmd, "download-problems")
-cli.add_command(stats_cmd, "stats")
 cli.add_command(create_cmd, "create")
+cli.add_command(test_cmd, "test")
+cli.add_command(submit_cmd, "submit")
+cli.add_command(stats_cmd, "stats")
+cli.add_command(config_cmd, "config")
 cli.add_command(theme_cmd, "theme")
+cli.add_command(download_problems_cmd, "download-problems")
 
 def main():
     configure_logging()
