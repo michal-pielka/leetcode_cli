@@ -1,4 +1,3 @@
-# leetcode_cli/leetcode_problem/create_solution_file.py
 import os
 import logging
 
