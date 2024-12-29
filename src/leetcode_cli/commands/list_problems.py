@@ -1,4 +1,3 @@
-# leetcode_cli/commands/list_problems.py
 import click
 
 from leetcode_cli.utils.config_utils import get_cookie, extract_csrf_token
@@ -13,37 +12,68 @@ def validate_positive_integer(ctx, param, value):
         raise click.BadParameter('Must be greater than 0.')
     return value
 
-@click.command(short_help='List problems')
-@click.option('--difficulty', type=click.Choice(["EASY", "MEDIUM", "HARD"], case_sensitive=False), help='Filter by difficulty (default: all difficulties).')
-@click.option('--tag', multiple=True, type=click.Choice(POSSIBLE_TAGS, case_sensitive=False), help='Filter by tag (default: all tags).')
-@click.option('--limit', type=int, default=50, callback=validate_positive_integer, help='Limit results (default: 50)')
-@click.option('--page', type=int, default=1, callback=validate_positive_integer, help='Page number (default: 1)')
-@click.option('--use-downloaded', is_flag=True, help='Use downloaded problems metadata.')
+@click.command(short_help='List LeetCode problems with optional filters')
+@click.option(
+    '--difficulty', '-d',
+    type=click.Choice(["EASY", "MEDIUM", "HARD"], case_sensitive=False),
+    metavar='DIFFICULTY',
+    help='Filter by difficulty (default: all difficulties).'
+)
+@click.option(
+    '--tag', '-t',
+    multiple=True,
+    type=click.Choice(POSSIBLE_TAGS, case_sensitive=False),
+    metavar='TAG_NAME',
+    help='Filter by tag (default: all tags).'
+)
+@click.option(
+    '--limit', '-l',
+    type=int,
+    default=50,
+    callback=validate_positive_integer,
+    metavar='LIMIT',
+    help='Number of results per page (default: 50).'
+)
+@click.option(
+    '--page', '-p',
+    type=int,
+    default=1,
+    callback=validate_positive_integer,
+    metavar='PAGE',
+    help='Page number to display (default: 1).'
+)
+@click.option(
+    '--use-downloaded', '-u',
+    is_flag=True,
+    help='Use downloaded problems metadata.'
+)
 def list_cmd(difficulty, tag, limit, page, use_downloaded):
-    """List LeetCode problems with optional filters."""
+    """
+    List LeetCode problems with optional filters.
+    """
     skip = (page - 1) * limit
 
     if use_downloaded:
         problems_data = load_problems_metadata()
         if not problems_data:
-            click.echo("No local metadata found. Use 'leetcode download_problems' first.")
+            click.echo("Error: No local metadata found. Use 'leetcode download_problems' first.")
             return
 
         filtered_problems = filter_problems(problems_data, difficulty, tag)
         if not filtered_problems:
-            click.echo("No problems found with these filters.")
+            click.echo("No problems found with the specified filters.")
             return
 
         if skip >= len(filtered_problems):
-            click.echo("No problems on this page.")
+            click.echo("No problems found on this page.")
             return
 
-        filtered_problems = filtered_problems[skip:skip+limit]
+        paginated_problems = filtered_problems[skip:skip+limit]
         mock_data = {
             "data": {
                 "problemsetQuestionList": {
                     "total": len(filtered_problems),
-                    "questions": filtered_problems
+                    "questions": paginated_problems
                 }
             }
         }
@@ -53,10 +83,25 @@ def list_cmd(difficulty, tag, limit, page, use_downloaded):
     else:
         cookie = get_cookie()
         csrf_token = extract_csrf_token(cookie)
-        raw = fetch_problemset(cookie=cookie, csrf_token=csrf_token, tags=tag, difficulty=difficulty, limit=limit, skip=skip)
+        if not cookie or not csrf_token:
+            click.echo("Error: Missing authentication tokens. Please configure your cookie using 'leetcode config'.")
+            return
+
+        try:
+            raw = fetch_problemset(
+                cookie=cookie,
+                csrf_token=csrf_token,
+                tags=tag if tag else None,
+                difficulty=difficulty if difficulty else None,
+                limit=limit,
+                skip=skip
+            )
+        except Exception as e:
+            click.echo(f"Error fetching problem set: {e}")
+            return
 
         if not raw:
-            click.echo("Error: No data returned from server.")
+            click.echo("Error: No data returned from the server.")
             return
 
         problemset = parse_problemset_data(raw)

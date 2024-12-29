@@ -7,9 +7,11 @@ from leetcode_cli.parsers.submission_parser import parse_submission_result
 from leetcode_cli.formatters.submission_formatter import SubmissionFormatter
 from leetcode_cli.utils.formatting_config_utils import load_formatting_config
 
-@click.command(short_help='Submit a solution file')
-@click.argument('file_path', required=True, type=click.Path(exists=True))
-@click.option('--include', multiple=True,
+@click.command(short_help='Submit a solution file to LeetCode')
+@click.argument('file_path', required=True, type=click.Path(exists=True), metavar='FILE_PATH')
+@click.option(
+    '--include', '-i',
+    multiple=True,
     type=click.Choice(
         [
             "language",
@@ -23,6 +25,7 @@ from leetcode_cli.utils.formatting_config_utils import load_formatting_config
         ],
         case_sensitive=False
     ),
+    metavar='SECTION',
     help='Sections to display. Overrides formatting_config.'
 )
 def submit_cmd(file_path, include):

@@ -6,13 +6,14 @@ from leetcode_cli.data_fetching.stats_fetcher import fetch_user_stats, fetch_use
 from leetcode_cli.parsers.stats_parser import parse_user_stats_data, parse_user_activity_data
 from leetcode_cli.formatters.stats_formatter import StatsFormatter
 
-@click.command(short_help='Display user stats')
-@click.argument('username', required=False, default=get_username())
+@click.command(short_help='Display user statistics from LeetCode')
+@click.argument('username', required=False, default=get_username(), metavar='USERNAME')
 @click.option(
-    '--include',
+    '--include', '-i',
     multiple=True,
     type=click.Choice(["stats", "calendar"], case_sensitive=False),
-    help='Sections to display (default: all). Options: stats, calendar'
+    metavar='SECTION',
+    help='Sections to display. Overrides formatting_config.'
 )
 def stats_cmd(username, include):
     """
@@ -34,6 +35,10 @@ def stats_cmd(username, include):
     # Fetch and parse stats
     if 'stats' in include:
         stats_data = fetch_user_stats(username)
+        print("\n\n")
+        print("Fetched stats:")
+        print(stats_data)
+        print("\n\n")
         if stats_data:
             user_stats = parse_user_stats_data(stats_data)
             formatted_stats = formatter.format_user_stats(user_stats)
@@ -49,6 +54,10 @@ def stats_cmd(username, include):
         previous_year = current_year - 1
 
         activity_current = fetch_user_activity(username, current_year)
+        print("\n\n")
+        print("Fetched calendar current year:")
+        print(activity_current)
+        print("\n\n")
         activity_previous = fetch_user_activity(username, previous_year)
 
         if activity_current and activity_previous:

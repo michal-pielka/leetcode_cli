@@ -1,6 +1,7 @@
 DEFAULT_THEME_FILES = {
     "ansi_codes.json": {
         "ANSI_CODES": {
+            "RESET": "\u001b[0m",
             "GREEN": "\u001b[32m",
             "ORANGE": "\u001b[38;5;208m",
             "RED": "\u001b[31m",

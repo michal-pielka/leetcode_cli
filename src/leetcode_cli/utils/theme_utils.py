@@ -1,11 +1,12 @@
+# utils/theme_utils.py
+
 import os
 import json
 import logging
-from leetcode_cli.utils.config_utils import get_config_path, _load_config, _save_config
-from leetcode_cli.constants.default_theme_constants import DEFAULT_THEME_FILES
+from leetcode_cli.utils.config_utils import get_config_path, _load_config
 from leetcode_cli.exceptions.exceptions import ThemeError
 
-# Import validation constants
+# Import the existing required keys from your theme_validation folder.
 from leetcode_cli.constants.theme_validation.problem_validation_constants import (
     PROBLEM_FORMATTER_ANSI_CODES_REQUIRED,
     PROBLEM_FORMATTER_SYMBOLS_REQUIRED
@@ -29,289 +30,249 @@ from leetcode_cli.constants.theme_validation.stats_validation_constants import (
 
 logger = logging.getLogger(__name__)
 
-
 def get_themes_dir():
+    """
+    Returns the path to the 'themes' directory,
+    which is typically next to config or inside your user config folder, etc.
+    """
     config_dir = os.path.dirname(get_config_path())
     return os.path.join(config_dir, "themes")
 
 
 def list_themes():
+    """
+    Return a list of all folder names inside the themes directory.
+    """
     themes_dir = get_themes_dir()
-
     if not os.path.exists(themes_dir):
         return []
-
     return [d for d in os.listdir(themes_dir) if os.path.isdir(os.path.join(themes_dir, d))]
 
 
-def set_current_theme(theme_name):
-    available_themes = list_themes()
-
-    if theme_name not in available_themes:
-        logger.error(f"Theme '{theme_name}' does not exist.")
-        return False
-
-    config = _load_config()
-    config["theme"] = theme_name
-    _save_config(config)
-    logger.info(f"Theme set to '{theme_name}'.")
-
-    return True
-
-
 def get_current_theme() -> str:
+    """
+    Reads user's current theme from config.json.
+    Defaults to 'default_theme' if not set.
+    """
     config = _load_config()
     theme_name = config.get("theme", "default_theme")
-
-    if not theme_name:
-        logger.debug("Theme not set in config, using 'default_theme'.")
-        theme_name = "default_theme"
-
     return theme_name
 
 
-def initialize_config_and_default_theme():
-    config_path = get_config_path()
-    config_dir = os.path.dirname(config_path)
-    themes_dir = os.path.join(config_dir, "themes")
-    default_theme_dir = os.path.join(themes_dir, "default_theme")
+def set_current_theme(theme_name: str) -> bool:
+    """
+    Persists the selected theme in config.json,
+    but doesn't validate it immediately.
+    You can call 'validate_entire_theme()' or 'load_theme_data()'
+    afterwards to ensure it's valid.
+    """
+    available = list_themes()
+    if theme_name not in available:
+        logger.error(f"Theme '{theme_name}' does not exist in: {available}")
+        return False
 
-    if not os.path.exists(config_dir):
-        os.makedirs(config_dir, exist_ok=True)
-        logger.info(f"Created configuration directory at '{config_dir}'.")
+    # Save it in config
+    config = _load_config()
+    config["theme"] = theme_name
+    from leetcode_cli.utils.config_utils import _save_config
+    _save_config(config)
 
-    if not os.path.exists(themes_dir):
-        os.makedirs(themes_dir, exist_ok=True)
-        logger.info(f"Created themes directory at '{themes_dir}'.")
-
-    if not os.path.exists(default_theme_dir):
-        os.makedirs(default_theme_dir, exist_ok=True)
-        for filename, data in DEFAULT_THEME_FILES.items():
-            file_path = os.path.join(default_theme_dir, filename)
-            with open(file_path, "w") as f:
-                json.dump(data, f, indent=4)
-        logger.info(f"Default theme created at '{default_theme_dir}'.")
+    logger.info(f"Theme set to '{theme_name}'.")
+    return True
 
 
-### Generic Loading and Validation ###
-
-def _load_json_file(theme_name, filename):
+def _load_json_file(theme_name: str, filename: str) -> dict:
+    """
+    Loads a JSON file from the user's chosen theme folder.
+    Raises ThemeError if missing or invalid.
+    """
     theme_path = os.path.join(get_themes_dir(), theme_name)
     file_path = os.path.join(theme_path, filename)
 
     if not os.path.exists(file_path):
-        error_msg = f"'{filename}' file is missing for theme '{theme_name}'."
+        error_msg = f"File '{filename}' is missing for theme '{theme_name}'."
         logger.error(error_msg)
         raise ThemeError(error_msg)
 
     try:
-        with open(file_path, "r") as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             data = json.load(f)
-
+        return data
     except json.JSONDecodeError:
-        error_msg = f"'{filename}' in theme '{theme_name}' is not valid JSON."
+        error_msg = f"File '{filename}' in theme '{theme_name}' is not valid JSON."
         logger.error(error_msg)
         raise ThemeError(error_msg)
 
-    return data
 
+def load_theme_data() -> dict:
+    """
+    Unified loading of ALL theme data from three files:
+        1) ansi_codes.json → theme_data["ANSI_CODES"]
+        2) symbols.json → theme_data["SYMBOLS"]
+        3) mappings.json → merges directly
+           (e.g. "PROBLEM_FORMATTER_ANSI_CODES", "SUBMISSION_SYMBOLS", etc.)
 
-def _resolve_ansi_refs(mapping_dict, ansi_codes, theme_name):
-    for k, v in mapping_dict.items():
-        parts = v.split()
-        combined_code = ""
+    After loading, we validate everything and then resolve references.
 
-        for part in parts:
-            code = ansi_codes.get(part)
+    If any key is missing, or any reference is invalid,
+    we raise ThemeError and do not fallback.
+    """
+    theme_name = get_current_theme()
 
-            if not code:
-                error_msg = f"ANSI code '{part}' referenced in '{k}' not found in 'ANSI_CODES' for theme '{theme_name}'."
-                logger.error(error_msg)
-                raise ThemeError(error_msg)
-
-            combined_code += code
-
-        mapping_dict[k] = combined_code
-
-
-def _resolve_symbol_refs(mapping_dict, symbols, theme_name):
-    for k, v in mapping_dict.items():
-        symbol_code = symbols.get(v)
-
-        if not symbol_code:
-            error_msg = f"Symbol '{v}' referenced in '{k}' not found in 'SYMBOLS' for theme '{theme_name}'."
-            logger.error(error_msg)
-            raise ThemeError(error_msg)
-
-        mapping_dict[k] = symbol_code
-
-
-def _load_ansi_symbols(theme_name):
+    # Load ansi_codes.json
     ansi_data = _load_json_file(theme_name, "ansi_codes.json")
-    symbols_data = _load_json_file(theme_name, "symbols.json")
-
     if "ANSI_CODES" not in ansi_data:
-        raise ThemeError(f"Missing 'ANSI_CODES' in ansi_codes.json for theme '{theme_name}'.")
+        raise ThemeError(f"'ANSI_CODES' missing in ansi_codes.json for theme '{theme_name}'.")
 
+    # Load symbols.json
+    symbols_data = _load_json_file(theme_name, "symbols.json")
     if "SYMBOLS" not in symbols_data:
-        raise ThemeError(f"Missing 'SYMBOLS' in symbols.json for theme '{theme_name}'.")
+        raise ThemeError(f"'SYMBOLS' missing in symbols.json for theme '{theme_name}'.")
 
+    # Load mappings.json
+    mappings_data = _load_json_file(theme_name, "mappings.json")
+
+    # Merge them all
     theme_data = {
         "ANSI_CODES": ansi_data["ANSI_CODES"],
-        "SYMBOLS": symbols_data["SYMBOLS"]
+        "SYMBOLS": symbols_data["SYMBOLS"],
     }
+    for k, v in mappings_data.items():
+        theme_data[k] = v
+
+    # Validate
+    _validate_entire_theme_dict(theme_data, theme_name)
+
+    # Resolve references
+    _resolve_all_ansi_and_symbol_refs(theme_data)
 
     return theme_data
 
 
-### Validation Functions for Each Mappings File ###
-
-def _validate_problem_mappings(theme_data, theme_name):
+def _validate_entire_theme_dict(theme_data: dict, theme_name: str) -> None:
+    """
+    Checks that all required sections exist and that all required keys
+    are present in each mapping. If anything is missing, raises ThemeError.
+    """
+    # Check existence of main sections
     if "PROBLEM_FORMATTER_ANSI_CODES" not in theme_data:
-        raise ThemeError(f"Missing 'PROBLEM_FORMATTER_ANSI_CODES' in problem_mappings.json for theme '{theme_name}'.")
-
+        raise ThemeError(f"Missing 'PROBLEM_FORMATTER_ANSI_CODES' in mappings.json for theme '{theme_name}'.")
     if "PROBLEM_FORMATTER_SYMBOLS" not in theme_data:
-        raise ThemeError(f"Missing 'PROBLEM_FORMATTER_SYMBOLS' in problem_mappings.json for theme '{theme_name}'.")
+        raise ThemeError(f"Missing 'PROBLEM_FORMATTER_SYMBOLS' in mappings.json for theme '{theme_name}'.")
 
-    for key in PROBLEM_FORMATTER_ANSI_CODES_REQUIRED:
-        if key not in theme_data["PROBLEM_FORMATTER_ANSI_CODES"]:
-            raise ThemeError(f"Missing '{key}' in PROBLEM_FORMATTER_ANSI_CODES for theme '{theme_name}'.")
-
-    for key in PROBLEM_FORMATTER_SYMBOLS_REQUIRED:
-        if key not in theme_data["PROBLEM_FORMATTER_SYMBOLS"]:
-            raise ThemeError(f"Missing '{key}' in PROBLEM_FORMATTER_SYMBOLS for theme '{theme_name}'.")
-
-
-def _validate_interpretation_mappings(theme_data, theme_name):
     if "INTERPRETATION_ANSI_CODES" not in theme_data:
-        raise ThemeError(f"Missing 'INTERPRETATION_ANSI_CODES' in interpretation_mappings.json for theme '{theme_name}'.")
-
+        raise ThemeError(f"Missing 'INTERPRETATION_ANSI_CODES' in mappings.json for theme '{theme_name}'.")
     if "INTERPRETATION_SYMBOLS" not in theme_data:
-        raise ThemeError(f"Missing 'INTERPRETATION_SYMBOLS' in interpretation_mappings.json for theme '{theme_name}'.")
+        raise ThemeError(f"Missing 'INTERPRETATION_SYMBOLS' in mappings.json for theme '{theme_name}'.")
 
-    for key in INTERPRETATION_ANSI_CODES_REQUIRED:
-        if key not in theme_data["INTERPRETATION_ANSI_CODES"]:
-            raise ThemeError(f"Missing '{key}' in INTERPRETATION_ANSI_CODES for theme '{theme_name}'.")
-
-    for key in INTERPRETATION_SYMBOLS_REQUIRED:
-        if key not in theme_data["INTERPRETATION_SYMBOLS"]:
-            raise ThemeError(f"Missing '{key}' in INTERPRETATION_SYMBOLS for theme '{theme_name}'.")
-
-
-def _validate_submission_mappings(theme_data, theme_name):
     if "SUBMISSION_ANSI_CODES" not in theme_data:
-        raise ThemeError(f"Missing 'SUBMISSION_ANSI_CODES' in submission_mappings.json for theme '{theme_name}'.")
-
+        raise ThemeError(f"Missing 'SUBMISSION_ANSI_CODES' in mappings.json for theme '{theme_name}'.")
     if "SUBMISSION_SYMBOLS" not in theme_data:
-        raise ThemeError(f"Missing 'SUBMISSION_SYMBOLS' in submission_mappings.json for theme '{theme_name}'.")
+        raise ThemeError(f"Missing 'SUBMISSION_SYMBOLS' in mappings.json for theme '{theme_name}'.")
 
-    for key in SUBMISSION_ANSI_CODES_REQUIRED:
-        if key not in theme_data["SUBMISSION_ANSI_CODES"]:
-            raise ThemeError(f"Missing '{key}' in SUBMISSION_ANSI_CODES for theme '{theme_name}'.")
-
-    for key in SUBMISSION_SYMBOLS_REQUIRED:
-        if key not in theme_data["SUBMISSION_SYMBOLS"]:
-            raise ThemeError(f"Missing '{key}' in SUBMISSION_SYMBOLS for theme '{theme_name}'.")
-
-
-def _validate_problemset_mappings(theme_data, theme_name):
     if "PROBLEMSET_FORMATTER_ANSI_CODES" not in theme_data:
-        raise ThemeError(f"Missing 'PROBLEMSET_FORMATTER_ANSI_CODES' in problemset_mappings.json for theme '{theme_name}'.")
-
+        raise ThemeError(f"Missing 'PROBLEMSET_FORMATTER_ANSI_CODES' in mappings.json for theme '{theme_name}'.")
     if "PROBLEMSET_FORMATTER_SYMBOLS" not in theme_data:
-        raise ThemeError(f"Missing 'PROBLEMSET_FORMATTER_SYMBOLS' in problemset_mappings.json for theme '{theme_name}'.")
+        raise ThemeError(f"Missing 'PROBLEMSET_FORMATTER_SYMBOLS' in mappings.json for theme '{theme_name}'.")
 
-    for key in PROBLEMSET_FORMATTER_ANSI_CODES_REQUIRED:
-        if key not in theme_data["PROBLEMSET_FORMATTER_ANSI_CODES"]:
-            raise ThemeError(f"Missing '{key}' in PROBLEMSET_FORMATTER_ANSI_CODES for theme '{theme_name}'.")
-
-    for key in PROBLEMSET_FORMATTER_SYMBOLS_REQUIRED:
-        if key not in theme_data["PROBLEMSET_FORMATTER_SYMBOLS"]:
-            raise ThemeError(f"Missing '{key}' in PROBLEMSET_FORMATTER_SYMBOLS for theme '{theme_name}'.")
-
-
-def _validate_stats_mappings(theme_data, theme_name):
     if "STATS_FORMATTER_DIFFICULTY_COLORS" not in theme_data:
-        raise ThemeError(f"Missing 'STATS_FORMATTER_DIFFICULTY_COLORS' in stats_mappings.json for theme '{theme_name}'.")
+        raise ThemeError(f"Missing 'STATS_FORMATTER_DIFFICULTY_COLORS' in mappings.json for theme '{theme_name}'.")
     if "STATS_FORMATTER_SYMBOLS" not in theme_data:
-        raise ThemeError(f"Missing 'STATS_FORMATTER_SYMBOLS' in stats_mappings.json for theme '{theme_name}'.")
+        raise ThemeError(f"Missing 'STATS_FORMATTER_SYMBOLS' in mappings.json for theme '{theme_name}'.")
 
-    for key in STATS_FORMATTER_DIFFICULTY_COLORS_REQUIRED:
-        if key not in theme_data["STATS_FORMATTER_DIFFICULTY_COLORS"]:
-            raise ThemeError(f"Missing '{key}' in STATS_FORMATTER_DIFFICULTY_COLORS for theme '{theme_name}'.")
+    # Validate required keys in each subsection
 
-    for key in STATS_FORMATTER_SYMBOLS_REQUIRED:
-        if key not in theme_data["STATS_FORMATTER_SYMBOLS"]:
-            raise ThemeError(f"Missing '{key}' in STATS_FORMATTER_SYMBOLS for theme '{theme_name}'.")
+    # Problem
+    for req in PROBLEM_FORMATTER_ANSI_CODES_REQUIRED:
+        if req not in theme_data["PROBLEM_FORMATTER_ANSI_CODES"]:
+            raise ThemeError(f"Missing '{req}' in PROBLEM_FORMATTER_ANSI_CODES for theme '{theme_name}'.")
+    for req in PROBLEM_FORMATTER_SYMBOLS_REQUIRED:
+        if req not in theme_data["PROBLEM_FORMATTER_SYMBOLS"]:
+            raise ThemeError(f"Missing '{req}' in PROBLEM_FORMATTER_SYMBOLS for theme '{theme_name}'.")
 
+    # Interpretation
+    for req in INTERPRETATION_ANSI_CODES_REQUIRED:
+        if req not in theme_data["INTERPRETATION_ANSI_CODES"]:
+            raise ThemeError(f"Missing '{req}' in INTERPRETATION_ANSI_CODES for theme '{theme_name}'.")
+    for req in INTERPRETATION_SYMBOLS_REQUIRED:
+        if req not in theme_data["INTERPRETATION_SYMBOLS"]:
+            raise ThemeError(f"Missing '{req}' in INTERPRETATION_SYMBOLS for theme '{theme_name}'.")
 
-### Partial Loading Functions ###
+    # Submission
+    for req in SUBMISSION_ANSI_CODES_REQUIRED:
+        if req not in theme_data["SUBMISSION_ANSI_CODES"]:
+            raise ThemeError(f"Missing '{req}' in SUBMISSION_ANSI_CODES for theme '{theme_name}'.")
+    for req in SUBMISSION_SYMBOLS_REQUIRED:
+        if req not in theme_data["SUBMISSION_SYMBOLS"]:
+            raise ThemeError(f"Missing '{req}' in SUBMISSION_SYMBOLS for theme '{theme_name}'.")
 
-def load_problem_theme_data():
-    theme_name = get_current_theme()
-    theme_data = _load_ansi_symbols(theme_name)
-    problem_mappings = _load_json_file(theme_name, "problem_mappings.json")
-    theme_data.update(problem_mappings)
-    _validate_problem_mappings(theme_data, theme_name)
-    _resolve_ansi_refs(theme_data["PROBLEM_FORMATTER_ANSI_CODES"], theme_data["ANSI_CODES"], theme_name)
-    _resolve_symbol_refs(theme_data["PROBLEM_FORMATTER_SYMBOLS"], theme_data["SYMBOLS"], theme_name)
+    # Problemset
+    for req in PROBLEMSET_FORMATTER_ANSI_CODES_REQUIRED:
+        if req not in theme_data["PROBLEMSET_FORMATTER_ANSI_CODES"]:
+            raise ThemeError(f"Missing '{req}' in PROBLEMSET_FORMATTER_ANSI_CODES for theme '{theme_name}'.")
+    for req in PROBLEMSET_FORMATTER_SYMBOLS_REQUIRED:
+        if req not in theme_data["PROBLEMSET_FORMATTER_SYMBOLS"]:
+            raise ThemeError(f"Missing '{req}' in PROBLEMSET_FORMATTER_SYMBOLS for theme '{theme_name}'.")
 
-    return theme_data
-
-def load_interpretation_theme_data():
-    theme_name = get_current_theme()
-    theme_data = _load_ansi_symbols(theme_name)
-    interpretation_mappings = _load_json_file(theme_name, "interpretation_mappings.json")
-    theme_data.update(interpretation_mappings)
-    _validate_interpretation_mappings(theme_data, theme_name)
-    _resolve_ansi_refs(theme_data["INTERPRETATION_ANSI_CODES"], theme_data["ANSI_CODES"], theme_name)
-    _resolve_symbol_refs(theme_data["INTERPRETATION_SYMBOLS"], theme_data["SYMBOLS"], theme_name)
-
-    return theme_data
-
-def load_submission_theme_data():
-    theme_name = get_current_theme()
-    theme_data = _load_ansi_symbols(theme_name)
-    submission_mappings = _load_json_file(theme_name, "submission_mappings.json")
-    theme_data.update(submission_mappings)
-    _validate_submission_mappings(theme_data, theme_name)
-    _resolve_ansi_refs(theme_data["SUBMISSION_ANSI_CODES"], theme_data["ANSI_CODES"], theme_name)
-    _resolve_symbol_refs(theme_data["SUBMISSION_SYMBOLS"], theme_data["SYMBOLS"], theme_name)
-
-    return theme_data
-
-def load_problemset_theme_data():
-    theme_name = get_current_theme()
-    theme_data = _load_ansi_symbols(theme_name)
-    problemset_mappings = _load_json_file(theme_name, "problemset_mappings.json")
-    theme_data.update(problemset_mappings)
-    _validate_problemset_mappings(theme_data, theme_name)
-    _resolve_ansi_refs(theme_data["PROBLEMSET_FORMATTER_ANSI_CODES"], theme_data["ANSI_CODES"], theme_name)
-    _resolve_symbol_refs(theme_data["PROBLEMSET_FORMATTER_SYMBOLS"], theme_data["SYMBOLS"], theme_name)
-
-    return theme_data
-
-def load_stats_theme_data():
-    theme_name = get_current_theme()
-    theme_data = _load_ansi_symbols(theme_name)
-    stats_mappings = _load_json_file(theme_name, "stats_mappings.json")
-    theme_data.update(stats_mappings)
-    _validate_stats_mappings(theme_data, theme_name)
-    _resolve_ansi_refs(theme_data["STATS_FORMATTER_DIFFICULTY_COLORS"], theme_data["ANSI_CODES"], theme_name)
-    _resolve_symbol_refs(theme_data["STATS_FORMATTER_SYMBOLS"], theme_data["SYMBOLS"], theme_name)
-
-    return theme_data
+    # Stats
+    for req in STATS_FORMATTER_DIFFICULTY_COLORS_REQUIRED:
+        if req not in theme_data["STATS_FORMATTER_DIFFICULTY_COLORS"]:
+            raise ThemeError(f"Missing '{req}' in STATS_FORMATTER_DIFFICULTY_COLORS for theme '{theme_name}'.")
+    for req in STATS_FORMATTER_SYMBOLS_REQUIRED:
+        if req not in theme_data["STATS_FORMATTER_SYMBOLS"]:
+            raise ThemeError(f"Missing '{req}' in STATS_FORMATTER_SYMBOLS for theme '{theme_name}'.")
 
 
-### New: Validate the Entire Theme ###
-
-def validate_entire_theme():
+def _resolve_all_ansi_and_symbol_refs(theme_data: dict):
     """
-    Attempts to load and validate all theme mappings for the current theme.
-    If any partial load or validation fails, raises ThemeError.
+    Replace references in each mapping sub-dict with the actual ANSI codes or symbols
+    from theme_data["ANSI_CODES"] and theme_data["SYMBOLS"].
+
+    If something is not found, raise ThemeError. We do not fallback.
     """
-    load_problem_theme_data()          # Validates problem_mappings.json
-    load_interpretation_theme_data()   # Validates interpretation_mappings.json
-    load_submission_theme_data()       # Validates submission_mappings.json
-    load_problemset_theme_data()       # Validates problemset_mappings.json
-    load_stats_theme_data()            # Validates stats_mappings.json
+
+    def resolve_ansi(mapping_dict):
+        for key, value in mapping_dict.items():
+            # e.g. "GREEN BOLD" → ["GREEN", "BOLD"]
+            parts = value.split()
+            combined = ""
+            for part in parts:
+                if part not in theme_data["ANSI_CODES"]:
+                    raise ThemeError(
+                        f"ANSI code '{part}' (used in key '{key}') not found in 'ANSI_CODES'."
+                    )
+                combined += theme_data["ANSI_CODES"][part]
+            mapping_dict[key] = combined
+
+    def resolve_symbols(mapping_dict):
+        for key, value in mapping_dict.items():
+            # e.g. "CHECKMARK" → "✔"
+            if value not in theme_data["SYMBOLS"]:
+                raise ThemeError(
+                    f"Symbol '{value}' (used in key '{key}') not found in 'SYMBOLS'."
+                )
+            mapping_dict[key] = theme_data["SYMBOLS"][value]
+
+    # Problem
+    resolve_ansi(theme_data["PROBLEM_FORMATTER_ANSI_CODES"])
+    resolve_symbols(theme_data["PROBLEM_FORMATTER_SYMBOLS"])
+    # Interpretation
+    resolve_ansi(theme_data["INTERPRETATION_ANSI_CODES"])
+    resolve_symbols(theme_data["INTERPRETATION_SYMBOLS"])
+    # Submission
+    resolve_ansi(theme_data["SUBMISSION_ANSI_CODES"])
+    resolve_symbols(theme_data["SUBMISSION_SYMBOLS"])
+    # Problemset
+    resolve_ansi(theme_data["PROBLEMSET_FORMATTER_ANSI_CODES"])
+    resolve_symbols(theme_data["PROBLEMSET_FORMATTER_SYMBOLS"])
+    # Stats
+    resolve_ansi(theme_data["STATS_FORMATTER_DIFFICULTY_COLORS"])
+    resolve_symbols(theme_data["STATS_FORMATTER_SYMBOLS"])
+
+
+def validate_entire_theme() -> None:
+    """
+    Convenience function that attempts to load and validate the entire theme.
+    If anything fails, a ThemeError is raised.
+    """
+    load_theme_data()  # just load, which triggers validation and resolution

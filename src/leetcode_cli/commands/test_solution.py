@@ -8,9 +8,11 @@ from leetcode_cli.parsers.interpretation_parser import parse_interpretation_resu
 from leetcode_cli.formatters.interpretation_formatter import InterpretationFormatter
 from leetcode_cli.utils.formatting_config_utils import load_formatting_config
 
-@click.command(short_help='Test a solution file')
-@click.argument('file_path', required=True, type=click.Path(exists=True))
-@click.option('--include', multiple=True,
+@click.command(short_help='Test a solution files')
+@click.argument('file_path', required=True, type=click.Path(exists=True), metavar='FILE_PATH')
+@click.option(
+    '--include', '-i',
+    multiple=True,
     type=click.Choice(
         [
             "language",
@@ -23,6 +25,7 @@ from leetcode_cli.utils.formatting_config_utils import load_formatting_config
         ],
         case_sensitive=False
     ),
+    metavar='SECTION',
     help='Sections to display. Overrides formatting_config.'
 )
 def test_cmd(file_path, include):

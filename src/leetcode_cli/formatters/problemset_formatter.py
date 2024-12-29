@@ -1,5 +1,5 @@
 from leetcode_cli.graphics.ansi_codes import ANSI_RESET
-from leetcode_cli.utils.theme_utils import load_problemset_theme_data
+from leetcode_cli.utils.theme_utils import load_theme_data
 from leetcode_cli.models.problemset import ProblemSet, ProblemSummary
 from leetcode_cli.exceptions.exceptions import ProblemSetFormatterError, ThemeError
 import logging
@@ -11,7 +11,7 @@ class ProblemSetFormatter:
         self.problemset = problemset
 
         try:
-            self.THEME_DATA = load_problemset_theme_data()
+            self.theme_data = load_theme_data()
 
         except ThemeError as e:
             raise ThemeError(f"Failed to load theme: {str(e)}")
@@ -23,9 +23,21 @@ class ProblemSetFormatter:
         difficulty = q.difficulty
         status = q.status
 
-        formatted_difficulty = f"{self.THEME_DATA['PROBLEMSET_FORMATTER_ANSI_CODES'].get(difficulty, '')}{difficulty.ljust(8)}{ANSI_RESET}"
-        status_symbol = self.THEME_DATA['PROBLEMSET_FORMATTER_SYMBOLS'].get(status, " ")
-        colored_status_symbol = f"{self.THEME_DATA['PROBLEMSET_FORMATTER_ANSI_CODES'].get(status, '')}{status_symbol}{ANSI_RESET}"
+        difficulty_ansi = self.theme_data['PROBLEMSET_FORMATTER_ANSI_CODES'].get(
+            difficulty, ""
+        )
+
+        formatted_difficulty = f"{difficulty_ansi}{difficulty.ljust(8)}{ANSI_RESET}"
+
+        status_symbol = self.theme_data['PROBLEMSET_FORMATTER_SYMBOLS'].get(
+            status, ""
+        )
+
+        colored_status_symbol = (
+            f"{self.theme_data['PROBLEMSET_FORMATTER_ANSI_CODES'].get(status, '')}"
+            f"{status_symbol}"
+            f"{ANSI_RESET}"
+        )
 
         return f"\t{colored_status_symbol}[{question_id}] {title} {formatted_difficulty} ({ac_rate} %)"
 
@@ -35,4 +47,5 @@ class ProblemSetFormatter:
             raise ProblemSetFormatterError("No questions available to format.")
 
         parsed_list = [self._format_question(q) for q in self.problemset.questions]
+
         return "\n".join(parsed_list)

@@ -10,7 +10,7 @@ from leetcode_cli.constants.stats_constants import (
     COLUMNS,
     MONTH_NAMES
 )
-from leetcode_cli.utils.theme_utils import load_stats_theme_data
+from leetcode_cli.utils.theme_utils import load_theme_data
 from leetcode_cli.graphics.ansi_codes import ANSI_RESET
 from leetcode_cli.exceptions.exceptions import ThemeError
 
@@ -19,30 +19,27 @@ logger = logging.getLogger(__name__)
 class StatsFormatter:
     """
     A formatter class for LeetCode user stats and activity calendar.
-    Loads and validates only the stats-related theme data in its constructor.
+    Now loads the single theme data in __init__ and uses it for both stats and calendar.
     """
     def __init__(self):
         try:
-            self.THEME_DATA = load_stats_theme_data()
+            self.THEME_DATA = load_theme_data()
         except ThemeError as e:
-            raise ThemeError(f"Failed to load theme: {str(e)}")
+            raise ThemeError(f"Failed to load theme: {e}")
 
     def format_user_stats(self, stats: UserStatsModel) -> str:
-        """
-        Formats the user's accepted/failed/untouched stats by difficulty.
-        """
-        stats_lines = []
+        lines = []
         for difficulty in DIFFICULTIES:
             passed = stats.accepted.get(difficulty, 0)
-            total = (passed +
-                     stats.failed.get(difficulty, 0) +
-                     stats.untouched.get(difficulty, 0))
+            failed = stats.failed.get(difficulty, 0)
+            untouched = stats.untouched.get(difficulty, 0)
+            total = passed + failed + untouched
             if total == 0:
                 percentage = 0.0
             else:
                 percentage = (passed / total) * 100
 
-            progress_ratio = passed / total if total > 0 else 0.0
+            progress_ratio = (passed / total) if total else 0.0
             filled = int(round(progress_ratio * RECTANGLES_TOTAL))
             filled = max(0, min(filled, RECTANGLES_TOTAL))
 
@@ -52,14 +49,11 @@ class StatsFormatter:
 
             color = self.THEME_DATA['STATS_FORMATTER_DIFFICULTY_COLORS'].get(difficulty, ANSI_RESET)
             line = f"{color}{difficulty:<7} {passed:>4}/{total:<4} ({percentage:.2f}%) {progress_bar}{ANSI_RESET}"
-            stats_lines.append(line)
+            lines.append(line)
 
-        return "\n".join(stats_lines)
+        return "\n".join(lines)
 
     def format_user_activity(self, activity: UserActivityModel) -> str:
-        """
-        Formats the user's daily submission activity (calendar).
-        """
         daily_activity = activity.daily_activity
         if not daily_activity:
             return "No activity data."
@@ -84,14 +78,15 @@ class StatsFormatter:
         total_days = (max_date - min_date).days + 1
         all_dates = [min_date + timedelta(days=i) for i in range(total_days)]
 
-        # Populate the calendar
         weekday = all_dates[0].weekday()
         week_index = 3
         for date in all_dates:
             submissions = date_counts.get(date, 0)
             if submissions > 0:
                 color = calculate_color(submissions, max_submissions, min_submissions)
-                output[weekday][week_index] = f"{color}{self.THEME_DATA['STATS_FORMATTER_SYMBOLS']['FILLED_SQUARE']}{ANSI_RESET}"
+                output[weekday][week_index] = (
+                    f"{color}{self.THEME_DATA['STATS_FORMATTER_SYMBOLS']['FILLED_SQUARE']}{ANSI_RESET}"
+                )
             else:
                 gray_color = self.THEME_DATA['STATS_FORMATTER_DIFFICULTY_COLORS'].get('CALENDAR_TIER0', ANSI_RESET)
                 output[weekday][week_index] = f"{gray_color}{self.THEME_DATA['STATS_FORMATTER_SYMBOLS']['FILLED_SQUARE']}{ANSI_RESET}"
@@ -128,4 +123,5 @@ class StatsFormatter:
 
         months_parsed = ''.join(output_months)
         calendar_parsed = '\n'.join(''.join(row) for row in output)
+
         return f"{months_parsed}\n{calendar_parsed}"

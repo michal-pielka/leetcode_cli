@@ -1,4 +1,4 @@
-from leetcode_cli.utils.theme_utils import load_interpretation_theme_data
+from leetcode_cli.utils.theme_utils import load_theme_data
 from leetcode_cli.graphics.ansi_codes import ANSI_RESET
 from leetcode_cli.models.interpretation import InterpretationResult
 from leetcode_cli.exceptions.exceptions import ThemeError
@@ -11,10 +11,10 @@ class InterpretationFormatter:
         self.format_conf = format_conf
 
         try:
-            self.THEME_DATA = load_interpretation_theme_data()
+            self.theme_data = load_theme_data()
 
         except ThemeError as e:
-            raise ThemeError(f"Failed to load interpretation theme: {str(e)}")
+            raise ThemeError(f"Failed to load interpretation theme: {e}")
 
     def _format_field(self, label: str, value: str, width: int = 25) -> str:
         lines = value.split('\n')
@@ -23,10 +23,12 @@ class InterpretationFormatter:
 
         formatted = f"  {label:<{width}} {lines[0]}\n"
         padding = ' ' * (2 + width + 1)
+
         for line in lines[1:]:
             if line.strip() == "":
                 continue
             formatted += f"{padding}{line}\n"
+
         return formatted
 
     def get_formatted_interpretation(self) -> str:
@@ -62,19 +64,36 @@ class InterpretationFormatter:
             if not expected_output:
                 break
 
-            testcase = testcases_split[i * parameters_in_testcase : i * parameters_in_testcase + parameters_in_testcase] if total_testcases else []
+            testcase = (testcases_split[i * parameters_in_testcase : i * parameters_in_testcase + parameters_in_testcase]
+                        if total_testcases else [])
             code_output = code_outputs[i] if i < len(code_outputs) else None
             std_output = std_outputs[i] if i < len(std_outputs) else None
 
             if status_code == 10:
-                # Accepted or Wrong Answer
+                # Generally means "Accepted" or "Wrong Answer" on LeetCode
                 if code_output == expected_output:
-                    parsed_result += f"\n  {self.THEME_DATA['INTERPRETATION_ANSI_CODES']['Accepted']}{self.THEME_DATA['INTERPRETATION_SYMBOLS']['Accepted']} Accepted {ANSI_RESET}\n"
+                    parsed_result += (
+                        f"\n  {self.theme_data['INTERPRETATION_ANSI_CODES']['Accepted']}"
+                        f"{self.theme_data['INTERPRETATION_SYMBOLS']['Accepted']} "
+                        f"Accepted {ANSI_RESET}\n"
+                    )
                 else:
-                    parsed_result += f"\n  {self.THEME_DATA['INTERPRETATION_ANSI_CODES']['Wrong Answer']}{self.THEME_DATA['INTERPRETATION_SYMBOLS']['Wrong Answer']} Wrong Answer {ANSI_RESET}\n"
+                    parsed_result += (
+                        f"\n  {self.theme_data['INTERPRETATION_ANSI_CODES']['Wrong Answer']}"
+                        f"{self.theme_data['INTERPRETATION_SYMBOLS']['Wrong Answer']} "
+                        f"Wrong Answer {ANSI_RESET}\n"
+                    )
             else:
-                ansi_status = self.THEME_DATA['INTERPRETATION_ANSI_CODES'].get(status_msg, self.THEME_DATA['INTERPRETATION_ANSI_CODES']["unknown"])
-                parsed_result += f"\n  {ansi_status} {status_msg} {ANSI_RESET}\n"
+                # Possibly "Compile Error", "Runtime Error", etc.
+                ansi_status = self.theme_data['INTERPRETATION_ANSI_CODES'].get(
+                    status_msg,
+                    self.theme_data['INTERPRETATION_ANSI_CODES']["unknown"]
+                )
+                symbol_status = self.theme_data['INTERPRETATION_SYMBOLS'].get(
+                    status_msg,
+                    self.theme_data['INTERPRETATION_SYMBOLS']["unknown"]
+                )
+                parsed_result += f"\n  {ansi_status}{symbol_status} {status_msg} {ANSI_RESET}\n"
 
             if show_language and lang:
                 parsed_result += self._format_field('Language:', lang)

@@ -21,19 +21,39 @@ def is_title_slug(value):
 
 @click.command(short_help='Show problem details')
 @click.argument('title_slug_or_id', required=False)
-@click.option('--include', multiple=True,
+@click.option(
+    '--include', '-i',
+    multiple=True,
     type=click.Choice(
         ["title", "tags", "langs", "description", "examples", "constraints"], 
         case_sensitive=False
     ),
+    metavar='SECTION',
     help='Sections to display. Overrides formatting_config.'
 )
-@click.option('--random', is_flag=True, help='Show a random problem')
-@click.option('--difficulty', type=click.Choice(["EASY", "MEDIUM", "HARD"], case_sensitive=False),
-              help='Filter random problems by difficulty (Requires --random).')
-@click.option('--tag', multiple=True, type=click.Choice(POSSIBLE_TAGS, case_sensitive=False),
-              help='Filter random problems by tag (Requires --random).')
-@click.option('--use-downloaded', is_flag=True, help='Use downloaded problems metadata')
+@click.option(
+    '--random', '-r',
+    is_flag=True,
+    help='Show a random problem'
+)
+@click.option(
+    '--difficulty', '-d',
+    type=click.Choice(["EASY", "MEDIUM", "HARD"], case_sensitive=False),
+    metavar='DIFFICULTY',
+    help='Filter random problems by difficulty (Requires --random).'
+)
+@click.option(
+    '--tag', '-t',
+    multiple=True,
+    type=click.Choice(POSSIBLE_TAGS, case_sensitive=False),
+    metavar='TAG_NAME',
+    help='Filter random problems by tag (Requires --random).'
+)
+@click.option(
+    '--use-downloaded', '-u',
+    is_flag=True,
+    help='Use downloaded problems metadata'
+)
 def show_cmd(title_slug_or_id, include, random, difficulty, tag, use_downloaded):
     """
     Show problem details.
@@ -43,11 +63,12 @@ def show_cmd(title_slug_or_id, include, random, difficulty, tag, use_downloaded)
     """
 
     user_config = load_formatting_config()
-    format_conf = user_config["problem_show"]
+    format_conf = user_config.get("problem_show", {})
 
+    # Override format_conf based on --include options
     if include:
         for key in format_conf.keys():
-            format_conf[key] = False
+            format_conf[key] = False  # Disable all by default
 
         for item in include:
             if item == "title":
@@ -65,15 +86,19 @@ def show_cmd(title_slug_or_id, include, random, difficulty, tag, use_downloaded)
 
     if random:
         if not use_downloaded:
-            random_problem = fetch_random_title_slug(difficulty, tag)
-            if not random_problem.get("data", {}).get("randomQuestion"):
-                click.echo("No matching problems found.")
+            try:
+                random_problem = fetch_random_title_slug(difficulty, tag)
+                title_slug = random_problem["data"]["randomQuestion"].get("titleSlug", None)
+                if not title_slug:
+                    click.echo("No matching problems found.")
+                    return
+            except Exception as e:
+                click.echo(f"Error fetching random problem: {e}")
                 return
-            title_slug = random_problem["data"]["randomQuestion"].get("titleSlug", None)
         else:
             problems_data = load_problems_metadata()
             if not problems_data:
-                click.echo("Error: problems' metadata not found, use leetcode download-problems.")
+                click.echo("Error: Problems metadata not found. Use 'leetcode download-problems' first.")
                 return
             filtered_problems = filter_problems(problems_data, difficulty, tag)
             if not filtered_problems:
@@ -84,45 +109,50 @@ def show_cmd(title_slug_or_id, include, random, difficulty, tag, use_downloaded)
 
     else:
         if difficulty or tag:
-            click.echo("Error: --difficulty/--tag only work with --random.")
+            click.echo("Error: --difficulty and --tag options only work with --random.")
             return
 
         if not title_slug_or_id:
-            click.echo("Error: Need title slug or id.")
+            click.echo("Error: Need to specify a title slug or ID.")
             return
 
         if use_downloaded:
             problems_data = load_problems_metadata()
             if not problems_data:
-                click.echo("Error: problems' metadata not found, use leetcode download-problems.")
+                click.echo("Error: Problems metadata not found. Use 'leetcode download-problems' first.")
                 return
             if title_slug_or_id.isdigit():
                 problem_data = get_problem_by_key_value(problems_data, "frontendQuestionId", title_slug_or_id)
             else:
                 problem_data = get_problem_by_key_value(problems_data, "titleSlug", title_slug_or_id)
             title_slug = problem_data.get("titleSlug")
-
+            if not title_slug:
+                click.echo(f"Error: Problem with ID or title slug '{title_slug_or_id}' not found.")
+                return
         else:
             if is_title_slug(title_slug_or_id):
                 title_slug = title_slug_or_id
             else:
-                click.echo("Error: Show by ID requires --use-downloaded.")
+                click.echo("Error: Showing by ID requires --use-downloaded.")
                 return
 
     if not title_slug:
-        click.echo("Error: Unable to determine title_slug.")
+        click.echo("Error: Unable to determine the problem's title slug.")
         return
 
-    raw_data = fetch_problem_data(title_slug)
-    if not raw_data or 'data' not in raw_data or 'question' not in raw_data['data'] or not raw_data['data']['question']:
-        click.echo("Error: Could not fetch problem data.")
-        return
+    try:
+        raw_data = fetch_problem_data(title_slug)
+        if not raw_data or 'data' not in raw_data or 'question' not in raw_data['data'] or not raw_data['data']['question']:
+            click.echo("Error: Could not fetch problem data.")
+            return
 
-    problem = parse_problem_data(raw_data)
+        problem = parse_problem_data(raw_data)
+        set_chosen_problem(title_slug)
 
-    set_chosen_problem(title_slug)
+        formatter = ProblemFormatter(problem, format_conf)
+        formatted_str = formatter.get_formatted_problem()
 
-    formatter = ProblemFormatter(problem, format_conf)
-    formatted_str = formatter.get_formatted_problem()
+        click.echo(formatted_str)
 
-    click.echo(formatted_str)
+    except Exception as e:
+        click.echo(f"An error occurred: {e}")
