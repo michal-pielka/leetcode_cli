@@ -19,9 +19,8 @@ def parse_submission_result(json_data: Dict[str, Any]) -> SubmissionResult:
         if field not in json_data:
             raise ParsingError(f"Missing required field '{field}' in submission result data.")
 
-    # Optional: Validate error fields based on 'run_success'
-    run_success = bool(json_data["run_success"])
     """
+    run_success = bool(json_data["run_success"])
     if not run_success:
         # If run was unsuccessful, at least one error field should be present
         error_fields = ["runtime_error", "compile_error"]

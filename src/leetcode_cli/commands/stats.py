@@ -1,13 +1,14 @@
-# leetcode_cli/commands/stats.py
 import click
 from datetime import datetime
-from leetcode_cli.utils.config_utils import get_username
+
+from leetcode_cli.core.config_service import get_username
 from leetcode_cli.data_fetching.stats_fetcher import fetch_user_stats, fetch_user_activity
 from leetcode_cli.parsers.stats_parser import parse_user_stats_data, parse_user_activity_data
 from leetcode_cli.formatters.stats_formatter import StatsFormatter
+from leetcode_cli.core.theme_service import load_theme_data
 
 @click.command(short_help='Display user statistics from LeetCode')
-@click.argument('username', required=False, default=get_username(), metavar='USERNAME')
+@click.argument('username', required=False, default=None, metavar='USERNAME')
 @click.option(
     '--include', '-i',
     multiple=True,
@@ -24,21 +25,21 @@ def stats_cmd(username, include):
         leetcode stats USERNAME
     """
     if not username:
-        click.echo("Error: Username not set. Use 'leetcode config username <user>'.")
-        return
+        username = get_username()
 
     if not include:
         include = ["stats", "calendar"]
 
-    formatter = StatsFormatter()
+    theme_data = load_theme_data()
+    formatter = StatsFormatter(theme_data)
 
     # Fetch and parse stats
     if 'stats' in include:
         stats_data = fetch_user_stats(username)
-        print("\n\n")
-        print("Fetched stats:")
-        print(stats_data)
-        print("\n\n")
+        click.echo("\n\n")
+        click.echo("Fetched stats:")
+        click.echo(stats_data)
+        click.echo("\n\n")
         if stats_data:
             user_stats = parse_user_stats_data(stats_data)
             formatted_stats = formatter.format_user_stats(user_stats)
@@ -54,10 +55,10 @@ def stats_cmd(username, include):
         previous_year = current_year - 1
 
         activity_current = fetch_user_activity(username, current_year)
-        print("\n\n")
-        print("Fetched calendar current year:")
-        print(activity_current)
-        print("\n\n")
+        click.echo("\n\n")
+        click.echo("Fetched calendar current year:")
+        click.echo(activity_current)
+        click.echo("\n\n")
         activity_previous = fetch_user_activity(username, previous_year)
 
         if activity_current and activity_previous:

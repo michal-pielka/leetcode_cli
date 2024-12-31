@@ -1,11 +1,12 @@
 import click
 
-from leetcode_cli.utils.config_utils import get_cookie, extract_csrf_token
-from leetcode_cli.utils.download_problems_utils import load_problems_metadata, filter_problems
+from leetcode_cli.core.config_service import get_cookie, extract_csrf_token
+from leetcode_cli.problems.download_service import load_problems_metadata, filter_problems
 from leetcode_cli.data_fetching.problemset_fetcher import fetch_problemset
 from leetcode_cli.parsers.problemset_data_parser import parse_problemset_data
 from leetcode_cli.formatters.problemset_formatter import ProblemSetFormatter
 from leetcode_cli.constants.problem_constants import POSSIBLE_TAGS
+from leetcode_cli.core.theme_service import load_theme_data
 
 def validate_positive_integer(ctx, param, value):
     if value <= 0:
@@ -83,9 +84,6 @@ def list_cmd(difficulty, tag, limit, page, use_downloaded):
     else:
         cookie = get_cookie()
         csrf_token = extract_csrf_token(cookie)
-        if not cookie or not csrf_token:
-            click.echo("Error: Missing authentication tokens. Please configure your cookie using 'leetcode config'.")
-            return
 
         try:
             raw = fetch_problemset(
@@ -96,15 +94,13 @@ def list_cmd(difficulty, tag, limit, page, use_downloaded):
                 limit=limit,
                 skip=skip
             )
+
         except Exception as e:
             click.echo(f"Error fetching problem set: {e}")
             return
 
-        if not raw:
-            click.echo("Error: No data returned from the server.")
-            return
-
         problemset = parse_problemset_data(raw)
 
-    formatter = ProblemSetFormatter(problemset)
+    theme_data = load_theme_data()
+    formatter = ProblemSetFormatter(problemset, theme_data)
     click.echo(formatter.get_formatted_questions())

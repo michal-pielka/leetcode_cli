@@ -1,4 +1,4 @@
-from leetcode_cli.utils.config_utils import get_config_path
+from leetcode_cli.core.config_service import get_config_path
 
 import logging
 import os
@@ -142,10 +142,3 @@ def problem_data_from_path(filepath):
     file_extension = parts[-1]
     
     return frontend_id, title_slug, file_extension
-
-
-
-
-
-
-

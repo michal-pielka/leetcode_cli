@@ -3,7 +3,7 @@
 import logging
 from typing import Dict, Any
 from leetcode_cli.models.stats import UserStatsModel, UserActivityModel
-from leetcode_cli.utils.stats_utils import (
+from leetcode_cli.stats.stats_service import (
     join_and_slice_calendars,
     fill_daily_activity
 )

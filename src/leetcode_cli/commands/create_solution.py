@@ -2,11 +2,11 @@
 import click
 import logging
 
-from leetcode_cli.utils.config_utils import get_chosen_problem
-from leetcode_cli.utils.code_utils import get_language_and_extension
+from leetcode_cli.core.config_service import get_chosen_problem
+from leetcode_cli.code.code_service import get_language_and_extension
 from leetcode_cli.data_fetching.problem_fetcher import fetch_problem_id
 from leetcode_cli.data_fetching.code_snippet_fetcher import fetch_code_snippet
-from leetcode_cli.leetcode_problem.create_solution_file import create_solution_file
+from leetcode_cli.code.create_solution_file import create_solution_file
 
 logger = logging.getLogger(__name__)
 

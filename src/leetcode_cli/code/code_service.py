@@ -1,4 +1,4 @@
-from leetcode_cli.utils.config_utils import get_language
+from leetcode_cli.core.config_service import get_language
 from leetcode_cli.constants.problem_constants import LANG_SLUG_TO_EXTENSION, EXTENSION_TO_LANG_SLUG, POSSIBLE_LANG_SLUGS
 
 def read_code_from_file(file_path: str) -> str:

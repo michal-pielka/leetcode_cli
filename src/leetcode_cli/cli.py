@@ -11,6 +11,8 @@ from leetcode_cli.commands.stats import stats_cmd
 from leetcode_cli.commands.create_solution import create_cmd
 from leetcode_cli.commands.theme import theme_cmd
 
+from leetcode_cli.core.init_app import initialize_leetcode_cli
+
 class OrderedGroup(click.Group):
     def list_commands(self, ctx):
         """List commands in the order they were added."""
@@ -53,6 +55,8 @@ cli.add_command(download_problems_cmd, "download-problems")
 def main():
     configure_logging()
     logging.disable(logging.CRITICAL)
+
+    initialize_leetcode_cli()
     cli()
 
 if __name__ == "__main__":

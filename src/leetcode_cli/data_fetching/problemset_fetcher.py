@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 
 def fetch_problemset(cookie=None, csrf_token=None, tags=None, difficulty=None, limit=50, skip=0, category_slug="all-code-essentials"):
     query = GRAPHQL_QUERIES['problemset_data']
+
     payload = {
         "query": query,
         "variables": {
@@ -39,8 +40,10 @@ def fetch_problemset(cookie=None, csrf_token=None, tags=None, difficulty=None, l
         response = requests.post(GRAPHQL_URL, json=payload, headers=headers)
         response.raise_for_status()
         result = response.json()
+
     except requests.RequestException as e:
         raise FetchingError(f"Network error while fetching problemset: {e}")
+
     except ValueError:
         raise FetchingError("Failed to parse JSON response while fetching problemset.")
 

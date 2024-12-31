@@ -127,6 +127,7 @@ GRAPHQL_QUERIES = {
         query questionDetail($titleSlug: String!) {
           question(titleSlug: $titleSlug) {
             questionFrontendId
+            questionId
           }
         }
     """,

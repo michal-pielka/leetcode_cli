@@ -1,20 +1,21 @@
 import click
 
-from leetcode_cli.utils.formatting_config_utils import load_formatting_config
+from leetcode_cli.core.formatting_service import load_formatting_config
 from leetcode_cli.formatters.problem_formatter import ProblemFormatter
 from leetcode_cli.parsers.problem_parser import parse_problem_data
 from leetcode_cli.data_fetching.problem_fetcher import (
     fetch_problem_data,
     fetch_random_title_slug
 )
-from leetcode_cli.utils.download_problems_utils import (
+from leetcode_cli.problems.download_service import (
     filter_problems,
     load_problems_metadata,
     get_problem_by_key_value,
     select_random_problem
 )
-from leetcode_cli.utils.config_utils import set_chosen_problem
+from leetcode_cli.core.config_service import set_chosen_problem
 from leetcode_cli.constants.problem_constants import POSSIBLE_TAGS
+from leetcode_cli.core.theme_service import load_theme_data
 
 def is_title_slug(value):
     return not value.isdigit()
@@ -63,7 +64,8 @@ def show_cmd(title_slug_or_id, include, random, difficulty, tag, use_downloaded)
     """
 
     user_config = load_formatting_config()
-    format_conf = user_config.get("problem_show", {})
+    format_conf = user_config.problem_show
+    theme_data = load_theme_data()
 
     # Override format_conf based on --include options
     if include:
@@ -149,7 +151,7 @@ def show_cmd(title_slug_or_id, include, random, difficulty, tag, use_downloaded)
         problem = parse_problem_data(raw_data)
         set_chosen_problem(title_slug)
 
-        formatter = ProblemFormatter(problem, format_conf)
+        formatter = ProblemFormatter(problem, format_conf, theme_data)
         formatted_str = formatter.get_formatted_problem()
 
         click.echo(formatted_str)

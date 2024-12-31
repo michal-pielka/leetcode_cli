@@ -1,20 +1,14 @@
-from leetcode_cli.utils.theme_utils import load_theme_data
 from leetcode_cli.graphics.ansi_codes import ANSI_RESET
 from leetcode_cli.models.interpretation import InterpretationResult
+from leetcode_cli.core.theme_service import get_ansi_code, get_symbol
 from leetcode_cli.exceptions.exceptions import ThemeError
 
-
 class InterpretationFormatter:
-    def __init__(self, result: InterpretationResult, testcases: str, format_conf: dict):
+    def __init__(self, result: InterpretationResult, testcases: str, format_conf: dict, theme_data: dict):
         self.result = result
         self.testcases = testcases
         self.format_conf = format_conf
-
-        try:
-            self.theme_data = load_theme_data()
-
-        except ThemeError as e:
-            raise ThemeError(f"Failed to load interpretation theme: {e}")
+        self.theme_data = theme_data
 
     def _format_field(self, label: str, value: str, width: int = 25) -> str:
         lines = value.split('\n')
@@ -69,31 +63,39 @@ class InterpretationFormatter:
             code_output = code_outputs[i] if i < len(code_outputs) else None
             std_output = std_outputs[i] if i < len(std_outputs) else None
 
+            # status_code == 10 often means “Accepted” or “Wrong Answer”
             if status_code == 10:
-                # Generally means "Accepted" or "Wrong Answer" on LeetCode
                 if code_output == expected_output:
-                    parsed_result += (
-                        f"\n  {self.theme_data['INTERPRETATION_ANSI_CODES']['Accepted']}"
-                        f"{self.theme_data['INTERPRETATION_SYMBOLS']['Accepted']} "
-                        f"Accepted {ANSI_RESET}\n"
-                    )
+                    try:
+                        ansi_code = get_ansi_code(self.theme_data, 'INTERPRETATION_ANSI_CODES', 'Accepted')
+                    except ThemeError:
+                        ansi_code = ""
+                    try:
+                        symbol = get_symbol(self.theme_data, 'INTERPRETATION_SYMBOLS', 'Accepted')
+                    except ThemeError:
+                        symbol = ""
+                    parsed_result += f"\n  {ansi_code}{symbol} Accepted {ANSI_RESET}\n"
                 else:
-                    parsed_result += (
-                        f"\n  {self.theme_data['INTERPRETATION_ANSI_CODES']['Wrong Answer']}"
-                        f"{self.theme_data['INTERPRETATION_SYMBOLS']['Wrong Answer']} "
-                        f"Wrong Answer {ANSI_RESET}\n"
-                    )
+                    try:
+                        ansi_code = get_ansi_code(self.theme_data, 'INTERPRETATION_ANSI_CODES', 'Wrong Answer')
+                    except ThemeError:
+                        ansi_code = ""
+                    try:
+                        symbol = get_symbol(self.theme_data, 'INTERPRETATION_SYMBOLS', 'Wrong Answer')
+                    except ThemeError:
+                        symbol = ""
+                    parsed_result += f"\n  {ansi_code}{symbol} Wrong Answer {ANSI_RESET}\n"
             else:
                 # Possibly "Compile Error", "Runtime Error", etc.
-                ansi_status = self.theme_data['INTERPRETATION_ANSI_CODES'].get(
-                    status_msg,
-                    self.theme_data['INTERPRETATION_ANSI_CODES']["unknown"]
-                )
-                symbol_status = self.theme_data['INTERPRETATION_SYMBOLS'].get(
-                    status_msg,
-                    self.theme_data['INTERPRETATION_SYMBOLS']["unknown"]
-                )
-                parsed_result += f"\n  {ansi_status}{symbol_status} {status_msg} {ANSI_RESET}\n"
+                try:
+                    ansi_code = get_ansi_code(self.theme_data, 'INTERPRETATION_ANSI_CODES', status_msg)
+                except ThemeError:
+                    ansi_code = get_ansi_code(self.theme_data, 'INTERPRETATION_ANSI_CODES', 'unknown')
+                try:
+                    symbol = get_symbol(self.theme_data, 'INTERPRETATION_SYMBOLS', status_msg)
+                except ThemeError:
+                    symbol = get_symbol(self.theme_data, 'INTERPRETATION_SYMBOLS', 'unknown')
+                parsed_result += f"\n  {ansi_code}{symbol} {status_msg} {ANSI_RESET}\n"
 
             if show_language and lang:
                 parsed_result += self._format_field('Language:', lang)
@@ -113,14 +115,12 @@ class InterpretationFormatter:
             if show_errors:
                 if runtime_error:
                     parsed_result += self._format_field('Error Message:', runtime_error)
-
                 if compile_error:
                     parsed_result += self._format_field('Error Message:', compile_error)
 
             if detailed_errors:
                 if full_runtime_error:
                     parsed_result += self._format_field('Detailed Error:', full_runtime_error)
-
                 if full_compile_error:
                     parsed_result += self._format_field('Detailed Error:', full_compile_error)
 

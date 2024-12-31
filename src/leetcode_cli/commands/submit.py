@@ -1,11 +1,13 @@
 import click
-from leetcode_cli.utils.config_utils import get_cookie, extract_csrf_token
-from leetcode_cli.utils.download_problems_utils import problem_data_from_path
-from leetcode_cli.utils.code_utils import read_code_from_file, determine_language_from_extension
+
+from leetcode_cli.core.config_service import get_cookie, extract_csrf_token
+from leetcode_cli.problems.download_service import problem_data_from_path
+from leetcode_cli.code.code_service import read_code_from_file, determine_language_from_extension
 from leetcode_cli.data_fetching.submission_result_fetcher import fetch_submission_result
 from leetcode_cli.parsers.submission_parser import parse_submission_result
 from leetcode_cli.formatters.submission_formatter import SubmissionFormatter
-from leetcode_cli.utils.formatting_config_utils import load_formatting_config
+from leetcode_cli.core.formatting_service import load_formatting_config
+from leetcode_cli.core.theme_service import load_theme_data
 
 @click.command(short_help='Submit a solution file to LeetCode')
 @click.argument('file_path', required=True, type=click.Path(exists=True), metavar='FILE_PATH')
@@ -31,7 +33,8 @@ from leetcode_cli.utils.formatting_config_utils import load_formatting_config
 def submit_cmd(file_path, include):
     """Submit a solution file to LeetCode."""
     user_config = load_formatting_config()
-    format_conf = user_config["submission"]
+    format_conf = user_config.submission
+    theme_data = load_theme_data()
     
     if include:
         for key in format_conf.keys():
@@ -68,7 +71,7 @@ def submit_cmd(file_path, include):
     raw_submission = fetch_submission_result(cookie, csrf_token, title_slug, code, language)
     submission_res = parse_submission_result(raw_submission)
 
-    formatter = SubmissionFormatter(submission_res, format_conf)
+    formatter = SubmissionFormatter(submission_res, format_conf, theme_data)
     formatted_str = formatter.get_formatted_submission()
 
     click.echo(formatted_str)

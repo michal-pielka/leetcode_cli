@@ -2,30 +2,18 @@ from datetime import datetime, timedelta, timezone
 import logging
 
 from leetcode_cli.models.stats import UserStatsModel, UserActivityModel
-from leetcode_cli.utils.stats_utils import calculate_color
-from leetcode_cli.constants.stats_constants import (
-    RECTANGLES_TOTAL,
-    MONTH_SEPARATION,
-    DIFFICULTIES,
-    COLUMNS,
-    MONTH_NAMES
-)
-from leetcode_cli.utils.theme_utils import load_theme_data
+from leetcode_cli.models.theme import ThemeData
+from leetcode_cli.constants.stats_constants import RECTANGLES_TOTAL, MONTH_SEPARATION, DIFFICULTIES, COLUMNS, MONTH_NAMES
 from leetcode_cli.graphics.ansi_codes import ANSI_RESET
-from leetcode_cli.exceptions.exceptions import ThemeError
+from leetcode_cli.stats.stats_service import calculate_color
+
+from leetcode_cli.core.theme_service import get_ansi_code, get_symbol
 
 logger = logging.getLogger(__name__)
 
 class StatsFormatter:
-    """
-    A formatter class for LeetCode user stats and activity calendar.
-    Now loads the single theme data in __init__ and uses it for both stats and calendar.
-    """
-    def __init__(self):
-        try:
-            self.THEME_DATA = load_theme_data()
-        except ThemeError as e:
-            raise ThemeError(f"Failed to load theme: {e}")
+    def __init__(self, theme_data: ThemeData):
+        self.theme_data = theme_data
 
     def format_user_stats(self, stats: UserStatsModel) -> str:
         lines = []
@@ -34,20 +22,25 @@ class StatsFormatter:
             failed = stats.failed.get(difficulty, 0)
             untouched = stats.untouched.get(difficulty, 0)
             total = passed + failed + untouched
-            if total == 0:
-                percentage = 0.0
-            else:
-                percentage = (passed / total) * 100
+            percentage = (passed / total * 100) if total else 0.0
 
             progress_ratio = (passed / total) if total else 0.0
             filled = int(round(progress_ratio * RECTANGLES_TOTAL))
             filled = max(0, min(filled, RECTANGLES_TOTAL))
 
-            filled_bar = self.THEME_DATA['STATS_FORMATTER_SYMBOLS']['FILLED_SQUARE'] * filled
-            empty_bar = self.THEME_DATA['STATS_FORMATTER_SYMBOLS']['EMPTY_SQUARE'] * (RECTANGLES_TOTAL - filled)
+            # --------------- REMOVE fallback logic; just let ThemeError bubble up ---------------
+            filled_square = get_symbol(self.theme_data, 'STATS_FORMATTER_SYMBOLS', 'FILLED_SQUARE')
+            empty_square = get_symbol(self.theme_data, 'STATS_FORMATTER_SYMBOLS', 'EMPTY_SQUARE')
+            # ------------------------------------------------------------------------------------
+
+            filled_bar = filled_square * filled
+            empty_bar = empty_square * (RECTANGLES_TOTAL - filled)
             progress_bar = filled_bar + empty_bar
 
-            color = self.THEME_DATA['STATS_FORMATTER_DIFFICULTY_COLORS'].get(difficulty, ANSI_RESET)
+            # --------------- REMOVE fallback logic; just let ThemeError bubble up ---------------
+            color = get_ansi_code(self.theme_data, 'STATS_FORMATTER_DIFFICULTY_COLORS', difficulty)
+            # ------------------------------------------------------------------------------------
+
             line = f"{color}{difficulty:<7} {passed:>4}/{total:<4} ({percentage:.2f}%) {progress_bar}{ANSI_RESET}"
             lines.append(line)
 
@@ -84,12 +77,16 @@ class StatsFormatter:
             submissions = date_counts.get(date, 0)
             if submissions > 0:
                 color = calculate_color(submissions, max_submissions, min_submissions)
-                output[weekday][week_index] = (
-                    f"{color}{self.THEME_DATA['STATS_FORMATTER_SYMBOLS']['FILLED_SQUARE']}{ANSI_RESET}"
-                )
+                # --------------- REMOVE fallback logic; just let ThemeError bubble up ---------------
+                filled_square = get_symbol(self.theme_data, 'STATS_FORMATTER_SYMBOLS', 'FILLED_SQUARE')
+                # ------------------------------------------------------------------------------------
+                output[weekday][week_index] = f"{color}{filled_square}{ANSI_RESET}"
             else:
-                gray_color = self.THEME_DATA['STATS_FORMATTER_DIFFICULTY_COLORS'].get('CALENDAR_TIER0', ANSI_RESET)
-                output[weekday][week_index] = f"{gray_color}{self.THEME_DATA['STATS_FORMATTER_SYMBOLS']['FILLED_SQUARE']}{ANSI_RESET}"
+                # --------------- REMOVE fallback logic; just let ThemeError bubble up ---------------
+                gray_color = get_ansi_code(self.theme_data, 'STATS_FORMATTER_DIFFICULTY_COLORS', 'CALENDAR_TIER0')
+                filled_square = get_symbol(self.theme_data, 'STATS_FORMATTER_SYMBOLS', 'FILLED_SQUARE')
+                # ------------------------------------------------------------------------------------
+                output[weekday][week_index] = f"{gray_color}{filled_square}{ANSI_RESET}"
 
             if date.day == 1 and week_index < COLUMNS - 1:
                 week_index += MONTH_SEPARATION

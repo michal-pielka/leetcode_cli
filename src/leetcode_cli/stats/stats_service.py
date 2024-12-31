@@ -1,5 +1,3 @@
-# leetcode_cli/utils/stats_utils.py
-
 import json
 from datetime import datetime, timezone, timedelta
 import logging

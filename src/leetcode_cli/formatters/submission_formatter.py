@@ -1,35 +1,13 @@
 from leetcode_cli.graphics.ansi_codes import ANSI_RESET
-from leetcode_cli.utils.theme_utils import load_theme_data
 from leetcode_cli.models.submission import SubmissionResult
-from leetcode_cli.exceptions.exceptions import ThemeError
-
+from leetcode_cli.core.theme_service import get_ansi_code, get_symbol
+from leetcode_cli.models.theme import ThemeData
 
 class SubmissionFormatter:
-    def __init__(self, result: SubmissionResult, format_conf: dict):
+    def __init__(self, result: SubmissionResult, format_conf: dict, theme_data: ThemeData):
         self.result = result
         self.format_conf = format_conf
-
-        try:
-            self.THEME_DATA = load_theme_data()
-
-        except ThemeError as e:
-            raise ThemeError(f"Failed to load theme: {str(e)}")
-
-    def _format_field(self, label: str, value: str, width: int = 25) -> str:
-        lines = value.split('\n')
-        if not lines:
-            return f"  {label:<{width}} \n"
-
-        formatted = f"  {label:<{width}} {lines[0]}\n"
-        padding = ' ' * (2 + width + 1)
-
-        for line in lines[1:]:
-            if line.strip() == "":
-                continue
-
-            formatted += f"{padding}{line}\n"
-
-        return formatted
+        self.theme_data = theme_data
 
     def get_formatted_submission(self) -> str:
         status_msg = self.result.status_msg
@@ -61,11 +39,11 @@ class SubmissionFormatter:
         compile_error = getattr(self.result, 'compile_error', None)
         full_compile_error = getattr(self.result, 'full_compile_error', None)
 
-        ansi_status = (
-            f"{self.THEME_DATA['SUBMISSION_ANSI_CODES'].get(status_msg, self.THEME_DATA['SUBMISSION_ANSI_CODES']['unknown'])}"
-            f"{self.THEME_DATA['SUBMISSION_SYMBOLS'].get(status_msg, self.THEME_DATA['SUBMISSION_SYMBOLS']['unknown'])}"
-        )
-        parsed_result = f"\n  {ansi_status} {status_msg} {ANSI_RESET}\n"
+        ansi_code = get_ansi_code(self.theme_data, 'SUBMISSION_ANSI_CODES', status_msg)
+        symbol = get_symbol(self.theme_data, 'SUBMISSION_SYMBOLS', status_msg)
+
+        ansi_status = f"{ansi_code}{symbol}{ANSI_RESET}"
+        parsed_result = f"\n  {ansi_status} {status_msg} \n"
 
         if show_language and lang:
             parsed_result += self._format_field('Language:', lang or "")
@@ -89,35 +67,38 @@ class SubmissionFormatter:
             parsed_result += self._format_field('Expected Output:', expected_output)
 
         if show_code_output and code_output:
-            if isinstance(code_output, list):
-                code_output_str = "\n".join(code_output)
-
-            else:
-                code_output_str = str(code_output)
-
+            code_output_str = code_output if isinstance(code_output, str) else "\n".join(code_output)
             parsed_result += self._format_field('Your Output:', code_output_str)
 
         if show_stdout and std_output:
-            if isinstance(std_output, list):
-                std_output_str = "\n".join(std_output)
-
-            else:
-                std_output_str = str(std_output)
-
+            std_output_str = std_output if isinstance(std_output, str) else "\n".join(std_output)
             parsed_result += self._format_field('Stdout:', std_output_str)
 
         if show_errors:
             if runtime_error:
                 parsed_result += self._format_field('Error Message:', runtime_error)
-
             if compile_error:
                 parsed_result += self._format_field('Error Message:', compile_error)
 
         if detailed_errors:
             if full_runtime_error:
                 parsed_result += self._format_field('Detailed Error:', full_runtime_error)
-
             if full_compile_error:
                 parsed_result += self._format_field('Detailed Error:', full_compile_error)
 
         return parsed_result
+
+    def _format_field(self, label: str, value: str, width: int = 25) -> str:
+        lines = value.split('\n')
+        if not lines:
+            return f"  {label:<{width}} \n"
+
+        formatted = f"  {label:<{width}} {lines[0]}\n"
+        padding = ' ' * (2 + width + 1)
+
+        for line in lines[1:]:
+            if line.strip() == "":
+                continue
+            formatted += f"{padding}{line}\n"
+
+        return formatted

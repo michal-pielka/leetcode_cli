@@ -34,6 +34,7 @@ def fetch_problem_id(title_slug):
         "variables": {"titleSlug": title_slug},
         "operationName": "questionDetail"
     }
+
     try:
         response = requests.post(GRAPHQL_URL, json=payload)
         response.raise_for_status()

@@ -21,3 +21,7 @@ class ProblemSetFormatterError(Exception):
 class ThemeError(Exception):
     """Raised when there is an error related to theme loading or validation."""
     pass
+
+class ConfigError(Exception):
+    """Raised when configuration is missing, invalid, or otherwise incorrect."""
+    pass
