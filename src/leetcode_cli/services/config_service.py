@@ -4,8 +4,6 @@ import platform
 import logging
 import re
 
-from leetcode_cli.exceptions.exceptions import ConfigError
-
 logger = logging.getLogger(__name__)
 
 def get_config_path() -> str:

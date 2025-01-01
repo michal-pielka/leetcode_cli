@@ -3,7 +3,7 @@ import logging
 from leetcode_cli.graphics.ansi_codes import ANSI_RESET
 from leetcode_cli.models.problemset import ProblemSet, ProblemSummary
 from leetcode_cli.exceptions.exceptions import ProblemSetFormatterError
-from leetcode_cli.core.theme_service import get_ansi_code, get_symbol
+from leetcode_cli.services.theme_service import get_ansi_code, get_symbol
 from leetcode_cli.models.theme import ThemeData
 
 logger = logging.getLogger(__name__)

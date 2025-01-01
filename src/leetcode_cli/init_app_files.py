@@ -1,38 +1,27 @@
-# leetcode_cli/core/init_app.py
 import os
-import json
 import logging
+import yaml
 
-from leetcode_cli.core.config_service import get_config_path, load_config, save_config, get_config_dir
+from leetcode_cli.services.config_service import get_config_path, load_config, save_config, get_config_dir
 from leetcode_cli.constants.default_config import DEFAULT_CONFIG_VALUES
-from leetcode_cli.constants.default_formatting_config import DEFAULT_FORMATTING_CONFIG
-from leetcode_cli.core.theme_service import get_themes_dir
-from leetcode_cli.constants.themes.default_theme.ansi_codes_yaml import ANSI_CODES_YAML
+from leetcode_cli.constants.default_formatting_config import DEFAULT_FORMATTING_CONFIG_YAML
 from leetcode_cli.constants.themes.default_theme.symbols_yaml import SYMBOLS_YAML
+from leetcode_cli.constants.themes.default_theme.ansi_codes_yaml import ANSI_CODES_YAML
 from leetcode_cli.constants.themes.default_theme.mappings_yaml import MAPPINGS_YAML
+from leetcode_cli.services.theme_service import get_themes_dir
 
 logger = logging.getLogger(__name__)
 
 def initialize_leetcode_cli():
-    """
-    Called at CLI startup. Ensures:
-      - ~/.config/leetcode folder exists
-      - config.json exists & has required keys
-      - formatting_config.json exists & has required keys
-      - 'default_theme' folder & the three .yaml files exist
-    """
     _ensure_config_directory()
     _ensure_minimum_config_fields()
 
     _ensure_formatting_config_file_exists()
-    _ensure_minimum_formatting_config_fields_in_formatting()
+    _ensure_minimum_formatting_config_fields()
 
     _ensure_default_theme_folder()
 
 def _ensure_config_directory():
-    """
-    Ensures ~/.config/leetcode directory exists (based on platform).
-    """
     config_path = get_config_path()
     config_dir = os.path.dirname(config_path)
 
@@ -41,10 +30,6 @@ def _ensure_config_directory():
         logger.info(f"Created configuration directory at '{config_dir}'.")
 
 def _ensure_minimum_config_fields():
-    """
-    Make sure config.json has the keys from DEFAULT_CONFIG_VALUES.
-    If missing/corrupted, fill defaults.
-    """
     config = load_config()
     updated = False
 
@@ -60,49 +45,55 @@ def _ensure_minimum_config_fields():
 
 def _ensure_formatting_config_file_exists():
     """
-    Ensures that formatting_config.json exists.
-    If missing or corrupt, recreate from DEFAULT_FORMATTING_CONFIG.
+    Ensures ~/.config/leetcode/formatting_config.yaml exists,
+    creating it from DEFAULT_FORMATTING_CONFIG_YAML if missing or corrupt.
     """
-    formatting_config_path = os.path.join(get_config_dir(), "formatting_config.json")
+    formatting_config_path = os.path.join(get_config_dir(), "formatting_config.yaml")
 
     if not os.path.exists(formatting_config_path):
         # File missing => create with defaults
         with open(formatting_config_path, "w", encoding="utf-8") as f:
-            json.dump(DEFAULT_FORMATTING_CONFIG, f, indent=4)
-        logger.info(f"Created default formatting_config.json at '{formatting_config_path}'")
+            f.write(DEFAULT_FORMATTING_CONFIG_YAML)
+        logger.info(f"Created default formatting_config.yaml at '{formatting_config_path}'")
     else:
-        # File present => check if valid
+        # Check if valid YAML
         try:
             with open(formatting_config_path, "r", encoding="utf-8") as f:
-                json.load(f)  # Just confirm it can parse
-        except (json.JSONDecodeError, OSError):
-            logger.warning("formatting_config.json missing or corrupted. Recreating from defaults.")
+                data = yaml.safe_load(f)
+                if not data or not isinstance(data, dict):
+                    raise ValueError("Not a dict or empty")
+        except (yaml.YAMLError, ValueError):
+            logger.warning("formatting_config.yaml missing or corrupted. Recreating from defaults.")
             with open(formatting_config_path, "w", encoding="utf-8") as f:
-                json.dump(DEFAULT_FORMATTING_CONFIG, f, indent=4)
-            logger.info(f"Recreated formatting_config.json with default content at '{formatting_config_path}'")
+                f.write(DEFAULT_FORMATTING_CONFIG_YAML)
+            logger.info(f"Recreated formatting_config.yaml with default content at '{formatting_config_path}'")
 
-def _ensure_minimum_formatting_config_fields_in_formatting():
+def _ensure_minimum_formatting_config_fields():
     """
-    Loads the existing formatting_config.json and ensures top-level keys
-    ('interpretation', 'submission', 'problem_show') are present.
-    If missing, fill from defaults and save.
+    Ensures 'interpretation', 'submission', 'problem_show' exist in formatting_config.yaml
+    If any missing, merges from DEFAULT_FORMATTING_CONFIG_YAML.
     """
-    formatting_config_path = os.path.join(get_config_dir(), "formatting_config.json")
+    from yaml import safe_load, dump
+
+    formatting_config_path = os.path.join(get_config_dir(), "formatting_config.yaml")
 
     with open(formatting_config_path, "r", encoding="utf-8") as f:
-        user_data = json.load(f)
+        user_data = safe_load(f)
+
+    # Convert our default YAML -> dict
+    default_data = safe_load(DEFAULT_FORMATTING_CONFIG_YAML)
 
     updated = False
-    for key, default_val in DEFAULT_FORMATTING_CONFIG.items():
+    for key, default_val in default_data.items():
         if key not in user_data:
             user_data[key] = default_val
-            logger.warning(f"formatting_config.json missing '{key}', using defaults.")
+            logger.warning(f"formatting_config.yaml missing '{key}', adding defaults.")
             updated = True
 
     if updated:
         with open(formatting_config_path, "w", encoding="utf-8") as f:
-            json.dump(user_data, f, indent=4)
-        logger.info("Updated formatting_config.json with missing top-level sections.")
+            f.write(dump(user_data, sort_keys=False))
+        logger.info("Updated formatting_config.yaml with missing top-level sections.")
 
 def _ensure_default_theme_folder():
     """

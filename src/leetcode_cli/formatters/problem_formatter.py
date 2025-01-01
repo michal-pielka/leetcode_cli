@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup, NavigableString, Tag
 from leetcode_cli.graphics.ansi_codes import ANSI_RESET
 from leetcode_cli.models.problem import Problem
 from leetcode_cli.models.theme import ThemeData
-from leetcode_cli.core.theme_service import get_ansi_code, get_symbol
+from leetcode_cli.services.theme_service import get_ansi_code, get_symbol
 
 class ProblemFormatter:
     def __init__(self, problem: Problem, format_conf: dict, theme_data: ThemeData):

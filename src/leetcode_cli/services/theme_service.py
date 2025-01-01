@@ -1,9 +1,8 @@
-# leetcode_cli/core/theme_service.py
 import os
 import logging
 import yaml
 
-from leetcode_cli.core.config_service import load_config, save_config, get_config_path
+from leetcode_cli.services.config_service import load_config, save_config, get_config_path
 from leetcode_cli.exceptions.exceptions import ThemeError
 from leetcode_cli.models.theme import ThemeData
 

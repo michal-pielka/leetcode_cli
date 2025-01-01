@@ -1,12 +1,12 @@
 import click
 
-from leetcode_cli.core.config_service import get_cookie, extract_csrf_token
-from leetcode_cli.problems.download_service import load_problems_metadata, filter_problems
+from leetcode_cli.services.config_service import get_cookie, extract_csrf_token
+from leetcode_cli.services.download_service import load_problems_metadata, filter_problems
 from leetcode_cli.data_fetching.problemset_fetcher import fetch_problemset
 from leetcode_cli.parsers.problemset_data_parser import parse_problemset_data
 from leetcode_cli.formatters.problemset_formatter import ProblemSetFormatter
 from leetcode_cli.constants.problem_constants import POSSIBLE_TAGS
-from leetcode_cli.core.theme_service import load_theme_data
+from leetcode_cli.services.theme_service import load_theme_data
 
 def validate_positive_integer(ctx, param, value):
     if value <= 0:

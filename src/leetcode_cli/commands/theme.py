@@ -1,6 +1,6 @@
 import click
 
-from leetcode_cli.core.theme_service import list_themes, set_current_theme, get_current_theme, load_theme_data
+from leetcode_cli.services.theme_service import list_themes, set_current_theme, get_current_theme, load_theme_data
 from leetcode_cli.exceptions.exceptions import ThemeError
 
 @click.command(short_help='Change or list themes')

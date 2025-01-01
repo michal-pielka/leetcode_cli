@@ -1,21 +1,21 @@
 import click
 
-from leetcode_cli.core.formatting_service import load_formatting_config
+from leetcode_cli.services.formatting_service import load_formatting_config
 from leetcode_cli.formatters.problem_formatter import ProblemFormatter
 from leetcode_cli.parsers.problem_parser import parse_problem_data
 from leetcode_cli.data_fetching.problem_fetcher import (
     fetch_problem_data,
     fetch_random_title_slug
 )
-from leetcode_cli.problems.download_service import (
+from leetcode_cli.services.download_service import (
     filter_problems,
     load_problems_metadata,
     get_problem_by_key_value,
     select_random_problem
 )
-from leetcode_cli.core.config_service import set_chosen_problem
+from leetcode_cli.services.config_service import set_chosen_problem
 from leetcode_cli.constants.problem_constants import POSSIBLE_TAGS
-from leetcode_cli.core.theme_service import load_theme_data
+from leetcode_cli.services.theme_service import load_theme_data
 
 def is_title_slug(value):
     return not value.isdigit()

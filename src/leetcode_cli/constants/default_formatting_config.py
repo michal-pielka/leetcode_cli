@@ -1,31 +1,30 @@
-DEFAULT_FORMATTING_CONFIG = {
-  "interpretation": {
-    "show_language": True,
-    "show_testcases": True,
-    "show_expected_output": True,
-    "show_code_output": True,
-    "show_stdout": True,
-    "show_error_messages": True,
-    "show_detailed_error_messages": True
-  },
+DEFAULT_FORMATTING_CONFIG_YAML = """# formatting_config.yaml
+# This file configures how certain CLI outputs are displayed.
 
-  "submission": {
-    "show_language": True,
-    "show_testcases": True,
-    "show_runtime_memory": True,
-    "show_code_output": True,
-    "show_stdout": True,
-    "show_error_messages": True,
-    "show_detailed_error_messages": True,
-    "show_expected_output": True
-  },
+interpretation:
+  show_language: true
+  show_testcases: true
+  show_expected_output: true
+  show_code_output: true
+  show_stdout: true
+  show_error_messages: true
+  show_detailed_error_messages: true
 
-  "problem_show": {
-    "show_title": True,
-    "show_tags": True,
-    "show_langs": True,
-    "show_description": True,
-    "show_examples": True,
-    "show_constraints": True
-  }
-}
+submission:
+  show_language: true
+  show_testcases: true
+  show_runtime_memory: true
+  show_code_output: true
+  show_stdout: true
+  show_error_messages: true
+  show_detailed_error_messages: true
+  show_expected_output: true
+
+problem_show:
+  show_title: true
+  show_tags: true
+  show_langs: true
+  show_description: true
+  show_examples: true
+  show_constraints: true
+"""

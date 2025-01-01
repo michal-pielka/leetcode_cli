@@ -11,7 +11,7 @@ from leetcode_cli.commands.stats import stats_cmd
 from leetcode_cli.commands.create_solution import create_cmd
 from leetcode_cli.commands.theme import theme_cmd
 
-from leetcode_cli.core.init_app import initialize_leetcode_cli
+from leetcode_cli.init_app_files import initialize_leetcode_cli
 
 class OrderedGroup(click.Group):
     def list_commands(self, ctx):

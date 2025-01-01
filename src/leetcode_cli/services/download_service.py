@@ -1,8 +1,8 @@
-from leetcode_cli.core.config_service import get_config_path
-
 import logging
 import os
 import json
+
+from leetcode_cli.services.config_service import get_config_path
 
 logger = logging.getLogger(__name__)
 

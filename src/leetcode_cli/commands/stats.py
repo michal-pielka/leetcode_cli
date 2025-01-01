@@ -1,11 +1,11 @@
 import click
 from datetime import datetime
 
-from leetcode_cli.core.config_service import get_username
+from leetcode_cli.services.config_service import get_username
 from leetcode_cli.data_fetching.stats_fetcher import fetch_user_stats, fetch_user_activity
 from leetcode_cli.parsers.stats_parser import parse_user_stats_data, parse_user_activity_data
 from leetcode_cli.formatters.stats_formatter import StatsFormatter
-from leetcode_cli.core.theme_service import load_theme_data
+from leetcode_cli.services.theme_service import load_theme_data
 
 @click.command(short_help='Display user statistics from LeetCode')
 @click.argument('username', required=False, default=None, metavar='USERNAME')

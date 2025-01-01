@@ -1,6 +1,6 @@
 from leetcode_cli.graphics.ansi_codes import ANSI_RESET
 from leetcode_cli.models.submission import SubmissionResult
-from leetcode_cli.core.theme_service import get_ansi_code, get_symbol
+from leetcode_cli.services.theme_service import get_ansi_code, get_symbol
 from leetcode_cli.models.theme import ThemeData
 
 class SubmissionFormatter:

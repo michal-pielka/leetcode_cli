@@ -2,7 +2,7 @@ import requests
 import time
 from typing import Dict
 from leetcode_cli.exceptions.exceptions import FetchingError
-from leetcode_cli.problems.download_service import load_problems_metadata, get_problem_by_key_value
+from leetcode_cli.services.download_service import load_problems_metadata, get_problem_by_key_value
 from leetcode_cli.data_fetching.problem_fetcher import fetch_problem_id
 
 
