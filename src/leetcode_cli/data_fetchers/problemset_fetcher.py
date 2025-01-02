@@ -1,14 +1,13 @@
 import requests
 import logging
 
-from leetcode_cli.data_fetching.graphql_queries import GRAPHQL_QUERIES, GRAPHQL_URL
+from leetcode_cli.data_fetchers.graphql_queries import GRAPHQL_QUERIES, GRAPHQL_URL
 from leetcode_cli.exceptions.exceptions import FetchingError
 
 logger = logging.getLogger(__name__)
 
 def fetch_problemset(cookie=None, csrf_token=None, tags=None, difficulty=None, limit=50, skip=0, category_slug="all-code-essentials"):
     query = GRAPHQL_QUERIES['problemset_data']
-
     payload = {
         "query": query,
         "variables": {

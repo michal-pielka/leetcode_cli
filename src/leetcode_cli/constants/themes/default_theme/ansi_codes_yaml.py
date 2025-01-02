@@ -6,13 +6,12 @@ ANSI_CODES_YAML = """# ansi_codes.yaml
 ANSI_CODES:
   RESET: "\\u001b[0m"
 
-  GREEN: "\\u001b[32m"
-  ORANGE: "\\u001b[38;5;208m"
-  RED: "\\u001b[31m"
-  GRAY: "\\u001b[90m"
-  CYAN: "\\u001b[96m"
-  WHITE: "\\u001b[38;2;255;255;255m"
-  BLACK: "\\u001b[38;2;0;0;0m"
+  green: "\\u001b[32m"
+  orange: "\\u001b[38;5;208m"
+  red: "\\u001b[31m"
+  gray: "\\u001b[90m"
+  white: "\\u001b[38;2;255;255;255m"
+  black: "\\u001b[38;2;0;0;0m"
 
   GREEN1: "\\u001b[38;2;1;155;1m"
   GREEN2: "\\u001b[38;2;16;175;16m"
@@ -21,15 +20,11 @@ ANSI_CODES:
   GREEN5: "\\u001b[38;2;82;235;82m"
   GREEN6: "\\u001b[38;2;100;255;100m"
 
-  GRAY_BG: "\\u001b[100m"
-  GREEN_BG: "\\u001b[42m"
-  BABY_BLUE_BG: "\\u001b[48;2;66;205;245m"
-  RED_BG: "\\u001b[41m"
-  ORANGE_BG: "\\u001b[48;2;245;158;66m"
+  gray_bg: "\\u001b[100m"
+  cyan_bg: "\\u001b[48;2;66;205;245m"
+  orange_bg: "\\u001b[48;2;245;158;66m"
 
-  BOLD: "\\u001b[1m"
-  ITALIC: "\\u001b[3m"
-  UNDERLINE: "\\u001b[4m"
-
-  EMPTY: ""
+  bold: "\\u001b[1m"
+  italic: "\\u001b[3m"
+  underline: "\\u001b[4m"
 """

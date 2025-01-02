@@ -1,7 +1,9 @@
 from leetcode_cli.graphics.ansi_codes import ANSI_RESET
 from leetcode_cli.models.submission import SubmissionResult
-from leetcode_cli.services.theme_service import get_ansi_code, get_symbol
+from leetcode_cli.services.theme_service import get_styling
 from leetcode_cli.models.theme import ThemeData
+from leetcode_cli.exceptions.exceptions import ThemeError
+
 
 class SubmissionFormatter:
     def __init__(self, result: SubmissionResult, format_conf: dict, theme_data: ThemeData):
@@ -39,14 +41,17 @@ class SubmissionFormatter:
         compile_error = getattr(self.result, 'compile_error', None)
         full_compile_error = getattr(self.result, 'full_compile_error', None)
 
-        ansi_code = get_ansi_code(self.theme_data, 'SUBMISSION_ANSI_CODES', status_msg)
-        symbol = get_symbol(self.theme_data, 'SUBMISSION_SYMBOLS', status_msg)
+        try:
+            ansi_code, symbol = get_styling(self.theme_data, "SUBMISSION", status_msg)
 
-        ansi_status = f"{ansi_code}{symbol}{ANSI_RESET}"
-        parsed_result = f"\n  {ansi_status} {status_msg} \n"
+        except ThemeError as te:
+            raise te
+
+        ansi_status = f"{ansi_code}{symbol} {status_msg}{ANSI_RESET}"
+        parsed_result = f"\n  {ansi_status} \n"
 
         if show_language and lang:
-            parsed_result += self._format_field('Language:', lang or "")
+            parsed_result += self._format_field('Language:', lang)
 
         if show_testcases and total_correct is not None and total_testcases is not None:
             parsed_result += self._format_field('Passed Testcases:', f'{total_correct} / {total_testcases}')
@@ -89,16 +94,26 @@ class SubmissionFormatter:
         return parsed_result
 
     def _format_field(self, label: str, value: str, width: int = 25) -> str:
+        """
+        Formats a field with both label and value wrapped in ansi_code and symbol.
+        """
+        try:
+            ansi_code, symbol = get_styling(self.theme_data, "SUBMISSION", "field")
+
+        except ThemeError as te:
+            raise te
+
         lines = value.split('\n')
         if not lines:
-            return f"  {label:<{width}} \n"
+            return f"  {ansi_code}{symbol}{label:<{width}} {ANSI_RESET}\n"
 
-        formatted = f"  {label:<{width}} {lines[0]}\n"
-        padding = ' ' * (2 + width + 1)
+        formatted = f"  {ansi_code}{symbol}{label:<{width}} {lines[0]}{ANSI_RESET}\n"
+        padding = ' ' * (2 + width + len(symbol))
 
         for line in lines[1:]:
             if line.strip() == "":
                 continue
-            formatted += f"{padding}{line}\n"
+
+            formatted += f"{padding}{ansi_code}{symbol}{line}{ANSI_RESET}\n"
 
         return formatted

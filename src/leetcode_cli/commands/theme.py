@@ -17,7 +17,6 @@ def theme_cmd(theme_name):
 
         click.echo(f"Current theme: {current}")
         click.echo("Available themes:")
-
         for t in themes:
             click.echo(f" - {t}")
         return
@@ -27,7 +26,6 @@ def theme_cmd(theme_name):
         click.echo(f"Error: Theme '{theme_name}' not found. Use 'leetcode theme' to list.")
         return
 
-    # Optionally, we can load the theme now to see if it's valid
     try:
         load_theme_data()
         click.echo(f"Theme set to '{theme_name}'. It appears valid.")

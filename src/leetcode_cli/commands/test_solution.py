@@ -2,15 +2,15 @@ import click
 
 from leetcode_cli.services.config_service import get_cookie, extract_csrf_token
 from leetcode_cli.services.code_service import read_code_from_file, determine_language_from_extension
-from leetcode_cli.services.download_service import problem_data_from_path
-from leetcode_cli.data_fetching.problem_fetcher import fetch_problem_testcases
-from leetcode_cli.data_fetching.interpretation_result_fetcher import fetch_interpretation_result
+from leetcode_cli.services.problemset_service import problem_data_from_path
+from leetcode_cli.data_fetchers.problem_data_fetcher import fetch_problem_testcases
+from leetcode_cli.data_fetchers.interpretation_result_fetcher import fetch_interpretation_result
 from leetcode_cli.parsers.interpretation_parser import parse_interpretation_result
-from leetcode_cli.formatters.interpretation_formatter import InterpretationFormatter
-from leetcode_cli.services.formatting_service import load_formatting_config
+from leetcode_cli.formatters.interpretation_result_formatter import InterpretationFormatter
+from leetcode_cli.services.formatting_config_service import load_formatting_config
 from leetcode_cli.services.theme_service import load_theme_data
 
-@click.command(short_help='Test a solution files')
+@click.command(short_help='Test a solution file')
 @click.argument('file_path', required=True, type=click.Path(exists=True), metavar='FILE_PATH')
 @click.option(
     '--include', '-i',
@@ -37,6 +37,7 @@ def test_cmd(file_path, include):
     format_conf = user_config.interpretation
     theme_data = load_theme_data()
 
+    # Override format_conf if --include is used
     if include:
         for key in format_conf.keys():
             format_conf[key] = False
@@ -68,6 +69,15 @@ def test_cmd(file_path, include):
     language = determine_language_from_extension(file_extension)
 
     testcases_data = fetch_problem_testcases(title_slug)
+    if (
+        not testcases_data
+        or "data" not in testcases_data
+        or "question" not in testcases_data["data"]
+        or "exampleTestcases" not in testcases_data["data"]["question"]
+    ):
+        click.echo(f"Error: Unable to fetch testcases for '{title_slug}'.")
+        return
+
     problem_testcases = testcases_data['data']['question']['exampleTestcases']
 
     raw_interpretation = fetch_interpretation_result(

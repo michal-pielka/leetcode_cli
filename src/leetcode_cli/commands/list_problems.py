@@ -1,8 +1,8 @@
 import click
 
 from leetcode_cli.services.config_service import get_cookie, extract_csrf_token
-from leetcode_cli.services.download_service import load_problems_metadata, filter_problems
-from leetcode_cli.data_fetching.problemset_fetcher import fetch_problemset
+from leetcode_cli.services.problemset_service import load_problemset_metadata, filter_problems
+from leetcode_cli.data_fetchers.problemset_fetcher import fetch_problemset
 from leetcode_cli.parsers.problemset_data_parser import parse_problemset_data
 from leetcode_cli.formatters.problemset_formatter import ProblemSetFormatter
 from leetcode_cli.constants.problem_constants import POSSIBLE_TAGS
@@ -55,9 +55,9 @@ def list_cmd(difficulty, tag, limit, page, use_downloaded):
     skip = (page - 1) * limit
 
     if use_downloaded:
-        problems_data = load_problems_metadata()
+        problems_data = load_problemset_metadata()
         if not problems_data:
-            click.echo("Error: No local metadata found. Use 'leetcode download_problems' first.")
+            click.echo("Error: No local metadata found. Use 'leetcode download-problems' first.")
             return
 
         filtered_problems = filter_problems(problems_data, difficulty, tag)
@@ -103,4 +103,6 @@ def list_cmd(difficulty, tag, limit, page, use_downloaded):
 
     theme_data = load_theme_data()
     formatter = ProblemSetFormatter(problemset, theme_data)
+    click.echo()
     click.echo(formatter.get_formatted_questions())
+    click.echo()

@@ -4,14 +4,12 @@ SYMBOLS_YAML = """# symbols.yaml
 # (e.g., checkmarks, crosses, etc.) in the CLI.
 
 SYMBOLS:
-  FILLED_SQUARE: "◼"
-  EMPTY_SQUARE: "▫"
-  CARET: "^"
-  DOT: "•"
-  CHECKMARK: "✔"
-  X: "✘"
-  ATTEMPTED: "❋"
-
-  SPACE: " "
-  EMPTY: ""
+  filled_square: "◼"
+  empty_square: "▫"
+  caret: "^"
+  dot: "•"
+  checkmark: "✔"
+  cross: "✘"
+  snowflake: "❋"
+  space: " "
 """

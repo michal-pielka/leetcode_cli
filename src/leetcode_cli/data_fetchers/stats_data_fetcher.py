@@ -1,14 +1,13 @@
 import requests
 import logging
 
-from leetcode_cli.data_fetching.graphql_queries import GRAPHQL_URL, GRAPHQL_QUERIES
+from leetcode_cli.data_fetchers.graphql_queries import GRAPHQL_URL, GRAPHQL_QUERIES
 from leetcode_cli.exceptions.exceptions import FetchingError
 
 logger = logging.getLogger(__name__)
 
 def fetch_user_stats(username):
     query = GRAPHQL_QUERIES['user_problem_stats']
-
     payload = {
         "query": query,
         "variables": {"userSlug": username},
@@ -30,7 +29,6 @@ def fetch_user_stats(username):
 
 def fetch_user_activity(username, year):
     query = GRAPHQL_QUERIES['user_calendar']
-    
     payload = {
         "query": query,
         "variables": {"username": username, "year": year},

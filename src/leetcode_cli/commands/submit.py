@@ -1,12 +1,12 @@
 import click
 
 from leetcode_cli.services.config_service import get_cookie, extract_csrf_token
-from leetcode_cli.services.download_service import problem_data_from_path
+from leetcode_cli.services.problemset_service import problem_data_from_path
 from leetcode_cli.services.code_service import read_code_from_file, determine_language_from_extension
-from leetcode_cli.data_fetching.submission_result_fetcher import fetch_submission_result
+from leetcode_cli.data_fetchers.submission_result_fetcher import fetch_submission_result
 from leetcode_cli.parsers.submission_parser import parse_submission_result
-from leetcode_cli.formatters.submission_formatter import SubmissionFormatter
-from leetcode_cli.services.formatting_service import load_formatting_config
+from leetcode_cli.formatters.submission_result_formatter import SubmissionFormatter
+from leetcode_cli.services.formatting_config_service import load_formatting_config
 from leetcode_cli.services.theme_service import load_theme_data
 
 @click.command(short_help='Submit a solution file to LeetCode')
@@ -31,7 +31,9 @@ from leetcode_cli.services.theme_service import load_theme_data
     help='Sections to display. Overrides formatting_config.'
 )
 def submit_cmd(file_path, include):
-    """Submit a solution file to LeetCode."""
+    """
+    Submit a solution file to LeetCode.
+    """
     user_config = load_formatting_config()
     format_conf = user_config.submission
     theme_data = load_theme_data()

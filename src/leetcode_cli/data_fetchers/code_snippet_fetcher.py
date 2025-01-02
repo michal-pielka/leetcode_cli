@@ -1,7 +1,7 @@
 import requests
 import logging
 
-from leetcode_cli.data_fetching.graphql_queries import GRAPHQL_URL, GRAPHQL_QUERIES
+from leetcode_cli.data_fetchers.graphql_queries import GRAPHQL_URL, GRAPHQL_QUERIES
 from leetcode_cli.exceptions.exceptions import FetchingError
 
 logger = logging.getLogger(__name__)
@@ -13,16 +13,11 @@ def fetch_code_snippet(title_slug, lang_slug):
         "variables": {"titleSlug": title_slug}
     }
 
-    headers = {
-        "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0"
-    }
-
     try:
-        response = requests.post(GRAPHQL_URL, headers=headers, json=payload)
+        response = requests.post(GRAPHQL_URL, json=payload)
         response.raise_for_status()
         result = response.json()
-        
+
     except requests.RequestException as e:
         raise FetchingError(f"Network error while fetching code snippet for {title_slug} in {lang_slug}: {e}")
 

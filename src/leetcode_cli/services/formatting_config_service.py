@@ -1,6 +1,7 @@
 import os
 import logging
 import yaml
+
 from leetcode_cli.services.config_service import get_config_dir
 from leetcode_cli.models.formatting_config import FormattingConfig
 
@@ -8,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 def load_formatting_config() -> FormattingConfig:
     """
-    Loads ~/.config/leetcode/formatting_config.yaml into a FormattingConfig object.
+    Load ~/.config/leetcode/formatting_config.yaml into a FormattingConfig object.
     """
     formatting_path = os.path.join(get_config_dir(), "formatting_config.yaml")
 
@@ -16,7 +17,7 @@ def load_formatting_config() -> FormattingConfig:
         data = yaml.safe_load(f)
 
     return FormattingConfig(
-        interpretation=data["interpretation"],
-        submission=data["submission"],
-        problem_show=data["problem_show"]
+        interpretation=data.get("interpretation", {}),
+        submission=data.get("submission", {}),
+        problem_show=data.get("problem_show", {})
     )

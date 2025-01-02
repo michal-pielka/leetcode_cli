@@ -1,4 +1,3 @@
-# leetcode_cli/commands/config.py
 import click
 from leetcode_cli.graphics.ansi_codes import ANSI_RESET, ANSI_CODES
 from leetcode_cli.services.config_service import set_cookie, set_username, set_language
