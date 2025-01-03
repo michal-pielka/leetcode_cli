@@ -1,5 +1,3 @@
-# leetcode_cli/services/theme_service.py
-
 import os
 import logging
 import yaml
@@ -24,12 +22,11 @@ def list_themes():
     themes_dir = get_themes_dir()
     if not os.path.exists(themes_dir):
         return []
-
     return [d for d in os.listdir(themes_dir) if os.path.isdir(os.path.join(themes_dir, d))]
 
 def get_current_theme() -> str:
     conf = load_config()
-    return conf["theme"]
+    return conf.get("theme", None)
 
 def set_current_theme(theme_name: str) -> bool:
     """
@@ -39,12 +36,10 @@ def set_current_theme(theme_name: str) -> bool:
     if theme_name not in available:
         logger.error(f"Theme '{theme_name}' does not exist. Available: {available}")
         return False
-
     conf = load_config()
     conf["theme"] = theme_name
     save_config(conf)
     logger.info(f"Theme set to '{theme_name}'.")
-
     return True
 
 def load_theme_data() -> ThemeData:
@@ -56,111 +51,102 @@ def load_theme_data() -> ThemeData:
     if not theme:
         raise ThemeError("No theme is set in config.json. (key='theme')")
 
-    theme_dir = os.path.join(get_themes_dir(), theme)
+    ansi_data = _load_yaml_file(theme, "ansi_codes.yaml")
+    if "ANSI_CODES" not in ansi_data:
+        raise ThemeError(f"'ANSI_CODES' missing in ansi_codes.yaml for theme '{theme}'.")
 
-    # 1) Load ansi_codes.yaml
-    ansi_path = os.path.join(theme_dir, "ansi_codes.yaml")
-    if not os.path.exists(ansi_path):
-        raise ThemeError(f"File 'ansi_codes.yaml' is missing for theme '{theme}'.")
+    sym_data = _load_yaml_file(theme, "symbols.yaml")
+    if "SYMBOLS" not in sym_data:
+        raise ThemeError(f"'SYMBOLS' missing in symbols.yaml for theme '{theme}'.")
 
-    try:
-        with open(ansi_path, "r", encoding="utf-8") as f:
-            ansi_data = yaml.safe_load(f)
+    mappings_data = _load_yaml_file(theme, "mappings.yaml")
 
-        if "ANSI_CODES" not in ansi_data:
-            raise ThemeError(f"'ANSI_CODES' missing in ansi_codes.yaml for theme '{theme}'.")
+    # Merge top-level
+    merged = {
+        "ANSI_CODES": ansi_data["ANSI_CODES"],
+        "SYMBOLS": sym_data["SYMBOLS"],
+        # Additional sub-dicts from mappings
+        **mappings_data
+    }
 
-        all_ansi_codes = ansi_data["ANSI_CODES"]
-
-    except yaml.YAMLError as e:
-        raise ThemeError(f"File 'ansi_codes.yaml' in theme '{theme}' is not valid YAML: {e}")
-
-    # 2) Load symbols.yaml
-    symbols_path = os.path.join(theme_dir, "symbols.yaml")
-    if not os.path.exists(symbols_path):
-        raise ThemeError(f"File 'symbols.yaml' is missing for theme '{theme}'.")
-
-    try:
-        with open(symbols_path, "r", encoding="utf-8") as f:
-            sym_data = yaml.safe_load(f)
-
-        if "SYMBOLS" not in sym_data:
-            raise ThemeError(f"'SYMBOLS' missing in symbols.yaml for theme '{theme}'.")
-
-        all_symbols = sym_data["SYMBOLS"]
-
-    except yaml.YAMLError as e:
-        raise ThemeError(f"File 'symbols.yaml' in theme '{theme}' is not valid YAML: {e}")
-
-    # 3) Load mappings.yaml
-    mappings_path = os.path.join(theme_dir, "mappings.yaml")
-    if not os.path.exists(mappings_path):
-        raise ThemeError(f"File 'mappings.yaml' is missing for theme '{theme}'.")
-
-    try:
-        with open(mappings_path, "r", encoding="utf-8") as f:
-            all_mappings = yaml.safe_load(f)
-
-        if not isinstance(all_mappings, dict):
-            raise ThemeError(f"'mappings.yaml' is valid YAML but not a dictionary for theme '{theme}'.")
-
-    except yaml.YAMLError as e:
-        raise ThemeError(f"File 'mappings.yaml' in theme '{theme}' is not valid YAML: {e}")
-
-    # Construct ThemeData
     return ThemeData(
-        ANSI_CODES=all_ansi_codes,
-        SYMBOLS=all_symbols,
-        MAPPINGS=all_mappings
+        ANSI_CODES=merged["ANSI_CODES"],
+        SYMBOLS=merged["SYMBOLS"],
+        INTERPRETATION=merged.get("INTERPRETATION", {}),
+        SUBMISSION=merged.get("SUBMISSION", {}),
+        PROBLEMSET=merged.get("PROBLEMSET", {}),
+        PROBLEM_DESCRIPTION=merged.get("PROBLEM_DESCRIPTION", {}),
+        STATS_FORMATTER=merged.get("STATS_FORMATTER", {})
     )
 
-def get_styling(theme_data: ThemeData, category: str, key: str) -> (str, str):
+def get_styling(theme_data: ThemeData, category: str, key: str) -> tuple:
     """
-    Returns (ansi_code, symbol) for the given category/key.
-    Raises ThemeError if category or key is missing.
+    Retrieves the ANSI code and symbols for a given category and key.
+
+    :param theme_data: The ThemeData object.
+    :param category: The category (e.g., 'INTERPRETATION', 'SUBMISSION').
+    :param key: The specific key within the category.
+    :return: A tuple of (ansi_code, symbol_left, symbol_right).
     """
-    cat_dict = theme_data.MAPPINGS.get(category)
-    if cat_dict is None:
-        raise ThemeError(f"Category '{category}' not found in MAPPINGS.")
+    category_mapping = getattr(theme_data, category, {})
+    if not category_mapping:
+        raise ThemeError(f"ThemeData has no category '{category}' or it's empty.")
+    if key not in category_mapping:
+        raise ThemeError(f"Missing key '{key}' in theme category '{category}'.")
 
-    item = cat_dict.get(key)
-    if item is None:
-        raise ThemeError(f"Key '{key}' not found in category '{category}'.")
+    mapping = category_mapping[key]
+    ansi_chain = mapping.get("ansi", "")
+    symbol_left = mapping.get("symbol_left", "")
+    symbol_right = mapping.get("symbol_right", "")
 
-    ansi_chain = item.get("ansi", "")
-    symbol_key = item.get("symbol", "")
+    ansi_code = _resolve_ansi_chain(theme_data.ANSI_CODES, ansi_chain)
+    symbol_left_resolved = _resolve_symbol_chain(theme_data.SYMBOLS, symbol_left)
+    symbol_right_resolved = _resolve_symbol_chain(theme_data.SYMBOLS, symbol_right)
 
-    resolved_ansi = _resolve_ansi_chain(theme_data.ANSI_CODES, ansi_chain)
-    resolved_symbol = _resolve_symbol_chain(theme_data.SYMBOLS, symbol_key)
+    return (ansi_code, symbol_left_resolved, symbol_right_resolved)
 
-    return (resolved_ansi, resolved_symbol)
+def _load_yaml_file(theme_name: str, filename: str) -> dict:
+    """
+    Loads a single YAML from the theme folder, returns its dict or raises ThemeError.
+    """
+    theme_dir = get_themes_dir()
+    file_path = os.path.join(theme_dir, theme_name, filename)
+    if not os.path.exists(file_path):
+        raise ThemeError(f"File '{filename}' is missing for theme '{theme_name}'.")
+
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f)
+            if not isinstance(data, dict):
+                raise ThemeError(f"File '{filename}' is valid YAML but not a dictionary.")
+            return data
+    except yaml.YAMLError as e:
+        raise ThemeError(f"File '{filename}' in theme '{theme_name}' is not valid YAML: {e}")
 
 def _resolve_ansi_chain(ansi_codes_dict: dict, chain: str) -> str:
+    """
+    Resolves a comma-separated chain of ANSI code keys to a single ANSI code string.
+    """
     if not chain:
         return ""
-
-    tokens = [t.strip() for t in chain.split(",")]
+    tokens = [t.strip() for t in chain.split(',')]
     result = ""
-
     for token in tokens:
-        if token not in ansi_codes_dict:
+        if token.lower() not in ansi_codes_dict:
             raise ThemeError(f"Missing ANSI code '{token}' in 'ANSI_CODES'.")
-
-        result += ansi_codes_dict[token]
-
+        result += ansi_codes_dict[token.lower()]
     return result
 
 def _resolve_symbol_chain(symbols_dict: dict, chain: str) -> str:
+    """
+    Resolves a comma-separated chain of symbol keys to a single symbol string.
+    """
     if not chain:
         return ""
-
-    tokens = [t.strip() for t in chain.split(",")]
+    tokens = [t.strip() for t in chain.split(',')]
     result = ""
-
     for token in tokens:
-        if token not in symbols_dict:
-            raise ThemeError(f"Missing ANSI code '{token}' in 'ANSI_CODES'.")
-
-        result += symbols_dict[token]
-
+        if token.lower() not in symbols_dict:
+            raise ThemeError(f"Missing symbol '{token}' in 'SYMBOLS'.")
+        result += symbols_dict[token.lower()]
     return result

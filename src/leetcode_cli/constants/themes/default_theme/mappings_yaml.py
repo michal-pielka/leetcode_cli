@@ -1,257 +1,332 @@
-MAPPINGS_YAML = """# mappings.yaml
-#
-# This file unifies ANSI and symbol references under a single dictionary
-# for each category (INTERPRETATION, SUBMISSION, PROBLEMSET, PROBLEM_DESCRIPTION, STATS_FORMATTER).
-# Each key holds an 'ansi' (comma-separated style/color tokens) and an optional 'symbol'.
-# These mappings are used to style various parts of the CLI application output,
-# such as status messages, problem descriptions, and statistics.
+MAPPINGS_YAML = """# This file unifies ANSI and symbol references under a single dictionary
+# Each category (INTERPRETATION, SUBMISSION, PROBLEMSET, PROBLEM_DESCRIPTION, STATS_FORMATTER)
+# contains keys that map to 'ansi' styles and symbols used in the CLI output.
 
 INTERPRETATION:
   # Status mappings for code interpretation results
   Accepted:
-    ansi: "green,bold"               # Styles: Green color and bold text for accepted submissions
-    symbol: "checkmark"              # Symbol representing acceptance
+    ansi: "green,bold"               # Green color and bold text indicate accepted submissions
+    symbol_left: "checkmark,space"   # Symbols before the status: checkmark followed by a space
+    symbol_right: ""                 # No symbol after the status
   Wrong Answer:
-    ansi: "red,bold"                 # Styles: Red color and bold text for wrong answers
-    symbol: "cross"                      # Symbol representing a wrong answer
+    ansi: "red,bold"                 # Red color and bold text indicate wrong answers
+    symbol_left: "cross,space"        # Symbols before the status: cross followed by a space
+    symbol_right: ""                 # No symbol after the status
   Memory Limit Exceeded:
-    ansi: "red,bold"                 # Styles: Red color and bold text for memory limit exceeded
-    symbol: "cross"                      # Symbol representing memory limit exceeded
+    ansi: "red,bold"                 # Consistent styling for memory limit issues
+    symbol_left: "cross,space"
+    symbol_right: ""
   Output Limit Exceeded:
-    ansi: "red,bold"                 # Styles: Red color and bold text for output limit exceeded
-    symbol: "cross"                      # Symbol representing output limit exceeded
+    ansi: "red,bold"                 # Consistent styling for output limit issues
+    symbol_left: "cross,space"
+    symbol_right: ""
   Time Limit Exceeded:
-    ansi: "red,bold"                 # Styles: Red color and bold text for time limit exceeded
-    symbol: "cross"                      # Symbol representing time limit exceeded
+    ansi: "red,bold"                 # Consistent styling for time limit issues
+    symbol_left: "cross,space"
+    symbol_right: ""
   Runtime Error:
-    ansi: "red,bold"                 # Styles: Red color and bold text for runtime errors
-    symbol: "cross"                      # Symbol representing a runtime error
+    ansi: "red,bold"                 # Consistent styling for runtime errors
+    symbol_left: "cross,space"
+    symbol_right: ""
   Compile Error:
-    ansi: "red,bold"                 # Styles: Red color and bold text for compile errors
-    symbol: "cross"                      # Symbol representing a compile error
+    ansi: "red,bold"                 # Consistent styling for compile errors
+    symbol_left: "cross,space"
+    symbol_right: ""
   unknown:
-    ansi: "orange,bold"              # Styles: Orange color and bold text for unknown statuses
-    symbol: "cross"                      # Symbol representing an unknown status
-  field:
-    ansi: "white"                    # Styles: White color for field labels
-    symbol: ""                       # No symbol for fields
+    ansi: "orange,bold"              # Orange color indicates an unknown status
+    symbol_left: "cross,space"
+    symbol_right: ""
+  field_label:
+    ansi: "white"                    # White color for field labels
+    symbol_left: ""                  # No symbol before the label
+    symbol_right: "colon"            # Colon symbol after the label
+  field_value:
+    ansi: "green"                    # Green color for field values
+    symbol_left: ""                  # No symbol before the value
+    symbol_right: ""                 # No symbol after the value
 
 SUBMISSION:
-  # Status mappings for submission results
+  # Status mappings for submission results, similar to INTERPRETATION
   Accepted:
-    ansi: "green,bold"               # Styles: Green color and bold text for accepted submissions
-    symbol: "checkmark"              # Symbol representing acceptance
+    ansi: "green,bold"
+    symbol_left: "checkmark,space"
+    symbol_right: ""
   Wrong Answer:
-    ansi: "red,bold"                 # Styles: Red color and bold text for wrong answers
-    symbol: "cross"                      # Symbol representing a wrong answer
+    ansi: "red,bold"
+    symbol_left: "cross,space"
+    symbol_right: ""
   Memory Limit Exceeded:
-    ansi: "red,bold"                 # Styles: Red color and bold text for memory limit exceeded
-    symbol: "cross"                      # Symbol representing memory limit exceeded
+    ansi: "red,bold"
+    symbol_left: "cross,space"
+    symbol_right: ""
   Output Limit Exceeded:
-    ansi: "red,bold"                 # Styles: Red color and bold text for output limit exceeded
-    symbol: "cross"                      # Symbol representing output limit exceeded
+    ansi: "red,bold"
+    symbol_left: "cross,space"
+    symbol_right: ""
   Time Limit Exceeded:
-    ansi: "red,bold"                 # Styles: Red color and bold text for time limit exceeded
-    symbol: "cross"                      # Symbol representing time limit exceeded
+    ansi: "red,bold"
+    symbol_left: "cross,space"
+    symbol_right: ""
   Runtime Error:
-    ansi: "red,bold"                 # Styles: Red color and bold text for runtime errors
-    symbol: "cross"                      # Symbol representing a runtime error
+    ansi: "red,bold"
+    symbol_left: "cross,space"
+    symbol_right: ""
   Compile Error:
-    ansi: "red,bold"                 # Styles: Red color and bold text for compile errors
-    symbol: "cross"                      # Symbol representing a compile error
+    ansi: "red,bold"
+    symbol_left: "cross,space"
+    symbol_right: ""
   unknown:
-    ansi: "orange,bold"              # Styles: Orange color and bold text for unknown statuses
-    symbol: "cross"                      # Symbol representing an unknown status
-  field:
-    ansi: "white"                    # Styles: White color for field labels
-    symbol: ""                       # No symbol for fields
+    ansi: "orange,bold"
+    symbol_left: "cross,space"
+    symbol_right: ""
+  field_label:
+    ansi: "white"                    # White color for field labels
+    symbol_left: ""                  # No symbol before the label
+    symbol_right: "colon"            # Colon symbol after the label
+  field_value:
+    ansi: "white"                    # White color for field values
+    symbol_left: ""                  # No symbol before the value
+    symbol_right: ""                 # No symbol after the value
 
 PROBLEMSET:
   # Mappings for styling problem list entries
   title:
-    ansi: "white"                    # Styles: White color and bold text for titles
-    symbol: ""                       # No symbol for title
-  ac_rate:
-    ansi: "white"                    # Styles: White color for percentage values
-    symbol: ""                       # No symbol for percentage
+    ansi: "white"                      # White color for the title text
+    symbol_left: ""                    # No symbol before the title
+    symbol_right: ""                   # No symbol after the title
+  acceptance_rate:
+    ansi: "white"                      # White color for acceptance rate
+    symbol_left: "parenthesis_left"    # Left parenthesis symbol before the rate
+    symbol_right: "percentage,parenthesis_right"  # Percentage and right parenthesis after the rate
   question_id:
-    ansi: "white"                    # Styles: White color for question IDs
-    symbol: ""                       # No symbol for question IDs
+    ansi: "white"                      # White color for question ID
+    symbol_left: "bracket_left"        # Left bracket before the ID
+    symbol_right: "bracket_right"      # Right bracket after the ID
   Easy:
-    ansi: "green"                    # Styles: Green color for easy difficulty labels
-    symbol: ""                       # No symbol for easy difficulty labels
+    ansi: "green"                      # Green color indicates Easy difficulty
+    symbol_left: ""                    # No symbol before difficulty
+    symbol_right: ""                   # No symbol after difficulty
   Medium:
-    ansi: "orange"                   # Styles: Orange color for medium difficulty labels
-    symbol: ""                       # No symbol for medium difficulty labels
+    ansi: "orange"                     # Orange color indicates Medium difficulty
+    symbol_left: ""                    
+    symbol_right: ""
   Hard:
-    ansi: "red"                      # Styles: Red color for hard difficulty labels
-    symbol: ""                       # No symbol for hard difficulty labels
+    ansi: "red"                        # Red color indicates Hard difficulty
+    symbol_left: ""
+    symbol_right: ""
   ac:
-    ansi: "green,bold"               # Styles: Green color and bold text for accepted submissions
-    symbol: "checkmark"              # Symbol representing acceptance
+    ansi: "green"                      # Green color for accepted submissions
+    symbol_left: "checkmark"           # Checkmark symbol before the status
+    symbol_right: ""                   # No symbol after the status
   notac:
-    ansi: "orange"                   # Styles: Orange color for snowflake but not accepted submissions
-    symbol: "snowflake"              # Symbol representing an snowflake submission
+    ansi: "orange"                     # Orange color for not accepted submissions
+    symbol_left: "snowflake"           # Snowflake symbol before the status
+    symbol_right: ""                   
   not_started:
-    ansi: "gray"                     # Styles: Gray color for not started status
-    symbol: "space"                  # Symbol representing not started status
-  field:
-    ansi: "white,bold"               # Styles: White color and bold text for field labels
-    symbol: ""                       # No symbol for fields
+    ansi: ""                           # Default color implies white for not started status
+    symbol_left: "space"               # Space before the status
+    symbol_right: ""                   
 
 PROBLEM_DESCRIPTION:
   # Mappings for styling problem descriptions
   strong:
-    ansi: "bold"                     # Styles: bold text for <strong> tags
-    symbol: ""                       # No symbol for <strong> tags
+    ansi: "bold"                       # Bold text
+    symbol_left: ""                    
+    symbol_right: ""
   p:
-    ansi: ""                         # No ANSI styles for <p> tags
-    symbol: ""                       # No symbol for <p> tags
+    ansi: ""                            # Default styling for paragraph
+    symbol_left: ""
+    symbol_right: "\n"                  # Newline after paragraph
   br:
-    ansi: ""                         # No ANSI styles for <br> tags
-    symbol: ""                       # No symbol for <br> tags
+    ansi: ""                            # No styling for line breaks
+    symbol_left: ""
+    symbol_right: "\n"                  # Newline after line break
   ul:
-    ansi: ""                         # No ANSI styles for <ul> tags
-    symbol: ""                       # No symbol for <ul> tags
+    ansi: ""                            # Default styling for unordered lists
+    symbol_left: ""
+    symbol_right: ""
   li:
-    ansi: ""                         # No ANSI styles for <li> tags
-    symbol: "dot"                    # Symbol representing list items
+    ansi: ""                            # Default styling for list items
+    symbol_left: "dot"                  # Dot symbol before list item
+    symbol_right: ""                    
   sup:
-    ansi: ""                         # No ANSI styles for <sup> tags
-    symbol: "caret"                  # Symbol representing superscripts
+    ansi: ""                            # No additional styling for superscript
+    symbol_left: "caret"                # Caret symbol before superscript
+    symbol_right: ""                    
   b:
-    ansi: "bold"                     # Styles: bold text for <b> tags
-    symbol: ""                       # No symbol for <b> tags
+    ansi: "bold"                        # Bold text
+    symbol_left: ""
+    symbol_right: ""
   em:
-    ansi: "italic"                   # Styles: italic text for <em> tags
-    symbol: ""                       # No symbol for <em> tags
+    ansi: "italic"                      # Italic text
+    symbol_left: ""
+    symbol_right: ""
   i:
-    ansi: "italic"                   # Styles: italic text for <i> tags
-    symbol: ""                       # No symbol for <i> tags
+    ansi: "italic"                      # Italic text
+    symbol_left: ""
+    symbol_right: ""
   u:
-    ansi: "underline"                # Styles: underline text for <u> tags
-    symbol: ""                       # No symbol for <u> tags
+    ansi: "underline"                   # Underlined text
+    symbol_left: ""
+    symbol_right: ""
   span:
-    ansi: ""                         # No ANSI styles for <span> tags
-    symbol: ""                       # No symbol for <span> tags
+    ansi: ""                            # Default styling for span
+    symbol_left: ""
+    symbol_right: ""
   ol:
-    ansi: ""                         # No ANSI styles for <ol> tags
-    symbol: ""                       # No symbol for <ol> tags
+    ansi: ""                            # Default styling for ordered lists
+    symbol_left: ""
+    symbol_right: ""
   table:
-    ansi: ""                         # No ANSI styles for <table> tags
-    symbol: ""                       # No symbol for <table> tags
+    ansi: ""                            # Default styling for tables
+    symbol_left: ""
+    symbol_right: ""
   img:
-    ansi: ""                         # No ANSI styles for <img> tags
-    symbol: ""                       # No symbol for <img> tags
+    ansi: ""                            # No styling for images
+    symbol_left: ""
+    symbol_right: ""
   a:
-    ansi: ""                         # No ANSI styles for <a> tags
-    symbol: ""                       # No symbol for <a> tags
+    ansi: ""                            # Default styling for links
+    symbol_left: ""
+    symbol_right: ""
   sub:
-    ansi: ""                         # No ANSI styles for <sub> tags
-    symbol: ""                       # No symbol for <sub> tags
+    ansi: ""                            # No additional styling for subscript
+    symbol_left: ""
+    symbol_right: ""
   blockquote:
-    ansi: ""                         # No ANSI styles for <blockquote> tags
-    symbol: ""                       # No symbol for <blockquote> tags
+    ansi: ""                            # Default styling for blockquotes
+    symbol_left: ""
+    symbol_right: ""
   ptable:
-    ansi: ""                         # No ANSI styles for <ptable> tags
-    symbol: ""                       # No symbol for <ptable> tags
+    ansi: ""                            # Default styling for property tables
+    symbol_left: ""
+    symbol_right: ""
   font:
-    ansi: ""                         # No ANSI styles for <font> tags
-    symbol: ""                       # No symbol for <font> tags
+    ansi: ""                            # Default styling for font tags
+    symbol_left: ""
+    symbol_right: ""
   var:
-    ansi: ""                         # No ANSI styles for <var> tags
-    symbol: ""                       # No symbol for <var> tags
+    ansi: ""                            # Default styling for variables
+    symbol_left: ""
+    symbol_right: ""
   meta:
-    ansi: ""                         # No ANSI styles for <meta> tags
-    symbol: ""                       # No symbol for <meta> tags
+    ansi: ""                            # Default styling for meta tags
+    symbol_left: ""
+    symbol_right: ""
   div:
-    ansi: ""                         # No ANSI styles for <div> tags
-    symbol: ""                       # No symbol for <div> tags
+    ansi: ""                            # Default styling for divs
+    symbol_left: ""
+    symbol_right: ""
   style:
-    ansi: ""                         # No ANSI styles for <style> tags
-    symbol: ""                       # No symbol for <style> tags
+    ansi: ""                            # No styling for style tags
+    symbol_left: ""
+    symbol_right: ""
   code:
-    ansi: "gray_bg"                  # Styles: Gray background for <code> tags
-    symbol: ""                       # No symbol for <code> tags
+    ansi: "gray_bg"                     # Gray background for inline code
+    symbol_left: "space"                # Space before inline code
+    symbol_right: "space"               # Space after inline code
   pre:
-    ansi: "red"                      # Styles: Red text for <pre> tags
-    symbol: ""                       # No symbol for <pre> tags
+    ansi: "red"                         # Red color for preformatted text
+    symbol_left: ""                     # No symbol before preformatted text
+    symbol_right: ""                    # No symbol after preformatted text
+
   tag_label:
-    ansi: "white,bold"               # Styles: White color and bold text for "Tags:" label
-    symbol: ""                       # No symbol for "Tags:" label
+    ansi: "white,bold"                  # Bold white text for tag labels
+    symbol_left: ""
+    symbol_right: ""                    
   tag:
-    ansi: "cyan_bg,white,bold"       # Styles: Cyan background, white color, and bold text for individual tags
-    symbol: "space"                  # Symbol representing space between tags
+    ansi: "cyan_bg,white,bold"          # Cyan background with white bold text for tags
+    symbol_left: "space"                # Space before the tag
+    symbol_right: "space"               # Space after the tag
   language_label:
-    ansi: "white,bold"               # Styles: White color and bold text for "Languages:" label
-    symbol: ""                       # No symbol for "Languages:" label
+    ansi: "white,bold"                  # Bold white text for language labels
+    symbol_left: ""
+    symbol_right: ""                    
   language:
-    ansi: "orange_bg,black,bold"     # Styles: Orange background, black color, and bold text for programming languages
-    symbol: "space"                  # Symbol representing space between languages
+    ansi: "orange_bg,black,bold"        # Orange background with black bold text for languages
+    symbol_left: "space"                # Space before the language
+    symbol_right: "space"               # Space after the language
   title:
-    ansi: "bold"                     # Styles: bold text for problem titles
-    symbol: ""                       # No symbol for problem titles
+    ansi: "white,bold"                  # Bold white text for titles
+    symbol_left: ""
+    symbol_right: ""
   Easy:
-    ansi: "green"                    # Styles: Green color for easy difficulty labels
-    symbol: ""                       # No symbol for easy difficulty labels
+    ansi: "green,bold"                  # Bold green text for Easy difficulty
+    symbol_left: "bracket_left"         # Left bracket before difficulty
+    symbol_right: "bracket_right"       # Right bracket after difficulty
   Medium:
-    ansi: "orange"                   # Styles: Orange color for medium difficulty labels
-    symbol: ""                       # No symbol for medium difficulty labels
+    ansi: "orange,bold"                 # Bold orange text for Medium difficulty
+    symbol_left: "bracket_left"
+    symbol_right: "bracket_right"
   Hard:
-    ansi: "red"                      # Styles: Red color for hard difficulty labels
-    symbol: ""                       # No symbol for hard difficulty labels
+    ansi: "red,bold"                     # Bold red text for Hard difficulty
+    symbol_left: "bracket_left"
+    symbol_right: "bracket_right"
   example_title:
-    ansi: "bold"                     # Styles: bold text for example titles
-    symbol: ""                       # No symbol for example titles
+    ansi: "bold"                        # Bold text for example titles
+    symbol_left: ""
+    symbol_right: ""
   example_input_string:
-    ansi: "bold"                     # Styles: bold text for "Input:" labels
-    symbol: ""                       # No symbol for "Input:" labels
+    ansi: "bold"                        # Bold text for "Input" label
+    symbol_left: ""
+    symbol_right: ""
   example_output_string:
-    ansi: "bold"                     # Styles: bold text for "Output:" labels
-    symbol: ""                       # No symbol for "Output:" labels
+    ansi: "bold"                        # Bold text for "Output" label
+    symbol_left: ""
+    symbol_right: ""
   example_explanation_string:
-    ansi: "bold"                     # Styles: bold text for "Explanation:" labels
-    symbol: ""                       # No symbol for "Explanation:" labels
+    ansi: "bold"                        # Bold text for "Explanation" label
+    symbol_left: ""
+    symbol_right: ""
   example_input_data:
-    ansi: "gray"                     # Styles: Gray text for example input data
-    symbol: ""                       # No symbol for example input data
+    ansi: "gray"                        # Gray text for input data
+    symbol_left: ""
+    symbol_right: ""
   example_output_data:
-    ansi: "gray"                     # Styles: Gray text for example output data
-    symbol: ""                       # No symbol for example output data
+    ansi: "gray"                        # Gray text for output data
+    symbol_left: ""
+    symbol_right: ""
   example_explanation_data:
-    ansi: "gray"                     # Styles: Gray text for example explanation data
-    symbol: ""                       # No symbol for example explanation data
+    ansi: "gray"                        # Gray text for explanation data
+    symbol_left: ""
+    symbol_right: ""
   constraints_string:
-    ansi: "bold"                     # Styles: bold text for "Constraints:" labels
-    symbol: ""                       # No symbol for "Constraints:" labels
-  field:
-    ansi: "white,bold"               # Styles: White color and bold text for field labels
-    symbol: ""                       # No symbol for fields
+    ansi: "bold"                        # Bold text for "Constraints" label
+    symbol_left: ""
+    symbol_right: ""
 
 STATS_FORMATTER:
   # Mappings for styling user statistics and activity calendar
   EASY:
-    ansi: "green"                    # Styles: Green color for easy difficulty stats
-    symbol: ""                       # No symbol for easy difficulty stats
+    ansi: "green"                       # Green color for Easy solved problems
+    symbol_left: ""
+    symbol_right: ""
   MEDIUM:
-    ansi: "orange"                   # Styles: Orange color for medium difficulty stats
-    symbol: ""                       # No symbol for medium difficulty stats
+    ansi: "orange"                      # Orange color for Medium solved problems
+    symbol_left: ""
+    symbol_right: ""
   HARD:
-    ansi: "red"                      # Styles: Red color for hard difficulty stats
-    symbol: ""                       # No symbol for hard difficulty stats
+    ansi: "red"                         # Red color for Hard solved problems
+    symbol_left: ""
+    symbol_right: ""
   CALENDAR_TIER0:
-    ansi: "gray"                     # Styles: Gray color for calendar tier 0 (no activity)
-    symbol: ""                       # No symbol for calendar tier 0
+    ansi: "gray"                        # Gray color for lowest tier in calendar
+    symbol_left: ""
+    symbol_right: ""
   CALENDAR_TIER1:
-    ansi: "orange,bold"              # Styles: Orange color and bold text for calendar tier 1 (some activity)
-    symbol: ""                       # No symbol for calendar tier 1
+    ansi: "orange,bold"                 # Bold orange color for higher tier in calendar
+    symbol_left: ""
+    symbol_right: ""
   filled_square:
-    ansi: ""                         # No ANSI styles for filled squares in stats
-    symbol: "filled_square"          # Symbol representing filled squares
+    ansi: ""                            # Default color for filled squares
+    symbol_left: "filled_square"        # Filled square symbol
+    symbol_right: ""
   empty_square:
-    ansi: ""                         # No ANSI styles for empty squares in stats
-    symbol: "empty_square"           # Symbol representing empty squares
+    ansi: ""                            # Default color for empty squares
+    symbol_left: "empty_square"         # Empty square symbol
+    symbol_right: ""
   field:
-    ansi: "white,bold"               # Styles: White color and bold text for field labels
-    symbol: ""                       # No symbol for fields
+    ansi: "white,bold"                  # Bold white text for statistical fields
+    symbol_left: ""
+    symbol_right: ""
 """

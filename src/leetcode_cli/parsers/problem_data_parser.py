@@ -85,6 +85,7 @@ def parse_problem_data(json_data: Dict) -> Problem:
                             if isinstance(sibling, Tag) and sibling.name == 'strong':
                                 # Reached the next section
                                 break
+
                             elif isinstance(sibling, Tag):
                                 content += sibling.get_text(separator=' ', strip=True)
 
@@ -102,6 +103,7 @@ def parse_problem_data(json_data: Dict) -> Problem:
                         elif current_section == 'explanation':
                             # For explanation, capture all remaining content
                             explanation_content = []
+
                             for sib in strong.next_siblings:
                                 if isinstance(sib, Tag):
                                     explanation_content.append(str(sib))

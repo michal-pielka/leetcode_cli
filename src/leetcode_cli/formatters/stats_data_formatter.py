@@ -1,5 +1,3 @@
-# leetcode_cli/formatters/stats_formatter.py
-
 import logging
 from datetime import datetime, timedelta, timezone
 from leetcode_cli.models.stats import UserStatsModel, UserActivityModel
@@ -13,7 +11,6 @@ from leetcode_cli.services.theme_service import get_styling
 from leetcode_cli.exceptions.exceptions import ThemeError
 
 logger = logging.getLogger(__name__)
-
 
 class StatsFormatter:
     """
@@ -36,21 +33,22 @@ class StatsFormatter:
 
             try:
                 # Get symbols
-                filled_ansi, filled_sym = get_styling(self.theme_data, 'STATS_FORMATTER', 'filled_square')
-                empty_ansi, empty_sym = get_styling(self.theme_data, 'STATS_FORMATTER', 'empty_square')
+                filled_ansi, filled_symbol_left, filled_symbol_right = get_styling(self.theme_data, 'STATS_FORMATTER', 'filled_square')
+                empty_ansi, empty_symbol_left, empty_symbol_right = get_styling(self.theme_data, 'STATS_FORMATTER', 'empty_square')
 
                 # ANSI color for the difficulty
-                diff_ansi, _ = get_styling(self.theme_data, 'STATS_FORMATTER', difficulty.upper())
+                diff_ansi, diff_symbol_left, diff_symbol_right = get_styling(self.theme_data, 'STATS_FORMATTER', difficulty.upper())
 
                 # Build the bar with each symbol wrapped
-                bar = ''.join([f"{diff_ansi}{filled_sym}{ANSI_RESET}" for _ in range(filled)]) + \
-                      ''.join([f"{diff_ansi}{empty_sym}{ANSI_RESET}" for _ in range(RECTANGLES_TOTAL - filled)])
+                filled_bar = ''.join([f"{diff_ansi}{filled_symbol_left}{filled_symbol_right}{ANSI_RESET}" for _ in range(filled)])
+                empty_bar = ''.join([f"{diff_ansi}{empty_symbol_left}{empty_symbol_right}{ANSI_RESET}" for _ in range(RECTANGLES_TOTAL - filled)])
+                bar = filled_bar + empty_bar
 
                 # Combine all parts with proper styling
-                line = f"{diff_ansi}{difficulty:<7}{ANSI_RESET} {passed:>4}/{total:<4} ({percentage:.2f}%) {bar}"
+                line = f"{diff_ansi}{difficulty:<7}{diff_symbol_left}{diff_symbol_right}{ANSI_RESET} {passed:>4}/{total:<4} ({percentage:.2f}%) {bar}"
                 lines.append(line)
             except ThemeError as te:
-                logger.error(f"Theming Error: {te}")
+                logger.error(f"Theming Error in format_user_stats: {te}")
                 raise te
 
         return "\n".join(lines)
@@ -88,20 +86,25 @@ class StatsFormatter:
             subs = date_counts.get(date, 0)
             if subs > 0:
                 try:
-                    # Assuming 'CALENDAR_TIER1' to represent different tiers if needed
-                    color, _ = get_styling(self.theme_data, 'STATS_FORMATTER', 'CALENDAR_TIER1')  # Modify as needed
+                    # Determine tier based on submissions
+                    if subs == 1:
+                        tier = 'CALENDAR_TIER1'
+                    else:
+                        tier = 'CALENDAR_TIER1'  # You can define more tiers if needed
+                    color, symbol_left, symbol_right = get_styling(self.theme_data, 'STATS_FORMATTER', tier)
                     symbol = get_styling(self.theme_data, 'STATS_FORMATTER', 'filled_square')[1]
+                    output[weekday][week_index] = f"{color}{symbol_left}{symbol}{symbol_right}{ANSI_RESET}"
                 except ThemeError as te:
-                    logger.error(f"Theming Error: {te}")
+                    logger.error(f"Theming Error in format_user_activity: {te}")
                     raise te
-                output[weekday][week_index] = f"{color}{symbol}{ANSI_RESET}"
             else:
                 try:
-                    tier0_ansi, symbol = get_styling(self.theme_data, 'STATS_FORMATTER', 'CALENDAR_TIER0')
+                    tier0_ansi, tier0_symbol_left, tier0_symbol_right = get_styling(self.theme_data, 'STATS_FORMATTER', 'CALENDAR_TIER0')
+                    symbol = get_styling(self.theme_data, 'STATS_FORMATTER', 'empty_square')[1]
+                    output[weekday][week_index] = f"{tier0_ansi}{tier0_symbol_left}{symbol}{tier0_symbol_right}{ANSI_RESET}"
                 except ThemeError as te:
-                    logger.error(f"Theming Error: {te}")
+                    logger.error(f"Theming Error in format_user_activity: {te}")
                     raise te
-                output[weekday][week_index] = f"{tier0_ansi}{symbol}{ANSI_RESET}"
 
             if date.day == 1 and week_index < COLUMNS - 1:
                 week_index += MONTH_SEPARATION

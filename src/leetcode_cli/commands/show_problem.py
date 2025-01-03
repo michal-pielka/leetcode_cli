@@ -2,7 +2,7 @@ import click
 
 from leetcode_cli.services.formatting_config_service import load_formatting_config
 from leetcode_cli.formatters.problem_data_formatter import ProblemFormatter
-from leetcode_cli.parsers.problem_parser import parse_problem_data
+from leetcode_cli.parsers.problem_data_parser import parse_problem_data
 from leetcode_cli.data_fetchers.problem_data_fetcher import (
     fetch_problem_data,
     fetch_random_title_slug

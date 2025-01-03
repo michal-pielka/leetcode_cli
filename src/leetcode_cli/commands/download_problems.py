@@ -1,5 +1,5 @@
 import click
-from leetcode_cli.data_fetchers.problemset_fetcher import fetch_problemset
+from leetcode_cli.data_fetchers.problemset_data_fetcher import fetch_problemset
 from leetcode_cli.services.problemset_service import get_problems_data_path, save_problemset_metadata
 
 @click.command(short_help='Download all problems metadata')

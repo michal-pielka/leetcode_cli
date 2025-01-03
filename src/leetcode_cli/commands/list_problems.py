@@ -2,9 +2,9 @@ import click
 
 from leetcode_cli.services.config_service import get_cookie, extract_csrf_token
 from leetcode_cli.services.problemset_service import load_problemset_metadata, filter_problems
-from leetcode_cli.data_fetchers.problemset_fetcher import fetch_problemset
+from leetcode_cli.data_fetchers.problemset_data_fetcher import fetch_problemset
 from leetcode_cli.parsers.problemset_data_parser import parse_problemset_data
-from leetcode_cli.formatters.problemset_formatter import ProblemSetFormatter
+from leetcode_cli.formatters.problemset_data_formatter import ProblemSetFormatter
 from leetcode_cli.constants.problem_constants import POSSIBLE_TAGS
 from leetcode_cli.services.theme_service import load_theme_data
 
