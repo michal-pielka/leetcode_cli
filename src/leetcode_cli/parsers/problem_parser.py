@@ -1,191 +1,152 @@
 import json
-import re
-from bs4 import BeautifulSoup
-from leetcode_cli.exceptions.exceptions import ParsingError
+from typing import Dict
+from bs4 import BeautifulSoup, Tag, NavigableString
+
 from leetcode_cli.models.problem import Problem
 
-def parse_problem_data(json_data):
-    if "data" not in json_data or "question" not in json_data["data"]:
-        raise ParsingError("Invalid problem data structure: 'data.question' key not found.")
+def parse_problem_data(json_data: Dict) -> Problem:
+    """
+    Parses raw JSON data of a LeetCode problem and returns a Problem instance.
 
-    question = json_data["data"]["question"]
-    required_fields = ["title", "questionFrontendId", "content", "categoryTitle", "difficulty", 
-                       "topicTags", "stats", "likes", "dislikes", "isPaidOnly", "solution", "codeSnippets"]
+    Args:
+        json_data (Dict): The raw JSON data containing problem details.
 
-    for field in required_fields:
-        if field not in question:
-            raise ParsingError(f"Missing '{field}' in problem data.")
+    Returns:
+        Problem: An instance of the Problem dataclass populated with parsed data.
+    """
+    question = json_data.get('data', {}).get('question', {})
+    
+    # Extract basic fields
+    title = question.get('title', '')
+    question_frontend_id = question.get('questionFrontendId', '')
+    category_title = question.get('categoryTitle', '')
+    difficulty = question.get('difficulty', '')
+    topic_tags = [tag.get('name', '') for tag in question.get('topicTags', [])]
+    
+    # Parsing stats
+    stats_str = question.get('stats', '{}')
 
-    # Parse topic tags
-    topic_tags = []
-    for tag_data in question["topicTags"]:
-        if "name" not in tag_data:
-            raise ParsingError("Topic tag data is missing 'name' field.")
-        topic_tags.append(tag_data["name"])
+    try:
+        stats = json.loads(stats_str)
 
-    # Parse stats
-    stats_str = question["stats"]
-    stats_data = json.loads(stats_str)
-    stats_required = ["totalAccepted", "totalSubmission", "totalAcceptedRaw", "totalSubmissionRaw", "acRate"]
-    for sfield in stats_required:
-        if sfield not in stats_data:
-            raise ParsingError(f"Missing '{sfield}' in stats data.")
-
-    stats = {
-        "total_accepted": stats_data["totalAccepted"],
-        "total_submission": stats_data["totalSubmission"],
-        "total_accepted_raw": stats_data["totalAcceptedRaw"],
-        "total_submission_raw": stats_data["totalSubmissionRaw"],
-        "ac_rate": stats_data["acRate"]
-    }
-
-    # Parse solution info
-    solution_data = question["solution"]
-    if solution_data:
-        solution_required = ["id", "paidOnly", "hasVideoSolution", "canSeeDetail"]
-        for sol_field in solution_required:
-            if sol_field not in solution_data:
-                raise ParsingError(f"Missing '{sol_field}' in solution data.")
-
-        solution_info = {
-            "id": solution_data["id"],
-            "paid_only": solution_data["paidOnly"],
-            "has_video_solution": solution_data["hasVideoSolution"],
-            "can_see_detail": solution_data["canSeeDetail"]
-        }
-
-    else:
-        solution_info = None
-
-    # Parse code snippets
-    snippets = []
-    for snippet_data in question["codeSnippets"]:
-        snippet_required = ["lang", "langSlug"]
-        for sn_field in snippet_required:
-            if sn_field not in snippet_data:
-                raise ParsingError(f"Missing '{sn_field}' in code snippet data.")
-
-        snippets.append({
-            "lang": snippet_data["lang"],
-            "lang_slug": snippet_data["langSlug"]
-        })
-
-    # Parse the HTML content for description, examples, and constraints
-    html_content = question["content"]
-    soup = BeautifulSoup(html_content, "html.parser")
-
-    # Find constraints
-    constraints_header = soup.find('strong', string=re.compile(r'Constraints:'))
-    constraints = []
-    if constraints_header:
-        ul_tag = constraints_header.find_next('ul')
-        if ul_tag:
-            # Keep HTML tags in constraints
-            for li in ul_tag.find_all('li'):
-                constraints.append(str(li))
-
-    # Find examples by <strong class="example">
-    example_headers = soup.find_all('strong', class_='example')
+    except json.JSONDecodeError:
+        stats = {}
+    
+    likes = question.get('likes', 0)
+    dislikes = question.get('dislikes', 0)
+    is_paid_only = question.get('isPaidOnly', False)
+    solution_info = question.get('solution')
+    code_snippets = question.get('codeSnippets', [])
+    
+    # Parsing HTML content
+    content_html = question.get('content', '')
+    soup = BeautifulSoup(content_html, 'html.parser')
+    
+    description_parts = []
     examples = []
-    for header in example_headers:
-        example = _parse_example_section(header)
-        if example:
-            examples.append(example)
+    constraints = []
+    
+    # Flag to indicate if we've entered the examples section
+    in_examples = False
+    
+    # Iterate through all top-level elements
+    for elem in soup.find_all(recursive=False):
+        if elem.name == 'p':
+            # Check if it's an example
+            strong_example = elem.find('strong', class_='example')
+            if strong_example:
+                in_examples = True  # Set the flag
+                example_title = strong_example.get_text(strip=True).rstrip(':')
+                
+                # Find the next <pre> tag
+                pre = elem.find_next_sibling('pre')
+                if pre:
+                    # Initialize the example dict
+                    example = {
+                        'title': example_title,
+                        'input': [],
+                        'output': '',
+                        'explanation': ''
+                    }
 
-    # Determine earliest stop point
-    stopping_points = []
-    if example_headers:
-        stopping_points.extend(example_headers)
+                    # Find all <strong> tags within <pre>
+                    strong_tags = pre.find_all('strong')
 
-    earliest_stop = None
-    if stopping_points:
-        all_elements = list(soup.find_all())
-        earliest_stop = min(stopping_points, key=lambda el: all_elements.index(el))
+                    # Initialize variables
+                    current_section = None
 
-    # Text-based slicing of the original HTML up to earliest_stop
-    description_html = "Description not available"
-    if earliest_stop:
-        earliest_html = str(earliest_stop)
-        idx = html_content.find(earliest_html)
-        if idx != -1:
-            # Slice everything up to earliest_stop's occurrence
-            description_html = html_content[:idx]
-        else:
-            # If not found, fallback
-            description_html = html_content
-    else:
-        # If no stop found, entire content is description
-        description_html = html_content
+                    for strong in strong_tags:
+                        section_title = strong.get_text(strip=True).rstrip(':').lower()
+                        current_section = section_title
 
-    # Now clean up trailing empty paragraphs
-    # We'll re-parse, remove trailing empty <p>, and then convert back to string.
-    desc_soup = BeautifulSoup(description_html, "html.parser")
-    _remove_trailing_empty_paragraphs(desc_soup)
-    description_html = str(desc_soup).strip()
+                        # Get the content after the <strong> tag until the next <strong> tag
+                        content = ''
+                        for sibling in strong.next_siblings:
+                            if isinstance(sibling, Tag) and sibling.name == 'strong':
+                                # Reached the next section
+                                break
+                            elif isinstance(sibling, Tag):
+                                content += sibling.get_text(separator=' ', strip=True)
 
+                            elif isinstance(sibling, NavigableString):
+                                content += sibling.strip()
 
+                        if current_section == 'input':
+                            if content:
+                                example['input'].append(content)
+
+                        elif current_section == 'output':
+                            if content:
+                                example['output'] += content
+
+                        elif current_section == 'explanation':
+                            # For explanation, capture all remaining content
+                            explanation_content = []
+                            for sib in strong.next_siblings:
+                                if isinstance(sib, Tag):
+                                    explanation_content.append(str(sib))
+
+                                elif isinstance(sib, NavigableString):
+                                    explanation_content.append(sib.strip())
+
+                            example['explanation'] = ''.join(explanation_content).strip()
+                    
+                    examples.append(example)
+                continue  # Move to the next top-level element
+            
+            # Check if it's constraints
+            strong_constraints = elem.find('strong')
+            if strong_constraints and 'Constraints' in strong_constraints.get_text():
+                ul = elem.find_next_sibling('ul')
+                if ul:
+                    for li in ul.find_all('li'):
+                        constraints.append(li.decode_contents().strip())
+
+                continue
+        
+        # Accumulate description only if not in examples
+        if not in_examples:
+            description_parts.append(str(elem))
+    
+    # Combine description parts
+    description = ''.join(description_parts).strip()
+    
+    # Create the Problem instance
     problem = Problem(
-        title=question["title"],
-        question_frontend_id=question["questionFrontendId"],
-        description=description_html,
+        title=title,
+        question_frontend_id=question_frontend_id,
+        description=description,
         examples=examples,
         constraints=constraints,
-        category_title=question["categoryTitle"],
-        difficulty=question["difficulty"],
+        category_title=category_title,
+        difficulty=difficulty,
         topic_tags=topic_tags,
         stats=stats,
-        likes=question["likes"],
-        dislikes=question["dislikes"],
-        is_paid_only=question["isPaidOnly"],
+        likes=likes,
+        dislikes=dislikes,
+        is_paid_only=is_paid_only,
         solution_info=solution_info,
-        code_snippets=snippets
+        code_snippets=code_snippets
     )
-
+    
     return problem
-
-def _parse_example_section(header):
-    example_title = header.get_text(strip=True).rstrip(':')
-    pre_tag = header.find_next('pre')
-    if not pre_tag:
-        return None
-    example_content = pre_tag.decode_contents()
-    return _parse_example_content(example_content, example_title)
-
-def _parse_example_content(html_content: str, title: str) -> dict:
-    soup = BeautifulSoup(html_content, "html.parser")
-    content_text = soup.get_text(separator="\n").strip()
-    example_dict = {"title": title}
-
-    input_match = re.search(r'Input:\s*(.*?)(?:\nOutput:|\Z)', content_text, re.DOTALL)
-    output_match = re.search(r'Output:\s*(.*?)(?:\nExplanation:|\Z)', content_text, re.DOTALL)
-    explanation_match = re.search(r'Explanation:\s*(.*)', content_text, re.DOTALL)
-
-    input_str = input_match.group(1).strip() if input_match else ""
-    input_list = []
-    if input_str:
-        parts = [part.strip() for part in input_str.split(',')]
-        input_list = [p for p in parts if p]
-
-    example_dict['input'] = input_list
-    example_dict['output'] = output_match.group(1).strip() if output_match else ""
-    example_dict['explanation'] = explanation_match.group(1).strip() if explanation_match else ""
-
-    return example_dict
-
-def _remove_trailing_empty_paragraphs(soup: BeautifulSoup):
-    """
-    Removes trailing empty <p> tags (or those containing only &nbsp;) at the end of the document.
-    """
-    # Get all top-level elements
-    elements = soup.find_all(recursive=False)
-    for element in reversed(elements):
-        if element.name == "p":
-            txt = element.get_text(strip=True)
-            if not txt or txt == '\xa0':
-                element.decompose()
-            else:
-                # As soon as we find a non-empty paragraph, we stop removing
-                break
-        else:
-            # Non-p element encountered, stop removing
-            break

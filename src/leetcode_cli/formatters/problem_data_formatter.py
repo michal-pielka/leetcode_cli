@@ -62,18 +62,21 @@ class ProblemFormatter:
             raise te
 
         text = f"[{self.problem.question_frontend_id}] {self.problem.title} {diff_ansi}{difficulty}{ANSI_RESET}"
+
         return f"{title_ansi}{title_symbol}{text}{ANSI_RESET}"
 
     @property
     def description(self) -> str:
         if not self.problem.description:
             return ""
+
         return self._html_to_ansi(self.problem.description)
 
     @property
     def examples(self) -> str:
         if not self.problem.examples:
             return ""
+
         return "\n\n".join(self._format_example(ex) for ex in self.problem.examples)
 
     @property
@@ -82,11 +85,14 @@ class ProblemFormatter:
             return ""
         try:
             constraints_ansi, symbol = get_styling(self.theme_data, "PROBLEM_DESCRIPTION", "constraints_string")
+
         except ThemeError as te:
             logger.error(f"Theming Error: {te}")
             raise te
+
         constraints_html = [self._html_to_ansi(c) for c in self.problem.constraints]
         combined = "\n".join(constraints_html)
+
         return f"{constraints_ansi}{symbol}Constraints:{ANSI_RESET}\n\n{combined}"
 
     @property
@@ -96,17 +102,22 @@ class ProblemFormatter:
             return ""
         try:
             label_ansi, symbol = get_styling(self.theme_data, "PROBLEM_DESCRIPTION", "tag_label")
+
         except ThemeError as te:
             logger.error(f"Theming Error: {te}")
             raise te
+
         out = [f"{label_ansi}{symbol}Tags:{ANSI_RESET}"]
         for t in tags:
             try:
                 tag_ansi, tag_symbol = get_styling(self.theme_data, "PROBLEM_DESCRIPTION", "tag")
+
             except ThemeError as te:
                 logger.error(f"Theming Error: {te}")
                 raise te
+
             out.append(f"{tag_ansi}{tag_symbol}{t.lower()}{tag_symbol}{ANSI_RESET}")
+
         return " ".join(out)
 
     @property
@@ -118,17 +129,21 @@ class ProblemFormatter:
         try:
             label_ansi, symbol = get_styling(self.theme_data, "PROBLEM_DESCRIPTION", "language_label")
             lang_ansi, lang_symbol = get_styling(self.theme_data, "PROBLEM_DESCRIPTION", "language")
+
         except ThemeError as te:
             logger.error(f"Theming Error: {te}")
             raise te
+
         out = [f"{label_ansi}{symbol}Languages:{ANSI_RESET}"]
         for lang in sorted(langs):
             out.append(f"{lang_ansi}{lang_symbol}{lang}{lang_symbol}{ANSI_RESET}")
+
         return " ".join(out)
 
     def _html_to_ansi(self, html_content: str) -> str:
         if not html_content:
             return ""
+
         soup = BeautifulSoup(html_content, "html.parser")
         ansi_str = ""
 
@@ -137,9 +152,9 @@ class ProblemFormatter:
             if isinstance(el, NavigableString):
                 ansi_str += el
             elif isinstance(el, Tag):
-                # Get styling for this tag
                 try:
                     ansi_code, symbol = get_styling(self.theme_data, "PROBLEM_DESCRIPTION", el.name)
+
                 except ThemeError as te:
                     logger.error(f"Theming Error: {te}")
                     raise te
@@ -156,6 +171,7 @@ class ProblemFormatter:
 
         for child in soup.children:
             traverse(child)
+
         return ansi_str
 
     def _format_example(self, example: dict) -> str:
@@ -163,42 +179,55 @@ class ProblemFormatter:
 
         try:
             ex_title_ansi, symbol = get_styling(self.theme_data, "PROBLEM_DESCRIPTION", "example_title")
+
         except ThemeError as te:
             logger.error(f"Theming Error: {te}")
             raise te
+
         lines = []
         lines.append(f"{ex_title_ansi}{symbol}{ex_title}{ANSI_RESET}\n")
 
         # Input
-        input_str = ", ".join(example.get('input', []))
+        raw_input = ", ".join(example.get('input', []))
+        input_str = self._html_to_ansi(raw_input)
         try:
             ex_input_str_ansi, symbol_input = get_styling(self.theme_data, "PROBLEM_DESCRIPTION", "example_input_string")
             ex_input_data_ansi, symbol_input_data = get_styling(self.theme_data, "PROBLEM_DESCRIPTION", "example_input_data")
+
         except ThemeError as te:
             logger.error(f"Theming Error: {te}")
             raise te
+
         lines.append(f"| {ex_input_str_ansi}{symbol_input}Input:{ANSI_RESET} {ex_input_data_ansi}{symbol_input_data}{input_str}{ANSI_RESET}\n")
 
         # Output
-        out_str = example.get('output', "")
+        raw_output = example.get('output', "")
+        out_str = self._html_to_ansi(raw_output)
         try:
             ex_output_str_ansi, symbol_output = get_styling(self.theme_data, "PROBLEM_DESCRIPTION", "example_output_string")
             ex_output_data_ansi, symbol_output_data = get_styling(self.theme_data, "PROBLEM_DESCRIPTION", "example_output_data")
+
         except ThemeError as te:
             logger.error(f"Theming Error: {te}")
             raise te
+
         lines.append(f"| {ex_output_str_ansi}{symbol_output}Output:{ANSI_RESET} {ex_output_data_ansi}{symbol_output_data}{out_str}{ANSI_RESET}")
 
         # Explanation
         explanation = example.get('explanation', "")
         if explanation:
+            raw_explanation = explanation
+            expl_str = self._html_to_ansi(raw_explanation)
             try:
                 ex_expl_str_ansi, symbol_expl = get_styling(self.theme_data, "PROBLEM_DESCRIPTION", "example_explanation_string")
                 ex_expl_data_ansi, symbol_expl_data = get_styling(self.theme_data, "PROBLEM_DESCRIPTION", "example_explanation_data")
+
             except ThemeError as te:
                 logger.error(f"Theming Error: {te}")
                 raise te
-            replaced = explanation.replace('\n', f'{ANSI_RESET}\n| {ex_expl_data_ansi}{symbol_expl_data}')
+
+            # Replace newline characters with formatted ANSI reset and new lines with symbols
+            replaced = expl_str.replace('\n', f'{ANSI_RESET}\n| {ex_expl_data_ansi}{symbol_expl_data}')
             lines.append(
                 f"\n| {ex_expl_str_ansi}{symbol_expl}Explanation:{ANSI_RESET} "
                 f"{ex_expl_data_ansi}{symbol_expl_data}{replaced}{ANSI_RESET}"
