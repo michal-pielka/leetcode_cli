@@ -6,12 +6,12 @@ from leetcode_cli.exceptions.exceptions import FetchingError
 
 logger = logging.getLogger(__name__)
 
-def fetch_problemset(cookie=None, csrf_token=None, tags=None, difficulty=None, limit=50, skip=0, category_slug="all-code-essentials"):
+def fetch_problemset(cookie=None, csrf_token=None, tags=None, difficulty=None, limit=50, skip=0):
     query = GRAPHQL_QUERIES['problemset_data']
     payload = {
         "query": query,
         "variables": {
-            "categorySlug": category_slug,
+            "categorySlug": "all-code-essentials",
             "skip": skip,
             "limit": limit,
             "filters": {}
@@ -37,6 +37,33 @@ def fetch_problemset(cookie=None, csrf_token=None, tags=None, difficulty=None, l
 
     try:
         response = requests.post(GRAPHQL_URL, json=payload, headers=headers)
+        response.raise_for_status()
+        result = response.json()
+
+    except requests.RequestException as e:
+        raise FetchingError(f"Network error while fetching problemset: {e}")
+
+    except ValueError:
+        raise FetchingError("Failed to parse JSON response while fetching problemset.")
+
+    return result
+
+
+def fetch_problemset_metadata():
+    query = GRAPHQL_QUERIES['problemset_metadata']
+    payload = {
+        "query": query,
+        "variables": {
+            "categorySlug": "all-code-essentials",
+            "skip": 0,
+            "limit": 10000000,
+            "filters": {}
+        },
+        "operationName": "problemsetQuestionList"
+    }
+
+    try:
+        response = requests.post(GRAPHQL_URL, json=payload)
         response.raise_for_status()
         result = response.json()
 

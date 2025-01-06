@@ -16,15 +16,11 @@ def create_cmd(title_slug_or_id):
     Create a solution file for the specified LeetCode problem.
 
     Usage Examples:
-      - Create a solution for a chosen problem with default language: leetcode create
-
-      - Create a solution with a specific file extension: leetcode create .cpp
-
+      - Create a solution for the last problem with default language: leetcode create
+      - Create a solution for the last problem with a specific file extension: leetcode create .cpp
       - Create a solution by specifying title slug with extension: leetcode create two-sum.py
-
       - Create a solution by specifying question ID with title slug and extension: leetcode create 1.two-sum.py
-
-      - Create a solution by specifying title slug: leetcode create two-sum
+      - Create a solution by specifying title slug with default language: leetcode create two-sum
     """
     
     def create_file(question_id, title_slug, lang_slug, file_extension):
@@ -46,6 +42,7 @@ def create_cmd(title_slug_or_id):
             create_solution_file(question_id, title_slug, file_extension, code_str)
             file_name = f"{question_id}.{title_slug}.{file_extension}"
             click.echo(f"Solution file '{file_name}' has been created successfully.")
+
         except Exception as e:
             logger.error(f"Failed to create solution file: {e}")
             click.echo(f"Error: Could not create solution file. {e}")

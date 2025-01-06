@@ -4,6 +4,7 @@ import click
 from leetcode_cli.commands.config import config_cmd
 from leetcode_cli.commands.list_problems import list_cmd
 from leetcode_cli.commands.show_problem import show_cmd
+from leetcode_cli.commands.show_random import random_cmd
 from leetcode_cli.commands.submit import submit_cmd
 from leetcode_cli.commands.test_solution import test_cmd
 from leetcode_cli.commands.download_problems import download_problems_cmd
@@ -43,6 +44,7 @@ def cli(ctx):
 
 cli.add_command(list_cmd, "list")
 cli.add_command(show_cmd, "show")
+cli.add_command(random_cmd, "random")
 cli.add_command(create_cmd, "create")
 cli.add_command(test_cmd, "test")
 cli.add_command(submit_cmd, "submit")

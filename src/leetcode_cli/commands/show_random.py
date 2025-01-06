@@ -1,24 +1,31 @@
 import click
 
-from leetcode_cli.graphics.ansi_codes import ANSI_RESET, ANSI_CODES
-
-from leetcode_cli.services import problemset_service
-from leetcode_cli.services.config_service import set_chosen_problem
-from leetcode_cli.services.theme_service import load_theme_data
+from leetcode_cli.constants.problem_constants import POSSIBLE_TAGS
 from leetcode_cli.services.formatting_config_service import load_formatting_config
-from leetcode_cli.services.problemset_service import load_problemset_metadata, get_title_slug
+from leetcode_cli.services.theme_service import load_theme_data
+from leetcode_cli.services.config_service import set_chosen_problem
 
 from leetcode_cli.formatters.problem_data_formatter import ProblemFormatter
+from leetcode_cli.formatters.problem_data_formatter import ProblemFormatter
+
+from leetcode_cli.data_fetchers.problem_data_fetcher import fetch_random_title_slug, fetch_problem_data
 
 from leetcode_cli.parsers.problem_data_parser import parse_problem_data
 
-from leetcode_cli.data_fetchers.problem_data_fetcher import fetch_problem_data
-
-def is_id(value):
-    return value.isdigit()
-
-@click.command(short_help='Show problem details')
-@click.argument('title_slug_or_id', required=True)
+@click.command(short_help='Show a random problem')
+@click.option(
+    '--difficulty', '-d',
+    type=click.Choice(["EASY", "MEDIUM", "HARD"], case_sensitive=False),
+    metavar='DIFFICULTY',
+    help='Filter random problems by difficulty.'
+)
+@click.option(
+    '--tag', '-t',
+    multiple=True,
+    type=click.Choice(POSSIBLE_TAGS, case_sensitive=False),
+    metavar='TAG_NAME',
+    help='Filter random problems by tag.'
+)
 @click.option(
     '--include', '-i',
     multiple=True,
@@ -29,14 +36,10 @@ def is_id(value):
     metavar='SECTION',
     help='Sections to display. Overrides formatting_config.'
 )
-def show_cmd(title_slug_or_id, include):
+def random_cmd(difficulty, tag, include):
     """
-    Show problem details.
-
-    By default, which sections are displayed depends on formatting_config.yaml
-    ("problem_show" section). Use --include to override and show only specific sections.
+    Show a random LeetCode problem with optional filters.
     """
-
     user_config = load_formatting_config()
     format_conf = user_config.problem_show
     theme_data = load_theme_data()
@@ -59,20 +62,15 @@ def show_cmd(title_slug_or_id, include):
                 format_conf["show_examples"] = True
             elif item == "constraints":
                 format_conf["show_constraints"] = True
-
-    if is_id(title_slug_or_id):
-        problemset_metadata = load_problemset_metadata()
-        if not problemset_metadata:
-            click.echo(f"In order to show problems by ID you need to download problems metadata using {ANSI_CODES['ITALIC']}leetcode download-problems{ANSI_RESET}.")
+    try:
+        random_problem = fetch_random_title_slug(difficulty, tag)
+        title_slug = random_problem["data"]["randomQuestion"].get("titleSlug", None)
+        if not title_slug:
+            click.echo("No matching problems found.")
             return
 
-        title_slug = get_title_slug(problemset_metadata, title_slug_or_id)
-
-    else:
-        title_slug = title_slug_or_id
-
-    if not title_slug:
-        click.echo("Error: Problem with this title slug or ID can't be found.")
+    except Exception as e:
+        click.echo(f"Error fetching random problem: {e}")
         return
 
     try:

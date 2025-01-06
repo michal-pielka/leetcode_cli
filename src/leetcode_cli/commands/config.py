@@ -27,4 +27,4 @@ def config_cmd(key, value):
 
     elif key == 'language':
         set_language(value)
-        click.echo(f"Preferred language set to {ANSI_CODES['ITALIC']}{value}{ANSI_RESET}.")
+        click.echo(f"Language set to {ANSI_CODES['ITALIC']}{value}{ANSI_RESET}.")

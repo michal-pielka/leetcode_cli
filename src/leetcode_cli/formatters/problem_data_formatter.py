@@ -108,7 +108,7 @@ class ProblemFormatter:
             logger.error(f"Theming Error: {te}")
             raise te
 
-        out = [f"{label_ansi}{label_symbol_left}Tags:{label_symbol_right}{ANSI_RESET}"]
+        out = [f"{label_ansi}{label_symbol_left}tags:{label_symbol_right}{ANSI_RESET}"]
         for t in tags:
             try:
                 tag_ansi, tag_symbol_left, tag_symbol_right = get_styling(self.theme_data, "PROBLEM_DESCRIPTION", "tag")
@@ -123,7 +123,7 @@ class ProblemFormatter:
 
     @property
     def languages(self) -> str:
-        langs = {sn['lang'] for sn in self.problem.code_snippets if sn.get('lang')}
+        langs = {sn['langSlug'] for sn in self.problem.code_snippets if sn.get('langSlug')}
         if not langs:
             return "No code snippets available."
 
@@ -135,7 +135,7 @@ class ProblemFormatter:
             logger.error(f"Theming Error: {te}")
             raise te
 
-        out = [f"{label_ansi}{label_symbol_left}Languages:{label_symbol_right}{ANSI_RESET}"]
+        out = [f"{label_ansi}{label_symbol_left}langs:{label_symbol_right}{ANSI_RESET}"]
         for lang in sorted(langs):
             out.append(f"{lang_ansi}{lang_symbol_left}{lang}{lang_symbol_right}{ANSI_RESET}")
 

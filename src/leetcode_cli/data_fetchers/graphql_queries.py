@@ -71,6 +71,24 @@ GRAPHQL_QUERIES = {
         }
     """,
 
+    "problemset_metadata": """
+        query problemsetQuestionList($categorySlug: String, $limit: Int, $skip: Int, $filters: QuestionListFilterInput) {
+          problemsetQuestionList: questionList(
+            categorySlug: $categorySlug
+            limit: $limit
+            skip: $skip
+            filters: $filters
+          ) {
+            total: totalNum
+            questions: data {
+              questionId
+              frontendQuestionId: questionFrontendId
+              titleSlug
+            }
+          }
+        }
+    """,
+
     "code_snippets": """
         query getQuestionDetail($titleSlug: String!) {
           question(titleSlug: $titleSlug) {

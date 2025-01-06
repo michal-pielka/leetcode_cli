@@ -40,52 +40,18 @@ def save_problemset_metadata(data: dict) -> None:
 
 def get_problem_by_key_value(problems_data, key, value):
     questions = problems_data.get('data', {}).get('problemsetQuestionList', {}).get('questions', [])
+
     for problem in questions:
         if str(problem.get(key, "")).lower() == str(value).lower():
             return problem
+
     logger.warning(f"Problem with {key}='{value}' not found in cached data.")
     return {}
 
-def filter_problems(problems_data, difficulty=None, tags=None):
-    """
-    Filters the given problems_data by difficulty, tags, etc.
-    """
-    questions = problems_data.get('data', {}).get('problemsetQuestionList', {}).get('questions', [])
-    if not questions:
-        logger.error("No questions in problemset data.")
-        return None
+def get_title_slug(problems_data, frontend_question_id):
+    problem = get_problem_by_key_value(problems_data, "frontendQuestionId", frontend_question_id)
 
-    # Filter by difficulty
-    if difficulty:
-        difficulty_cap = difficulty.capitalize()
-        questions = [q for q in questions if q.get('difficulty', '').capitalize() == difficulty_cap]
-        if not questions:
-            logger.warning(f"No problems found with difficulty '{difficulty}'.")
-            return None
-
-    # Filter by tags
-    if tags:
-        tags_lower = {t.lower() for t in tags}
-        filtered = []
-        for q in questions:
-            problem_tags = q.get('topicTags', [])
-            slugs = {tag['slug'].lower() for tag in problem_tags}
-            if tags_lower.issubset(slugs):
-                filtered.append(q)
-        questions = filtered
-        if not questions:
-            logger.warning(f"No problems found with tags: {tags}.")
-            return None
-
-    return questions
-
-def select_random_problem(questions):
-    if not questions:
-        return None
-    from random import choice
-    selected = choice(questions)
-    logger.info(f"Random problem selected: {selected.get('title', 'Unknown')} (Slug: {selected.get('titleSlug')})")
-    return selected
+    return problem.get("titleSlug", None)
 
 def problem_data_from_path(filepath):
     """

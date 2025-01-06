@@ -1,11 +1,9 @@
-SYMBOLS_YAML = """# symbols.yaml
-#
-# This file defines textual symbols used for representing different statuses
+SYMBOLS_YAML = """# This file defines textual symbols used for representing different statuses
 # (e.g., checkmarks, crosses, etc.) in the CLI.
 
 SYMBOLS:
-  filled_square: "◼"             # Solid square symbol
-  empty_square: "▫"              # Hollow square symbol
+  filled_square: "■"             # Solid square symbol
+  empty_square: "▢"              # Hollow square symbol
   caret: "^"                     # Caret symbol, often used for superscripts
   dot: "•"                       # Bullet point symbol
   checkmark: "✔"                 # Checkmark symbol indicating success or completion

@@ -2,7 +2,7 @@ import logging
 
 from leetcode_cli.graphics.ansi_codes import ANSI_RESET
 from leetcode_cli.models.problemset import ProblemSet, ProblemSummary
-from leetcode_cli.exceptions.exceptions import ProblemSetFormatterError
+from leetcode_cli.exceptions.exceptions import FormattingError
 from leetcode_cli.services.theme_service import get_styling
 from leetcode_cli.models.theme import ThemeData
 from leetcode_cli.exceptions.exceptions import ThemeError
@@ -79,7 +79,7 @@ class ProblemSetFormatter:
         """
         if not self.problemset.questions:
             logger.error("No questions available to format.")
-            raise ProblemSetFormatterError("No questions available to format.")
+            raise FormattingError("No questions available to format.")
 
         try:
             parsed_list = [self._format_question(q) for q in self.problemset.questions]

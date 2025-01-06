@@ -15,27 +15,23 @@ def theme_cmd(theme_name):
         current = get_current_theme()
         themes = list_themes()
 
-        click.echo()
-        click.echo(f"  Current theme: {current}")
-        click.echo()
-        click.echo("  Available themes:")
+        click.echo(f"Current theme: {current}")
+        click.echo("Available themes:")
         for t in themes:
             click.echo(f"   - {t}")
 
-        click.echo()
         return
 
     success = set_current_theme(theme_name)
     if not success:
-        click.echo(f"  Error: Theme '{theme_name}' not found. Use 'leetcode theme' to list.")
+        click.echo(f"Error: Theme '{theme_name}' not found. Use 'leetcode theme' to list.")
         click.echo()
         return
 
     try:
         load_theme_data()
-        click.echo(f"  Theme set to '{theme_name}'. It appears valid.")
-        click.echo()
+        click.echo(f"Theme set to '{theme_name}'.")
 
     except ThemeError as e:
-        click.echo(f"  Warning: Theme '{theme_name}' is set, but it seems invalid:\n  {e}\n"
+        click.echo(f"Warning: Theme '{theme_name}' is set, but it seems invalid:\n  {e}\n"
                    "  You may need to fix its JSON or switch to another theme.")

@@ -43,6 +43,7 @@ def save_config(config: dict):
         with open(config_path, "w") as f:
             json.dump(config, f, indent=4)
         logger.info(f"Configuration saved to {config_path}")
+
     except OSError as e:
         logger.error(f"Failed to save configuration: {e}")
 

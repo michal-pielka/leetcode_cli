@@ -14,14 +14,14 @@ class SubmissionError(Exception):
     """Raised when there is an error during submission or related actions."""
     pass
 
-class ProblemSetFormatterError(Exception):
-    """Custom exception for ProblemSetFormatter errors."""
-    pass
-
 class ThemeError(Exception):
     """Raised when there is an error related to theme loading or validation."""
     pass
 
 class ConfigError(Exception):
     """Raised when configuration is missing, invalid, or otherwise incorrect."""
+    pass
+
+class ServiceError(Exception):
+    """Raised when there is an error related to some service."""
     pass
