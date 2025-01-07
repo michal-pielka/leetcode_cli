@@ -85,8 +85,10 @@ class ThemeManager:
         try:
             section_data = getattr(self.theme_data, section)
             raw_mapping = section_data[key]
+
         except AttributeError:
             raise ThemeError(f"Section '{section}' not found in theme data.")
+
         except KeyError:
             raise ThemeError(f"Key '{key}' not found in section '{section}'.")
 
@@ -106,6 +108,7 @@ class ThemeManager:
         """
         Convert something like "green,bold" -> actual ANSI code from self.theme_data.ANSI_CODES
         e.g. "\u001b[38;2;80;250;123m" + "\u001b[1m".
+        If a code is missing from the theme, raise an error instead of skipping.
         """
         if not ansi_field:
             return ""
@@ -115,18 +118,21 @@ class ThemeManager:
             code_key = code_key.strip().lower()
             # e.g. code_key = "green" or "bold"
             ansi_code_dict = self.theme_data.ANSI_CODES
-            # Attempt to get e.g. ansi_code_dict["green"] or ansi_code_dict["bold"]
-            if code_key in ansi_code_dict:
-                final += ansi_code_dict[code_key]
-            else:
-                # If we can't find it in ANSI_CODES, ignore or log?
-                logger.warning(f"ANSI code '{code_key}' not found in theme ANSI_CODES. Skipping.")
+            if code_key not in ansi_code_dict:
+                # Instead of warning and skipping, raise an error
+                raise ThemeError(
+                    f"ANSI code '{code_key}' not found in 'ANSI_CODES' mapping. "
+                    "Theme configuration is malformed."
+                )
+            final += ansi_code_dict[code_key]
         return final
+
 
     def _parse_symbols(self, symbol_field: str) -> str:
         """
         Convert "checkmark,space" -> "✔ ".
-        Looks up each from self.theme_data.SYMBOLS or returns them literally if not found.
+        Looks up each from self.theme_data.SYMBOLS.
+        If a symbol isn't found, raise an error instead of returning it literally.
         """
         if not symbol_field:
             return ""
@@ -134,12 +140,13 @@ class ThemeManager:
         final = ""
         for p in parts:
             p = p.strip().lower()
-            # e.g. "checkmark", "space", "dot"
-            if p in self.theme_data.SYMBOLS:
-                final += self.theme_data.SYMBOLS[p]
-            else:
-                # If not found, we can just add it literally.
-                final += p
+            if p not in self.theme_data.SYMBOLS:
+                # Instead of silently using the literal string, raise an error
+                raise ThemeError(
+                    f"Symbol '{p}' not found in 'SYMBOLS' mapping. "
+                    "Theme configuration is malformed."
+                )
+            final += self.theme_data.SYMBOLS[p]
         return final
 
     def _load_yaml_file(self, theme_name: str, filename: str) -> dict:

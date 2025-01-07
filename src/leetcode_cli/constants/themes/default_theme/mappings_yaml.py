@@ -136,11 +136,11 @@ PROBLEM_DESCRIPTION: # Category for styling problem descriptions
   p: # Styling for paragraphs
     ansi: ""                            # Default styling for paragraph
     symbol_left: ""                     # No symbol before the paragraph
-    symbol_right: "\n"                  # Newline after paragraph
+    symbol_right: ""                  # Newline after paragraph
   br: # Styling for line breaks
     ansi: ""                            # No styling for line breaks
     symbol_left: ""                     # No symbol before the line break
-    symbol_right: "\n"                  # Newline after line break
+    symbol_right: ""                  # Newline after line break
   ul: # Styling for unordered lists
     ansi: ""                            # Default styling for unordered lists
     symbol_left: ""                     # No symbol before the unordered list
@@ -268,16 +268,16 @@ PROBLEM_DESCRIPTION: # Category for styling problem descriptions
     symbol_right: ""                    # No symbol after example title
   example_input_string: # Styling for "Input" label in examples
     ansi: "bold"                        # Bold text for "Input" label
-    symbol_left: ""                     # No symbol before "Input" label
-    symbol_right: ""                    # No symbol after "Input" label
+    symbol_left: "pipe,space"                     # No symbol before "Input" label
+    symbol_right: "colon,space"                    # No symbol after "Input" label
   example_output_string: # Styling for "Output" label in examples
     ansi: "bold"                        # Bold text for "Output" label
-    symbol_left: ""                     # No symbol before "Output" label
-    symbol_right: ""                    # No symbol after "Output" label
+    symbol_left: "pipe,space"                     # No symbol before "Output" label
+    symbol_right: "colon,space"                    # No symbol after "Output" label
   example_explanation_string: # Styling for "Explanation" label in examples
     ansi: "bold"                        # Bold text for "Explanation" label
-    symbol_left: ""                     # No symbol before "Explanation" label
-    symbol_right: ""                    # No symbol after "Explanation" label
+    symbol_left: "pipe,space"                     # No symbol before "Explanation" label
+    symbol_right: "colon,space"                    # No symbol after "Explanation" label
   example_input_data: # Styling for example input data
     ansi: "gray"                        # Gray text for input data
     symbol_left: ""                     # No symbol before input data
@@ -295,7 +295,7 @@ PROBLEM_DESCRIPTION: # Category for styling problem descriptions
     symbol_left: ""                     # No symbol before "Constraints" label
     symbol_right: ""                    # No symbol after "Constraints" label
 
-STATS_FORMATTER: # Category for styling user statistics and activity calendar
+STATS: # Category for styling user statistics and activity calendar
   # Mappings for styling user statistics and activity calendar
   EASY: # Styling for Easy solved problems count
     ansi: "green"                       # Green color for Easy solved problems

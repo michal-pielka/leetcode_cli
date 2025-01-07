@@ -40,12 +40,8 @@ class InterpretationFormatter:
             label_ansi, label_left, label_right = self.theme_manager.get_styling("INTERPRETATION", "field_label")
             val_ansi, val_left, val_right = self.theme_manager.get_styling("INTERPRETATION", "field_value")
 
-        except ThemeError as e:
-            # If theme not found or invalid, log & fallback to no theming
-            logger.warning(f"Theming Error: {e}; falling back to no styling.")
-            label_ansi = val_ansi = ""
-            label_left = val_left = ""
-            label_right = val_right = ""
+        except ThemeError as te:
+            raise te
         
         lines = value.split('\n')
         if not lines:
@@ -130,18 +126,15 @@ class InterpretationFormatter:
             try:
                 self.theme_manager.get_styling("INTERPRETATION", status_key)
 
-            except ThemeError:
-                status_key = "unknown"
+            except ThemeError as te:
+                raise te
 
             # Now apply the theming
             try:
                 s_ansi, s_left, s_right = self.theme_manager.get_styling("INTERPRETATION", status_key)
 
-            except ThemeError:
-                # fallback if unknown
-                s_ansi = ""
-                s_left = ""
-                s_right = ""
+            except ThemeError as te:
+                raise te
 
             # Print the status line, e.g. "  ✘ Wrong Answer"
             parsed_result += f"\n  {s_ansi}{s_left}{status_key}{s_right}{ANSI_RESET}\n"

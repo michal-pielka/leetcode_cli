@@ -13,7 +13,7 @@ from leetcode_cli.data_fetchers.interpretation_result_fetcher import fetch_inter
 from leetcode_cli.parsers.interpretation_result_parser import parse_interpretation_result
 from leetcode_cli.formatters.interpretation_result_formatter import InterpretationFormatter
 
-from leetcode_cli.exceptions.exceptions import ConfigError, CodeError, ProblemError
+from leetcode_cli.exceptions.exceptions import ConfigError, CodeError, ProblemError, ThemeError
 
 logger = logging.getLogger(__name__)
 
@@ -126,7 +126,7 @@ def test_cmd(file_path, include):
         # 10) Display
         click.echo(formatted_str)
 
-    except (ConfigError, CodeError, ProblemError) as e:
+    except (ConfigError, CodeError, ProblemError, ThemeError) as e:
         logger.error(e)
         click.echo(f"Error: {e}")
     except Exception as e:

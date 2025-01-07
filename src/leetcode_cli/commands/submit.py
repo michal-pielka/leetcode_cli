@@ -85,6 +85,7 @@ def submit_cmd(file_path, include):
         try:
             _, title_slug, file_extension = problemset_manager.problem_data_from_path(file_path)
             question_id = problem_manager.get_problem_id(title_slug)
+
         except ProblemError as e:
             click.echo(f"Error: {e}")
             return
@@ -92,6 +93,7 @@ def submit_cmd(file_path, include):
         # 5) Read code from local file
         try:
             code = code_manager.read_code_from_file(file_path)
+
         except CodeError as e:
             click.echo(f"Error: {e}")
             return
@@ -99,6 +101,7 @@ def submit_cmd(file_path, include):
         # 6) Determine language from extension
         try:
             lang_slug = code_manager.determine_language_from_extension(file_extension)
+
         except CodeError as e:
             click.echo(f"Error: {e}")
             return
@@ -109,6 +112,7 @@ def submit_cmd(file_path, include):
                 cookie, csrf_token, title_slug, code, lang_slug, int(question_id)
             )
             submission_res = parse_submission_result(raw_submission)
+
         except Exception as e:
             logger.error(f"Failed to fetch or parse submission result: {e}")
             click.echo(f"Error: {e}")
@@ -119,6 +123,7 @@ def submit_cmd(file_path, include):
             formatter = SubmissionFormatter(submission_res, format_conf, theme_manager)
             formatted_str = formatter.get_formatted_submission()
             click.echo(formatted_str)
+
         except Exception as e:
             logger.error(f"Failed to format submission result: {e}")
             click.echo(f"Error: {e}")
@@ -126,6 +131,7 @@ def submit_cmd(file_path, include):
     except (ConfigError, ThemeError) as e:
         logger.error(e)
         click.echo(f"Configuration/Theme Error: {e}", err=True)
+
     except Exception as e:
         logger.exception("An unexpected error occurred during submission.")
         click.echo("An unexpected error occurred. Please try again.", err=True)

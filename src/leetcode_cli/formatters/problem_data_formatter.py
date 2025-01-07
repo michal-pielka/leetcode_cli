@@ -177,20 +177,17 @@ class ProblemFormatter:
                 # Get the styling for the current tag
                 try:
                     ansi_code, symbol_left, symbol_right = self.theme_manager.get_styling("PROBLEM_DESCRIPTION", el.name)
-                except ThemeError:
-                    # If the tag is not defined in mappings, skip styling
-                    ansi_code, symbol_left, symbol_right = "", "", ""
+
+                except ThemeError as te:
+                    raise te
 
                 # Apply the current tag's ANSI code and symbols
                 if ansi_code:
                     ansi_str += f"{ansi_code}{symbol_left}"
                     style_stack.append((el.name, ansi_code))
+
                 else:
                     style_stack.append((el.name, ""))
-
-                # Special handling for certain tags
-                if el.name in ["br", "p", "blockquote"]:
-                    ansi_str += "\n"
 
                 # Traverse child elements
                 for child in el.children:
@@ -247,7 +244,7 @@ class ProblemFormatter:
             logger.error(f"Theming Error: {te}")
             raise te
 
-        lines.append(f"| {ex_input_str_ansi}{ex_input_symbol_left}Input:{ex_input_symbol_right}{ANSI_RESET} {ex_input_data_ansi}{ex_input_data_symbol_left}{input_str}{ex_input_data_symbol_right}{ANSI_RESET}\n")
+        lines.append(f"{ex_input_str_ansi}{ex_input_symbol_left}Input{ex_input_symbol_right}{ANSI_RESET}{ex_input_data_ansi}{ex_input_data_symbol_left}{input_str}{ex_input_data_symbol_right}{ANSI_RESET}\n")
 
         # Output
         raw_output = example.get('output', "")
@@ -260,7 +257,7 @@ class ProblemFormatter:
             logger.error(f"Theming Error: {te}")
             raise te
 
-        lines.append(f"| {ex_output_str_ansi}{ex_output_symbol_left}Output:{ex_output_symbol_right}{ANSI_RESET} {ex_output_data_ansi}{ex_output_data_symbol_left}{out_str}{ex_output_data_symbol_right}{ANSI_RESET}")
+        lines.append(f"{ex_output_str_ansi}{ex_output_symbol_left}Output{ex_output_symbol_right}{ANSI_RESET}{ex_output_data_ansi}{ex_output_data_symbol_left}{out_str}{ex_output_data_symbol_right}{ANSI_RESET}")
 
         # Explanation
         explanation = example.get('explanation', "")
@@ -275,9 +272,9 @@ class ProblemFormatter:
                 raise te
 
             # Replace newline characters with formatted ANSI reset and new lines with symbols
-            replaced = expl_str.replace('\n', f'{ANSI_RESET}\n| {ex_expl_data_ansi}{ex_expl_data_symbol_left}')
+            replaced = expl_str.replace('\n', f'{ANSI_RESET}\n{ex_expl_data_ansi}{ex_expl_data_symbol_left}{ex_expl_data_symbol_right}')
             lines.append(
-                f"\n| {ex_expl_str_ansi}{ex_expl_symbol_left}Explanation:{ex_expl_symbol_right}{ANSI_RESET} "
+                f"\n{ex_expl_str_ansi}{ex_expl_symbol_left}Explanation{ex_expl_symbol_right}{ANSI_RESET}"
                 f"{ex_expl_data_ansi}{ex_expl_data_symbol_left}{replaced}{ex_expl_data_symbol_right}{ANSI_RESET}"
             )
         return "".join(lines)

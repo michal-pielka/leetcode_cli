@@ -15,5 +15,6 @@ SYMBOLS:
   bracket_right: "]"             # Right bracket symbol
   colon: ":"                     # Colon symbol
   percentage: "%"                # Percentage symbol
+  pipe: "|"
   space: " "                     # Space character for spacing
 """
