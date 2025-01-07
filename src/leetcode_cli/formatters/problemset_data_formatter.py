@@ -2,90 +2,91 @@ import logging
 
 from leetcode_cli.graphics.ansi_codes import ANSI_RESET
 from leetcode_cli.models.problemset import ProblemSet, ProblemSummary
-from leetcode_cli.exceptions.exceptions import FormattingError
-from leetcode_cli.services.theme_service import get_styling
-from leetcode_cli.models.theme import ThemeData
-from leetcode_cli.exceptions.exceptions import ThemeError
+from leetcode_cli.exceptions.exceptions import FormattingError, ThemeError
+from leetcode_cli.managers.theme_manager import ThemeManager
 
 logger = logging.getLogger(__name__)
 
+class ProblemSetFormatterError(Exception):
+    """Custom exception for ProblemSetFormatter errors."""
+    pass
+
 class ProblemSetFormatter:
     """
-    Formats and styles the list of problems in the problem set using theme mappings.
+    Replicates the original 'column-based' formatting of problem listings
+    but uses theme data (from ThemeManager) for coloring and symbols.
+
+    Format example (unchanged):
+        \t{status_symbol}[{question_id}] {title} {difficulty} ({ac_rate} %)
+    
+    where:
+      - {question_id} is right-justified in 4 spaces
+      - {title} is left-justified with padding of 79 spaces
+      - {difficulty} is left-justified with padding of 8 spaces
+      - {ac_rate} is a floating percentage
     """
 
-    def __init__(self, problemset: ProblemSet, theme_data: ThemeData):
+    def __init__(self, problemset: ProblemSet, theme_manager: ThemeManager):
         self.problemset = problemset
-        self.theme_data = theme_data
+        self.theme_manager = theme_manager
+
+        # Load theme data once
+        self.theme_data = self.theme_manager.load_theme_data()
 
     def _format_question(self, q: ProblemSummary) -> str:
         """
-        Formats a single problem entry with appropriate styling.
-
-        :param q: The ProblemSummary object representing a single problem.
-        :return: A formatted string representing the styled problem entry.
+        Formats a single problem with spacing identical to the original code snippet.
         """
+        # Title padded to 79 characters
+        title = q.title.ljust(79)
+        title_ansi, title_left, title_right = self.theme_manager.get_styling("PROBLEMSET", "title")
+        formatted_title =  f"{title_ansi}{title_left}{title}{title_right}{ANSI_RESET}"
+
+        question_id = q.frontend_question_id.rjust(4)
+        id_ansi, id_left, id_right = self.theme_manager.get_styling("PROBLEMSET", "question_id")
+        formatted_question_id = f"{id_ansi}{id_left}{question_id}{id_right}{ANSI_RESET}"
+
+        ac_rate = f"{float(q.ac_rate):.2f}"
+        ac_ansi, ac_left, ac_right = self.theme_manager.get_styling("PROBLEMSET", "acceptance_rate")
+        formatted_ac_rate = f"{ac_ansi}{ac_left}{ac_rate}{ac_right}{ANSI_RESET}"
+
+        difficulty_str = q.difficulty
+        diff_key = difficulty_str.capitalize()  # e.g., "Easy", "Medium", "Hard"
         try:
-            # Title Styling
-            title_ansi, title_symbol_left, title_symbol_right = get_styling(self.theme_data, 'PROBLEMSET', 'title')
-            formatted_title = q.title.ljust(80)
-            styled_title = f"{title_ansi}{title_symbol_left}{formatted_title}{title_symbol_right}{ANSI_RESET}"
-
-            # Question ID Styling
-            qid_ansi, qid_symbol_left, qid_symbol_right = get_styling(self.theme_data, 'PROBLEMSET', 'question_id')
-            formatted_qid = f"{q.frontend_question_id:>4}"
-            id_with_brackets = f"{qid_symbol_left}{formatted_qid}{qid_symbol_right}"
-            styled_id = f"{qid_ansi}{id_with_brackets}{ANSI_RESET}"
-
-            # Acceptance Rate Styling
-            ac_rate_ansi, ac_rate_symbol_left, ac_rate_symbol_right = get_styling(self.theme_data, 'PROBLEMSET', 'acceptance_rate')
-            formatted_ac_rate = f"{float(q.ac_rate):.2f}"
-            styled_ac_rate = f"{ac_rate_ansi}{ac_rate_symbol_left}{formatted_ac_rate}{ac_rate_symbol_right}{ANSI_RESET}"
-
-            # Difficulty Styling
-            difficulty_key = q.difficulty.capitalize()
-            diff_ansi, diff_symbol_left, diff_symbol_right = get_styling(self.theme_data, 'PROBLEMSET', difficulty_key)
-            styled_difficulty = f"{diff_ansi}{diff_symbol_left}{difficulty_key}{diff_symbol_right}{ANSI_RESET}"
-            difficulty_padding = ' ' * (8 - len(difficulty_key))
-            styled_difficulty += difficulty_padding
-
-            # Status Styling
-            status_key = q.status.lower() if q.status else 'not_started'
-            status_ansi, status_symbol_left, status_symbol_right = get_styling(self.theme_data, 'PROBLEMSET', status_key)
-
-            # Default to white if ansi_code is empty
-            if not status_ansi:
-                status_ansi = self.theme_data.ANSI_CODES.get("white", "")
-
-            colored_status_symbol = f"{status_ansi}{status_symbol_left}{status_symbol_right}{ANSI_RESET}"
-
-            # Combine all parts with proper styling
-            formatted_question = (
-                f"\t{colored_status_symbol}{styled_id} {styled_title} "
-                f"{styled_difficulty} {styled_ac_rate}"
-            )
-
-            return formatted_question
+            diff_ansi, diff_left, diff_right = self.theme_manager.get_styling("PROBLEMSET", diff_key)
 
         except ThemeError as te:
-            logger.error(f"Theming Error in _format_question: {te}")
             raise te
+
+        padded_diff = difficulty_str.ljust(8)
+        formatted_difficulty = f"{diff_ansi}{diff_left}{padded_diff}{diff_right}{ANSI_RESET}"
+
+        status_key = (q.status.lower() if q.status else "not_started")
+        try:
+            status_ansi, status_left, status_right = self.theme_manager.get_styling("PROBLEMSET", status_key)
+
+        except ThemeError as te:
+            raise te
+
+        formatted_status_symbol = f"{status_ansi}{status_left}{status_right}{ANSI_RESET}"
+
+        line = (
+            f"\t{formatted_status_symbol}"             # e.g. "\t✔"
+            f"{formatted_question_id} "             # e.g. "[ 299]" (4 digits right-justified)
+            f"{formatted_title} "                      # 79-char-ljust title
+            f" {formatted_difficulty} "      # e.g. "Easy    " with theming
+            f"{formatted_ac_rate}"                # e.g. "(53.45 %)"
+        )
+        return line
 
     def get_formatted_questions(self) -> str:
         """
-        Formats the entire list of problems in the problem set.
-
-        :return: A string containing all formatted and styled problem entries.
+        Returns a formatted string of all problems in the problemset, 
+        matching the old spacing & alignment, but theming is applied.
         """
         if not self.problemset.questions:
             logger.error("No questions available to format.")
-            raise FormattingError("No questions available to format.")
+            raise ProblemSetFormatterError("No questions available to format.")
 
-        try:
-            parsed_list = [self._format_question(q) for q in self.problemset.questions]
-
-        except ThemeError as te:
-            logger.error(f"Theming Error in get_formatted_questions: {te}")
-            raise te
-
-        return "\n".join(parsed_list)
+        lines = [self._format_question(q) for q in self.problemset.questions]
+        return "\n".join(lines)

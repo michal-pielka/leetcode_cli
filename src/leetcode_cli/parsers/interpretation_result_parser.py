@@ -3,7 +3,6 @@ from typing import Dict, Any
 from leetcode_cli.models.interpretation import InterpretationResult
 from leetcode_cli.exceptions.exceptions import ParsingError
 
-
 def parse_interpretation_result(json_data: Dict[str, Any]) -> InterpretationResult:
     # Define required fields
     required_fields = [

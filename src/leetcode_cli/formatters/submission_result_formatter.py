@@ -2,20 +2,21 @@ import logging
 
 from leetcode_cli.graphics.ansi_codes import ANSI_RESET
 from leetcode_cli.models.submission import SubmissionResult
-from leetcode_cli.services.theme_service import get_styling
-from leetcode_cli.models.theme import ThemeData
+from leetcode_cli.managers.theme_manager import ThemeManager
 from leetcode_cli.exceptions.exceptions import ThemeError
 
 logger = logging.getLogger(__name__)
+
 
 class SubmissionFormatter:
     """
     Formats submission results using (ansi, symbol_left, symbol_right) theming.
     """
-    def __init__(self, result: SubmissionResult, format_conf: dict, theme_data: ThemeData):
+    def __init__(self, result: SubmissionResult, format_conf: dict, theme_manager: ThemeManager):
         self.result = result
         self.format_conf = format_conf
-        self.theme_data = theme_data
+        self.theme_manager = theme_manager
+        self.theme_data = theme_manager.load_theme_data()
 
     def get_formatted_submission(self) -> str:
         status_code = self.result.status_code
@@ -46,26 +47,17 @@ class SubmissionFormatter:
         std_output = self.result.std_output
 
         runtime_error = getattr(self.result, 'runtime_error', None)
-        full_runtime_error = getattr(self.result, 'full_runtime_error', None)
         compile_error = getattr(self.result, 'compile_error', None)
+        full_runtime_error = getattr(self.result, 'full_runtime_error', None)
         full_compile_error = getattr(self.result, 'full_compile_error', None)
 
         try:
-            # Determine status key based on status_code and comparison
-            if status_code == 10:
-                if code_output == expected_output:
-                    status_key = "Accepted"
-                else:
-                    status_key = "Wrong Answer"
-            else:
-                status_key = status_msg  # Assuming status_msg corresponds to a key in mappings
+            ansi_code, symbol_left, symbol_right = self.theme_manager.get_styling("SUBMISSION", status_msg)
 
-            ansi_code, symbol_left, symbol_right = get_styling(self.theme_data, "SUBMISSION", status_key)
         except ThemeError as te:
-            logger.error(f"Theming Error: {te}")
             raise te
 
-        ansi_status = f"{ansi_code}{symbol_left}{status_key}{symbol_right}{ANSI_RESET}"
+        ansi_status = f"{ansi_code}{symbol_left}{status_msg}{symbol_right}{ANSI_RESET}"
         parsed_result = f"\n  {ansi_status} \n"
 
         # Format and append fields
@@ -130,7 +122,7 @@ class SubmissionFormatter:
                 formatted_label = self._format_field_label(label)
                 formatted_value = self._format_field_value(runtime_error)
                 parsed_result += f"  {formatted_label} {formatted_value}\n"
-                
+
             if compile_error:
                 label = "Error Message"
                 formatted_label = self._format_field_label(label)
@@ -157,7 +149,8 @@ class SubmissionFormatter:
         Formats the field label using the 'field_label' mapping.
         """
         try:
-            ansi_code, symbol_left, symbol_right = get_styling(self.theme_data, "SUBMISSION", "field_label")
+            ansi_code, symbol_left, symbol_right = self.theme_manager.get_styling("SUBMISSION", "field_label")
+
         except ThemeError as te:
             logger.error(f"Theming Error: {te}")
             raise te
@@ -172,7 +165,8 @@ class SubmissionFormatter:
         Formats the field value using the 'field_value' mapping.
         """
         try:
-            ansi_code, symbol_left, symbol_right = get_styling(self.theme_data, "SUBMISSION", "field_value")
+            ansi_code, symbol_left, symbol_right = self.theme_manager.get_styling("SUBMISSION", "field_value")
+
         except ThemeError as te:
             logger.error(f"Theming Error: {te}")
             raise te

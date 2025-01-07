@@ -3,10 +3,7 @@
 import logging
 from typing import Dict, Any
 from leetcode_cli.models.stats import UserStatsModel, UserActivityModel
-from leetcode_cli.services.stats_service import (
-    join_and_slice_calendars,
-    fill_daily_activity
-)
+from leetcode_cli.managers.stats_manager import StatsManager
 from leetcode_cli.exceptions.exceptions import ParsingError
 
 logger = logging.getLogger(__name__)
@@ -37,8 +34,9 @@ def parse_user_activity_data(previous_year_data: Dict[str, Any], current_year_da
     This involves joining, slicing, and filling the daily activity dictionary.
     """
     try:
-        joined_activity = join_and_slice_calendars(previous_year_data, current_year_data)
-        filled_activity = fill_daily_activity(joined_activity)
+        stats_manager = StatsManager()
+        joined_activity = stats_manager.join_and_slice_calendars(previous_year_data, current_year_data)
+        filled_activity = stats_manager.fill_daily_activity(joined_activity)
         return UserActivityModel(daily_activity=filled_activity)
 
     except Exception as e:

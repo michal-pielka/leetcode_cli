@@ -2,29 +2,32 @@ import requests
 import time
 from typing import Dict
 from leetcode_cli.exceptions.exceptions import FetchingError
-from leetcode_cli.services.problemset_service import load_problemset_metadata, get_problem_by_key_value
-from leetcode_cli.data_fetchers.problem_data_fetcher import fetch_problem_id
 
-def fetch_submission_result(cookie: str, csrf_token: str, title_slug: str, code: str, language: str) -> Dict:
+def fetch_submission_result(
+    cookie: str,
+    csrf_token: str,
+    title_slug: str,
+    code: str,
+    language: str,
+    question_id: int
+) -> Dict:
     """
     Fetches the final submission result from LeetCode (i.e., the "Submit" action).
+
+    Args:
+        cookie (str): User's session cookie.
+        csrf_token (str): CSRF token for request validation.
+        title_slug (str): The slug of the problem title.
+        code (str): The user's code submission.
+        language (str): The programming language of the submission.
+        question_id (int): The unique identifier for the problem.
+
+    Returns:
+        Dict: The submission result.
+
+    Raises:
+        FetchingError: If any step in the process fails.
     """
-    problems_data = load_problemset_metadata()
-
-    if not problems_data:
-        question_id = fetch_problem_id(title_slug).get("data", {}).get("question", {}).get("questionId", None)
-
-        if not question_id:
-            raise FetchingError(f"Unable to find questionId for {title_slug}")
-
-    else:
-        question_data = get_problem_by_key_value(problems_data, "titleSlug", title_slug)
-
-        if not question_data or "questionId" not in question_data:
-            raise FetchingError(f"Unable to find questionId for {title_slug}")
-
-        question_id = question_data["questionId"]
-
     submit_url = f"https://leetcode.com/problems/{title_slug}/submit/"
     payload = {
         "lang": language,
@@ -44,8 +47,10 @@ def fetch_submission_result(cookie: str, csrf_token: str, title_slug: str, code:
         response = requests.post(submit_url, json=payload, headers=headers)
         response.raise_for_status()
         submission = response.json()
+
     except requests.RequestException as e:
         raise FetchingError(f"Submission failed: {e}")
+
     except ValueError:
         raise FetchingError("Invalid response format from LeetCode.")
 

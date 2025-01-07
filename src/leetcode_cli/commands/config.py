@@ -1,8 +1,10 @@
 import click
-from leetcode_cli.graphics.ansi_codes import ANSI_RESET, ANSI_CODES
-from leetcode_cli.services.config_service import set_cookie, set_username, set_language
+import logging
 
-valid_keys = ['cookie', 'username', 'language']
+from leetcode_cli.managers.config_manager import ConfigManager
+from leetcode_cli.exceptions.exceptions import ConfigError
+
+logger = logging.getLogger(__name__)
 
 @click.command(short_help='Configure user settings')
 @click.argument('key')
@@ -13,18 +15,32 @@ def config_cmd(key, value):
 
     KEY can be 'cookie', 'username', or 'language'.
     """
+    valid_keys = ['cookie', 'username', 'language']
+
     if key not in valid_keys:
-        click.echo(f"Error: Invalid configuration key {ANSI_CODES['ITALIC']}{key}{ANSI_RESET}. Valid keys: {', '.join(valid_keys)}")
+        click.echo(f"Error: Invalid configuration key '{key}'. Valid keys: {', '.join(valid_keys)}")
         return
 
-    if key == 'cookie':
-        set_cookie(value)
-        click.echo("Cookie set successfully.")
+    try:
+        # Initialize ConfigManager
+        config_manager = ConfigManager()
 
-    elif key == 'username':
-        set_username(value)
-        click.echo(f"Username set to {ANSI_CODES['ITALIC']}{value}{ANSI_RESET}.")
+        if key == 'cookie':
+            config_manager.set_cookie(value)
+            click.echo("Cookie set successfully.")
 
-    elif key == 'language':
-        set_language(value)
-        click.echo(f"Language set to {ANSI_CODES['ITALIC']}{value}{ANSI_RESET}.")
+        elif key == 'username':
+            config_manager.set_username(value)
+            click.echo(f"Username set to '{value}'.")
+
+        elif key == 'language':
+            config_manager.set_language(value)
+            click.echo(f"Language set to '{value}'.")
+
+    except ConfigError as e:
+        logger.error(e)
+        click.echo(f"Configuration Error: {e}", err=True)
+
+    except Exception as e:
+        logger.exception("An unexpected error occurred during configuration.")
+        click.echo("An unexpected error occurred. Please try again.", err=True)

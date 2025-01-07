@@ -1,21 +1,14 @@
 import click
+import logging
 
-from leetcode_cli.graphics.ansi_codes import ANSI_RESET, ANSI_CODES
-
-from leetcode_cli.services import problemset_service
-from leetcode_cli.services.config_service import set_chosen_problem
-from leetcode_cli.services.theme_service import load_theme_data
-from leetcode_cli.services.formatting_config_service import load_formatting_config
-from leetcode_cli.services.problemset_service import load_problemset_metadata, get_title_slug
-
+from leetcode_cli.managers.config_manager import ConfigManager
+from leetcode_cli.managers.problem_manager import ProblemManager
+from leetcode_cli.managers.formatting_config_manager import FormattingConfigManager
+from leetcode_cli.managers.theme_manager import ThemeManager
 from leetcode_cli.formatters.problem_data_formatter import ProblemFormatter
+from leetcode_cli.exceptions.exceptions import ConfigError, ProblemError, ThemeError, ProblemError
 
-from leetcode_cli.parsers.problem_data_parser import parse_problem_data
-
-from leetcode_cli.data_fetchers.problem_data_fetcher import fetch_problem_data
-
-def is_id(value):
-    return value.isdigit()
+logger = logging.getLogger(__name__)
 
 @click.command(short_help='Show problem details')
 @click.argument('title_slug_or_id', required=True)
@@ -36,65 +29,66 @@ def show_cmd(title_slug_or_id, include):
     By default, which sections are displayed depends on formatting_config.yaml
     ("problem_show" section). Use --include to override and show only specific sections.
     """
-
-    user_config = load_formatting_config()
-    format_conf = user_config.problem_show
-    theme_data = load_theme_data()
-
-    # Override format_conf if --include is used
-    if include:
-        for key in format_conf.keys():
-            format_conf[key] = False
-
-        for item in include:
-            if item == "title":
-                format_conf["show_title"] = True
-            elif item == "tags":
-                format_conf["show_tags"] = True
-            elif item == "langs":
-                format_conf["show_langs"] = True
-            elif item == "description":
-                format_conf["show_description"] = True
-            elif item == "examples":
-                format_conf["show_examples"] = True
-            elif item == "constraints":
-                format_conf["show_constraints"] = True
-
-    if is_id(title_slug_or_id):
-        problemset_metadata = load_problemset_metadata()
-        if not problemset_metadata:
-            click.echo(f"In order to show problems by ID you need to download problems metadata using {ANSI_CODES['ITALIC']}leetcode download-problems{ANSI_RESET}.")
-            return
-
-        title_slug = get_title_slug(problemset_metadata, title_slug_or_id)
-
-    else:
-        title_slug = title_slug_or_id
-
-    if not title_slug:
-        click.echo("Error: Problem with this title slug or ID can't be found.")
-        return
-
     try:
-        raw_data = fetch_problem_data(title_slug)
-        if (
-            not raw_data
-            or 'data' not in raw_data
-            or 'question' not in raw_data['data']
-            or not raw_data['data']['question']
-        ):
-            click.echo("Error: Could not fetch problem data.")
+        # Initialize managers
+        config_manager = ConfigManager()
+        formatting_config_manager = FormattingConfigManager(config_manager)
+        formatting_config = formatting_config_manager.load_formatting_config()
+        problem_manager = ProblemManager(config_manager)
+        theme_manager = ThemeManager(config_manager)
+        
+        # Override formatting configuration if --include is used
+        format_conf = formatting_config.problem_show
+        if include:
+            for key in format_conf.keys():
+                format_conf[key] = False
+
+            mapping = {
+                "title": "show_title",
+                "tags": "show_tags",
+                "langs": "show_langs",
+                "description": "show_description",
+                "examples": "show_examples",
+                "constraints": "show_constraints"
+            }
+            for item in include:
+                key = mapping.get(item.lower())
+                if key:
+                    format_conf[key] = True
+
+        # Fetch problem data
+        try:
+            problem = problem_manager.get_specific_problem(title_slug_or_id)
+
+        except ProblemError as e:
+            click.echo(f"Error: {e}")
             return
 
-        problem = parse_problem_data(raw_data)
-        set_chosen_problem(title_slug)
+        if title_slug_or_id.isdigit():
+            # we used that as frontend ID, so fetch the real slug
+            slug = problem_manager.get_title_slug_for_id(title_slug_or_id)
+        else:
+            # else it's a slug
+            slug = title_slug_or_id
+        
+        config_manager.set_chosen_problem(slug)
+        # Format and display problem
+        try:
+            # Pass the theme_manager (not theme_data)
+            formatter = ProblemFormatter(problem, format_conf, theme_manager)
+            formatted_str = formatter.get_formatted_problem()
+            click.echo()
+            click.echo(formatted_str)
+            click.echo()
 
-        formatter = ProblemFormatter(problem, format_conf, theme_data)
-        formatted_str = formatter.get_formatted_problem()
+        except Exception as e:
+            logger.error(f"Failed to format problem data: {e}")
+            click.echo(f"Error: {e}")
 
-        click.echo()
-        click.echo(formatted_str)
-        click.echo()
+    except (ConfigError, ThemeError) as e:
+        logger.error(e)
+        click.echo(f"Configuration/Theme Error: {e}", err=True)
 
     except Exception as e:
-        click.echo(f"An error occurred: {e}")
+        logger.exception("An unexpected error occurred while showing the problem.")
+        click.echo("An unexpected error occurred. Please try again.", err=True)

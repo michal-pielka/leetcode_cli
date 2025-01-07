@@ -22,6 +22,18 @@ class ConfigError(Exception):
     """Raised when configuration is missing, invalid, or otherwise incorrect."""
     pass
 
-class ServiceError(Exception):
-    """Raised when there is an error related to some service."""
+class ProblemError(Exception):
+    """Custom exception for problem-related errors."""
+    pass
+    
+class CodeError(Exception):
+    """Custom exception for code-related errors."""
+    pass
+
+class ProblemSetError(Exception):
+    """Custom exception for problemset-related errors."""
+    pass
+
+class StatsError(Exception):
+    """Custom exception for stats-related errors."""
     pass

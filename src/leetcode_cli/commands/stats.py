@@ -1,11 +1,16 @@
 import click
+import logging
 from datetime import datetime
 
-from leetcode_cli.services.config_service import get_username
+from leetcode_cli.managers.config_manager import ConfigManager
+from leetcode_cli.managers.stats_manager import StatsManager
+from leetcode_cli.formatters.stats_data_formatter import StatsFormatter
+from leetcode_cli.managers.theme_manager import ThemeManager
 from leetcode_cli.data_fetchers.stats_data_fetcher import fetch_user_stats, fetch_user_activity
 from leetcode_cli.parsers.stats_data_parser import parse_user_stats_data, parse_user_activity_data
-from leetcode_cli.formatters.stats_data_formatter import StatsFormatter
-from leetcode_cli.services.theme_service import load_theme_data
+from leetcode_cli.exceptions.exceptions import ConfigError, StatsError, ThemeError
+
+logger = logging.getLogger(__name__)
 
 @click.command(short_help='Display user statistics from LeetCode')
 @click.argument('username', required=False, default=None, metavar='USERNAME')
@@ -17,48 +22,63 @@ from leetcode_cli.services.theme_service import load_theme_data
     help='Sections to display. Overrides formatting_config.'
 )
 def stats_cmd(username, include):
-    """
-    Display LeetCode user statistics.
-
-    Usage:
-        leetcode stats
-        leetcode stats USERNAME
-    """
-    if not username:
-        username = get_username()
+    try:
+        config_manager = ConfigManager()
+        stats_manager = StatsManager()
+        theme_manager = ThemeManager(config_manager)
+        formatter = StatsFormatter(theme_manager)
 
         if not username:
-            click.echo("Error: Username not found in config, use leetcode config username USERNAME or leetcode stats USERNAME")
+            username = config_manager.get_username()
+            if not username:
+                click.echo("Error: Username not found in config.")
+                return
 
-    if not include:
-        include = ["stats", "calendar"]
+        if not include:
+            include = ["stats", "calendar"]
 
-    theme_data = load_theme_data()
-    formatter = StatsFormatter(theme_data)
+        # --stats
+        if 'stats' in include:
+            try:
+                stats_data = fetch_user_stats(username)
+                if stats_data:
+                    user_stats = parse_user_stats_data(stats_data)
+                    formatted_stats = formatter.format_user_stats(user_stats)
+                    click.echo()
+                    click.echo(formatted_stats)
+                    click.echo()
+                else:
+                    click.echo("Error: Failed to fetch stats data.")
+            except Exception as e:
+                logger.error(f"Failed to fetch or parse stats data: {e}")
+                click.echo(f"Error: {e}")
 
-    if 'stats' in include:
-        stats_data = fetch_user_stats(username)
-        if stats_data:
-            user_stats = parse_user_stats_data(stats_data)
-            formatted_stats = formatter.format_user_stats(user_stats)
-            click.echo()
-            click.echo(formatted_stats)
-            click.echo()
-        else:
-            click.echo("Error: Failed to fetch stats data.")
+        # --calendar
+        if 'calendar' in include:
+            try:
+                current_year = datetime.now().year
+                prev_year = current_year - 1
 
-    if 'calendar' in include:
-        current_year = datetime.now().year
-        previous_year = current_year - 1
+                activity_current = fetch_user_activity(username, current_year)
+                activity_previous = fetch_user_activity(username, prev_year)
 
-        activity_current = fetch_user_activity(username, current_year)
-        activity_previous = fetch_user_activity(username, previous_year)
+                if activity_current and activity_previous:
+                    # Parse user activity into a model
+                    activity_model = parse_user_activity_data(activity_previous, activity_current)
+                    # Now pass the model to the formatter
+                    formatted_activity = formatter.format_user_activity(activity_model)
+                    click.echo()
+                    click.echo(formatted_activity)
+                    click.echo()
+                else:
+                    click.echo("Error: Failed to fetch activity data.")
+            except Exception as e:
+                logger.error(f"Failed to fetch or parse activity data: {e}")
+                click.echo(f"Error: {e}")
 
-        if activity_current and activity_previous:
-            user_activity = parse_user_activity_data(activity_previous, activity_current)
-            formatted_activity = formatter.format_user_activity(user_activity)
-            click.echo()
-            click.echo(formatted_activity)
-            click.echo()
-        else:
-            click.echo("Error: Failed to fetch activity data.")
+    except (ConfigError, ThemeError, StatsError) as e:
+        logger.error(e)
+        click.echo(f"Error: {e}", err=True)
+    except Exception as e:
+        logger.exception("An unexpected error occurred while fetching statistics.")
+        click.echo("An unexpected error occurred. Please try again.", err=True)

@@ -1,23 +1,23 @@
 import logging
 from datetime import datetime, timedelta, timezone
 from leetcode_cli.models.stats import UserStatsModel, UserActivityModel
-from leetcode_cli.models.theme import ThemeData
 from leetcode_cli.graphics.ansi_codes import ANSI_RESET
 from leetcode_cli.constants.stats_constants import (
     RECTANGLES_TOTAL, MONTH_SEPARATION, DIFFICULTIES, COLUMNS, MONTH_NAMES
 )
-from leetcode_cli.services.stats_service import calculate_color
-from leetcode_cli.services.theme_service import get_styling
+from leetcode_cli.managers.theme_manager import ThemeManager
 from leetcode_cli.exceptions.exceptions import ThemeError
 
 logger = logging.getLogger(__name__)
+
 
 class StatsFormatter:
     """
     Formats user stats (counts per difficulty) and activity calendar.
     """
-    def __init__(self, theme_data: ThemeData):
-        self.theme_data = theme_data
+    def __init__(self, theme_manager: ThemeManager):
+        self.theme_manager = theme_manager
+        self.theme_data = theme_manager.load_theme_data()
 
     def format_user_stats(self, stats: UserStatsModel) -> str:
         lines = []
@@ -33,11 +33,11 @@ class StatsFormatter:
 
             try:
                 # Get symbols
-                filled_ansi, filled_symbol_left, filled_symbol_right = get_styling(self.theme_data, 'STATS_FORMATTER', 'filled_square')
-                empty_ansi, empty_symbol_left, empty_symbol_right = get_styling(self.theme_data, 'STATS_FORMATTER', 'empty_square')
+                filled_ansi, filled_symbol_left, filled_symbol_right = self.theme_manager.get_styling('STATS_FORMATTER', 'filled_square')
+                empty_ansi, empty_symbol_left, empty_symbol_right = self.theme_manager.get_styling('STATS_FORMATTER', 'empty_square')
 
                 # ANSI color for the difficulty
-                diff_ansi, diff_symbol_left, diff_symbol_right = get_styling(self.theme_data, 'STATS_FORMATTER', difficulty.upper())
+                diff_ansi, diff_symbol_left, diff_symbol_right = self.theme_manager.get_styling('STATS_FORMATTER', difficulty.upper())
 
                 # Build the bar with each symbol wrapped
                 filled_bar = ''.join([f"{diff_ansi}{filled_symbol_left}{filled_symbol_right}{ANSI_RESET}" for _ in range(filled)])
@@ -79,7 +79,7 @@ class StatsFormatter:
         total_days = (max_date - min_date).days + 1
         all_dates = [min_date + timedelta(days=i) for i in range(total_days)]
 
-        weekday = all_dates[0].weekday()
+        weekday = all_dates[0].weekday()  # Monday=0
         week_index = 3
 
         for date in all_dates:
@@ -87,23 +87,20 @@ class StatsFormatter:
             if subs > 0:
                 try:
                     # Determine tier based on submissions
-                    if subs == 1:
-                        tier = 'CALENDAR_TIER1'
-                    else:
-                        tier = 'CALENDAR_TIER1'  # You can define more tiers if needed
-                    color, symbol_left, symbol_right = get_styling(self.theme_data, 'STATS_FORMATTER', tier)
-                    symbol = get_styling(self.theme_data, 'STATS_FORMATTER', 'filled_square')[1]
+                    tier = self._determine_tier(subs, min_sub, max_sub)
+                    color, symbol_left, symbol_right = self.theme_manager.get_styling('STATS_FORMATTER', tier)
+                    symbol = self.theme_manager.get_styling('STATS_FORMATTER', 'filled_square')[1]
                     output[weekday][week_index] = f"{color}{symbol_left}{symbol}{symbol_right}{ANSI_RESET}"
                 except ThemeError as te:
-                    logger.error(f"Theming Error in format_user_activity: {te}")
+                    logger.error(f"Theming Error: {te}")
                     raise te
             else:
                 try:
-                    tier0_ansi, tier0_symbol_left, tier0_symbol_right = get_styling(self.theme_data, 'STATS_FORMATTER', 'CALENDAR_TIER0')
-                    symbol = get_styling(self.theme_data, 'STATS_FORMATTER', 'empty_square')[1]
+                    tier0_ansi, tier0_symbol_left, tier0_symbol_right = self.theme_manager.get_styling('STATS_FORMATTER', 'CALENDAR_TIER0')
+                    symbol = self.theme_manager.get_styling('STATS_FORMATTER', 'empty_square')[1]
                     output[weekday][week_index] = f"{tier0_ansi}{tier0_symbol_left}{symbol}{tier0_symbol_right}{ANSI_RESET}"
                 except ThemeError as te:
-                    logger.error(f"Theming Error in format_user_activity: {te}")
+                    logger.error(f"Theming Error: {te}")
                     raise te
 
             if date.day == 1 and week_index < COLUMNS - 1:
@@ -139,3 +136,22 @@ class StatsFormatter:
         months_parsed = ''.join(output_months)
         cal_parsed = '\n'.join(''.join(row) for row in output)
         return f"{months_parsed}\n{cal_parsed}"
+
+    def _determine_tier(self, subs: int, min_sub: int, max_sub: int) -> str:
+        """
+        Determines the tier based on submission counts.
+        """
+        # Define tiers based on percentile or absolute counts
+        # For simplicity, define:
+        # Tier0: 0
+        # Tier1: 1-5
+        # Tier2: 6-10
+        # Tier3: 11+
+        if subs == 0:
+            return "CALENDAR_TIER0"
+        elif 1 <= subs <= 5:
+            return "CALENDAR_TIER1"
+        elif 6 <= subs <= 10:
+            return "CALENDAR_TIER2"
+        else:
+            return "CALENDAR_TIER3"
