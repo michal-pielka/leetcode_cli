@@ -1,7 +1,5 @@
 ANSI_CODES_YAML = """# Gruvbox-inspired ANSI color palette
 ANSI_CODES:
-  RESET: "\\u001b[0m"
-
   # Gruvbox Colors
   green: "\\u001b[38;2;184;187;38m"
   red: "\\u001b[38;2;251;73;52m"

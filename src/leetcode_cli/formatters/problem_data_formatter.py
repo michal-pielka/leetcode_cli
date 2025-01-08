@@ -1,7 +1,6 @@
 import logging
 
 from bs4 import BeautifulSoup, NavigableString, Tag
-from leetcode_cli.graphics.ansi_codes import ANSI_RESET
 from leetcode_cli.models.problem import Problem
 from leetcode_cli.managers.theme_manager import ThemeManager
 from leetcode_cli.exceptions.exceptions import ThemeError
@@ -18,6 +17,8 @@ class ProblemFormatter:
         self.format_conf = format_conf
         self.theme_manager = theme_manager
         self.theme_data = theme_manager.load_theme_data()
+
+        self.ANSI_RESET = "\033[0m"       # Reset all styles
 
     def get_formatted_problem(self) -> str:
         sections = []
@@ -64,7 +65,7 @@ class ProblemFormatter:
             logger.error(f"Theming Error: {te}")
             raise te
 
-        return f"{styled_title}{ANSI_RESET} {diff_ansi}{diff_symbol_left}{difficulty}{diff_symbol_right}{ANSI_RESET}"
+        return f"{styled_title}{self.ANSI_RESET} {diff_ansi}{diff_symbol_left}{difficulty}{diff_symbol_right}{self.ANSI_RESET}"
 
     @property
     def description(self) -> str:
@@ -94,7 +95,7 @@ class ProblemFormatter:
         constraints_html = [self._html_to_ansi(c) for c in self.problem.constraints]
         combined = "\n".join(constraints_html)
 
-        return f"{constraints_ansi}{constraints_symbol_left}Constraints:{constraints_symbol_right}{ANSI_RESET}\n{combined}"
+        return f"{constraints_ansi}{constraints_symbol_left}Constraints:{constraints_symbol_right}{self.ANSI_RESET}\n{combined}"
 
     @property
     def topic_tags(self) -> str:
@@ -108,7 +109,7 @@ class ProblemFormatter:
             logger.error(f"Theming Error: {te}")
             raise te
 
-        out = [f"{label_ansi}{label_symbol_left}tags:{label_symbol_right}{ANSI_RESET}"]
+        out = [f"{label_ansi}{label_symbol_left}tags:{label_symbol_right}{self.ANSI_RESET}"]
         for t in tags:
             try:
                 tag_ansi, tag_symbol_left, tag_symbol_right = self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "tag")
@@ -117,7 +118,7 @@ class ProblemFormatter:
                 logger.error(f"Theming Error: {te}")
                 raise te
 
-            out.append(f"{tag_ansi}{tag_symbol_left}{t.lower()}{tag_symbol_right}{ANSI_RESET}")
+            out.append(f"{tag_ansi}{tag_symbol_left}{t.lower()}{tag_symbol_right}{self.ANSI_RESET}")
 
         return " ".join(out)
 
@@ -135,9 +136,9 @@ class ProblemFormatter:
             logger.error(f"Theming Error: {te}")
             raise te
 
-        out = [f"{label_ansi}{label_symbol_left}langs:{label_symbol_right}{ANSI_RESET}"]
+        out = [f"{label_ansi}{label_symbol_left}langs:{label_symbol_right}{self.ANSI_RESET}"]
         for lang in sorted(langs):
-            out.append(f"{lang_ansi}{lang_symbol_left}{lang}{lang_symbol_right}{ANSI_RESET}")
+            out.append(f"{lang_ansi}{lang_symbol_left}{lang}{lang_symbol_right}{self.ANSI_RESET}")
 
         return " ".join(out)
 
@@ -202,7 +203,7 @@ class ProblemFormatter:
 
                 # Determine if an ANSI reset is needed
                 if popped_tag in ["code", "pre"]:
-                    ansi_str += ANSI_RESET
+                    ansi_str += self.ANSI_RESET
                     # Re-apply remaining styles
                     for tag, ansi in style_stack:
                         if ansi:
@@ -210,7 +211,7 @@ class ProblemFormatter:
                 else:
                     # Re-apply remaining styles by resetting and re-applying
                     if popped_ansi:
-                        ansi_str += ANSI_RESET
+                        ansi_str += self.ANSI_RESET
                         for tag, ansi in style_stack:
                             if ansi:
                                 ansi_str += ansi
@@ -231,7 +232,7 @@ class ProblemFormatter:
             raise te
 
         lines = []
-        lines.append(f"{ex_title_ansi}{ex_title_symbol_left}{ex_title}{ex_title_symbol_right}{ANSI_RESET}\n")
+        lines.append(f"{ex_title_ansi}{ex_title_symbol_left}{ex_title}{ex_title_symbol_right}{self.ANSI_RESET}\n")
 
         # Input
         raw_input = ", ".join(example.get('input', []))
@@ -244,8 +245,8 @@ class ProblemFormatter:
             logger.error(f"Theming Error: {te}")
             raise te
 
-        input_line = f"{ex_input_str_ansi}{ex_input_symbol_left}Input{ex_input_symbol_right}{ANSI_RESET}"
-        input_line += f"{ex_input_data_ansi}{ex_input_data_symbol_left}{input_str}{ex_input_data_symbol_right}{ANSI_RESET}".replace("\n", ANSI_RESET + "\n" + f"{ex_input_str_ansi}{ex_input_symbol_left}" + " " * (len(ex_input_symbol_right) +  5) + f"{ANSI_RESET}{ex_input_data_ansi}")
+        input_line = f"{ex_input_str_ansi}{ex_input_symbol_left}Input{ex_input_symbol_right}{self.ANSI_RESET}"
+        input_line += f"{ex_input_data_ansi}{ex_input_data_symbol_left}{input_str}{ex_input_data_symbol_right}{self.ANSI_RESET}".replace("\n", self.ANSI_RESET + "\n" + f"{ex_input_str_ansi}{ex_input_symbol_left}" + " " * (len(ex_input_symbol_right) +  5) + f"{self.ANSI_RESET}{ex_input_data_ansi}")
 
         lines.append(input_line + "\n")
 
@@ -260,8 +261,8 @@ class ProblemFormatter:
             logger.error(f"Theming Error: {te}")
             raise te
 
-        output_line = f"{ex_output_str_ansi}{ex_output_symbol_left}Output{ex_output_symbol_right}{ANSI_RESET}"
-        output_line += f"{ex_output_data_ansi}{ex_output_data_symbol_left}{out_str}{ex_output_data_symbol_right}{ANSI_RESET}".replace("\n", ANSI_RESET + "\n" + f"{ex_output_str_ansi}{ex_output_symbol_left}" + " " * (len(ex_output_symbol_right) + 6) + f"{ANSI_RESET}{ex_output_data_ansi}")
+        output_line = f"{ex_output_str_ansi}{ex_output_symbol_left}Output{ex_output_symbol_right}{self.ANSI_RESET}"
+        output_line += f"{ex_output_data_ansi}{ex_output_data_symbol_left}{out_str}{ex_output_data_symbol_right}{self.ANSI_RESET}".replace("\n", self.ANSI_RESET + "\n" + f"{ex_output_str_ansi}{ex_output_symbol_left}" + " " * (len(ex_output_symbol_right) + 6) + f"{self.ANSI_RESET}{ex_output_data_ansi}")
 
         lines.append(output_line + "\n")
         
@@ -278,8 +279,8 @@ class ProblemFormatter:
                 raise te
 
             # Replace newline characters with formatted ANSI reset and new lines with symbols
-            explanation_line = f"{ex_expl_str_ansi}{ex_expl_symbol_left}Explanation{ex_expl_symbol_right}{ANSI_RESET}"
-            explanation_line += f"{ex_expl_data_ansi}{ex_expl_data_symbol_left}{expl_str}{ex_expl_data_symbol_right}{ANSI_RESET}".replace("\n", ANSI_RESET + "\n" + f"{ex_expl_str_ansi}{ex_output_symbol_left}" + " " * (len(ex_expl_symbol_right) + 11) + f"{ANSI_RESET}{ex_expl_data_ansi}")
+            explanation_line = f"{ex_expl_str_ansi}{ex_expl_symbol_left}Explanation{ex_expl_symbol_right}{self.ANSI_RESET}"
+            explanation_line += f"{ex_expl_data_ansi}{ex_expl_data_symbol_left}{expl_str}{ex_expl_data_symbol_right}{self.ANSI_RESET}".replace("\n", self.ANSI_RESET + "\n" + f"{ex_expl_str_ansi}{ex_output_symbol_left}" + " " * (len(ex_expl_symbol_right) + 11) + f"{self.ANSI_RESET}{ex_expl_data_ansi}")
 
             lines.append(explanation_line + "\n")
 

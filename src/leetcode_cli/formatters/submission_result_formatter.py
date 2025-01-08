@@ -1,7 +1,5 @@
 import logging
-import re
 
-from leetcode_cli.graphics.ansi_codes import ANSI_RESET
 from leetcode_cli.models.submission import SubmissionResult
 from leetcode_cli.managers.theme_manager import ThemeManager
 from leetcode_cli.exceptions.exceptions import ThemeError
@@ -18,6 +16,8 @@ class SubmissionFormatter:
         self.format_conf = format_conf
         self.theme_manager = theme_manager
         self.theme_data = theme_manager.load_theme_data()
+
+        self.ANSI_RESET = "\033[0m"       # Reset all styles
 
     def get_formatted_submission(self) -> str:
         status_code = self.result.status_code
@@ -58,7 +58,7 @@ class SubmissionFormatter:
         except ThemeError as te:
             raise te
 
-        ansi_status = f"{ansi_code}{symbol_left}{status_msg}{symbol_right}{ANSI_RESET}"
+        ansi_status = f"{ansi_code}{symbol_left}{status_msg}{symbol_right}{self.ANSI_RESET}"
         parsed_result = f"\n  {ansi_status} \n"
 
         # Now we call _format_label_value for each item, instead of manually building strings
@@ -153,7 +153,7 @@ class SubmissionFormatter:
 
         # Combine label + symbol_right (often a colon) and left justify
         combined_label = f"{label}{symbol_right}"
-        return f"{ansi_code}{symbol_left}{combined_label:<{width}}{ANSI_RESET}"
+        return f"{ansi_code}{symbol_left}{combined_label:<{width}}{self.ANSI_RESET}"
 
     def _format_field_value(self, value: str) -> str:
         """
@@ -170,6 +170,6 @@ class SubmissionFormatter:
         out_lines = []
         for line in lines:
             # Even if blank, we still produce a line
-            out_lines.append(f"{ansi_code}{symbol_left}{line}{symbol_right}{ANSI_RESET}")
+            out_lines.append(f"{ansi_code}{symbol_left}{line}{symbol_right}{self.ANSI_RESET}")
 
         return "\n".join(out_lines)

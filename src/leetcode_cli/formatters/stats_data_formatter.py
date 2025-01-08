@@ -1,7 +1,6 @@
 import logging
 from datetime import datetime, timedelta, timezone
 from leetcode_cli.models.stats import UserStatsModel, UserActivityModel
-from leetcode_cli.graphics.ansi_codes import ANSI_RESET
 from leetcode_cli.constants.stats_constants import (
     RECTANGLES_TOTAL, MONTH_SEPARATION, DIFFICULTIES, COLUMNS, MONTH_NAMES
 )
@@ -18,6 +17,8 @@ class StatsFormatter:
     def __init__(self, theme_manager: ThemeManager):
         self.theme_manager = theme_manager
         self.theme_data = theme_manager.load_theme_data()
+
+        self.ANSI_RESET = "\033[0m"       # Reset all styles
 
     def format_user_stats(self, stats: UserStatsModel) -> str:
         lines = []
@@ -40,12 +41,12 @@ class StatsFormatter:
                 diff_ansi, diff_symbol_left, diff_symbol_right = self.theme_manager.get_styling('STATS_FORMATTER', difficulty.upper())
 
                 # Build the bar with each symbol wrapped
-                filled_bar = ''.join([f"{diff_ansi}{filled_symbol_left}{filled_symbol_right}{ANSI_RESET}" for _ in range(filled)])
-                empty_bar = ''.join([f"{diff_ansi}{empty_symbol_left}{empty_symbol_right}{ANSI_RESET}" for _ in range(RECTANGLES_TOTAL - filled)])
+                filled_bar = ''.join([f"{diff_ansi}{filled_symbol_left}{filled_symbol_right}{self.ANSI_RESET}" for _ in range(filled)])
+                empty_bar = ''.join([f"{diff_ansi}{empty_symbol_left}{empty_symbol_right}{self.ANSI_RESET}" for _ in range(RECTANGLES_TOTAL - filled)])
                 bar = filled_bar + empty_bar
 
                 # Combine all parts with proper styling
-                line = f"{diff_ansi}{difficulty:<7}{diff_symbol_left}{diff_symbol_right}{ANSI_RESET} {passed:>4}/{total:<4} ({percentage:.2f}%) {bar}"
+                line = f"{diff_ansi}{difficulty:<7}{diff_symbol_left}{diff_symbol_right}{self.ANSI_RESET} {passed:>4}/{total:<4} ({percentage:.2f}%) {bar}"
                 lines.append(line)
             except ThemeError as te:
                 logger.error(f"Theming Error in format_user_stats: {te}")
@@ -90,7 +91,7 @@ class StatsFormatter:
                     tier = self._determine_tier(subs, min_sub, max_sub)
                     color, symbol_left, symbol_right = self.theme_manager.get_styling('STATS_FORMATTER', tier)
                     symbol = self.theme_manager.get_styling('STATS_FORMATTER', 'filled_square')[1]
-                    output[weekday][week_index] = f"{color}{symbol_left}{symbol}{symbol_right}{ANSI_RESET}"
+                    output[weekday][week_index] = f"{color}{symbol_left}{symbol}{symbol_right}{self.ANSI_RESET}"
                 except ThemeError as te:
                     logger.error(f"Theming Error: {te}")
                     raise te
@@ -98,7 +99,7 @@ class StatsFormatter:
                 try:
                     tier0_ansi, tier0_symbol_left, tier0_symbol_right = self.theme_manager.get_styling('STATS_FORMATTER', 'CALENDAR_TIER0')
                     symbol = self.theme_manager.get_styling('STATS_FORMATTER', 'empty_square')[1]
-                    output[weekday][week_index] = f"{tier0_ansi}{tier0_symbol_left}{symbol}{tier0_symbol_right}{ANSI_RESET}"
+                    output[weekday][week_index] = f"{tier0_ansi}{tier0_symbol_left}{symbol}{tier0_symbol_right}{self.ANSI_RESET}"
                 except ThemeError as te:
                     logger.error(f"Theming Error: {te}")
                     raise te

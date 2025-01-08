@@ -2,8 +2,6 @@ ANSI_CODES_YAML = """# This file defines ANSI escape codes used for styling text
 # Each key is a name for a style/color, and the value is the actual escape code.
 
 ANSI_CODES:
-  RESET: "\\u001b[0m"                     # Resets all styles and colors to default - don't change this one;)
-
   # Standard Colors
   green: "\\u001b[38;2;80;250;123m"       # Green color using RGB values
   orange: "\\u001b[38;2;255;165;0m"       # Orange color using RGB values

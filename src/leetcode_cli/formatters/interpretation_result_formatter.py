@@ -1,6 +1,5 @@
 import logging
 
-from leetcode_cli.graphics.ansi_codes import ANSI_RESET
 from leetcode_cli.models.interpretation import InterpretationResult
 from leetcode_cli.managers.theme_manager import ThemeManager
 from leetcode_cli.exceptions.exceptions import ThemeError
@@ -28,6 +27,8 @@ class InterpretationFormatter:
         self.format_conf = format_conf
         self.theme_manager = theme_manager
         self.theme_data = theme_manager.load_theme_data()
+
+        self.ANSI_RESET = "\033[0m"       # Reset all styles
 
     def get_formatted_interpretation(self) -> str:
         status_code = self.result.status_code
@@ -92,7 +93,7 @@ class InterpretationFormatter:
                 raise te
 
             # Print the status line, e.g. "  ✘ Wrong Answer"
-            parsed_result += f"\n  {s_ansi}{s_left}{status_key}{s_right}{ANSI_RESET}\n"
+            parsed_result += f"\n  {s_ansi}{s_left}{status_key}{s_right}{self.ANSI_RESET}\n"
 
             # Show fields
             if show_language:
@@ -165,7 +166,7 @@ class InterpretationFormatter:
         # We combine label and the symbol_right (like a colon, if set in your theme).
         combined_label = f"{label}{sym_right}"
         # We left-justify within 'width' columns
-        field_label = f"{ansi_code}{sym_left}{combined_label:<{width}}{ANSI_RESET}"
+        field_label = f"{ansi_code}{sym_left}{combined_label:<{width}}{self.ANSI_RESET}"
         return field_label
 
     def _format_field_value(self, value: str) -> str:
@@ -186,5 +187,5 @@ class InterpretationFormatter:
                 # If the line is blank, we can skip or just preserve blank line
                 out_lines.append("")
                 continue
-            out_lines.append(f"{ansi_code}{sym_left}{line}{sym_right}{ANSI_RESET}")
+            out_lines.append(f"{ansi_code}{sym_left}{line}{sym_right}{self.ANSI_RESET}")
         return "\n".join(out_lines)
