@@ -1,6 +1,46 @@
-POSSIBLE_LANG_SLUGS = ["cpp", "java", "python", "python3", "c", "csharp", "javascript", "typescript", "php", "swift", "kotlin", "dart", "golang", "ruby", "scala", "rust", "racket", "erlang", "elixir"]
+POSSIBLE_LANG_SLUGS = [
+    "cpp",
+    "java",
+    "python",
+    "python3",
+    "c",
+    "csharp",
+    "javascript",
+    "typescript",
+    "php",
+    "swift",
+    "kotlin",
+    "dart",
+    "golang",
+    "ruby",
+    "scala",
+    "rust",
+    "racket",
+    "erlang",
+    "elixir",
+]
 
-POSSIBLE_FILE_EXTENSIONS = ["cpp", "java", "py", "py3", "c", "cs", "js", "ts", "php", "swift", "kt", "dart", "go", "rb", "scala", "rs", "rkt", "erl", "ex"]
+POSSIBLE_FILE_EXTENSIONS = [
+    "cpp",
+    "java",
+    "py",
+    "py3",
+    "c",
+    "cs",
+    "js",
+    "ts",
+    "php",
+    "swift",
+    "kt",
+    "dart",
+    "go",
+    "rb",
+    "scala",
+    "rs",
+    "rkt",
+    "erl",
+    "ex",
+]
 
 EXTENSION_TO_LANG_SLUG = {
     "cpp": "cpp",
@@ -21,7 +61,7 @@ EXTENSION_TO_LANG_SLUG = {
     "rs": "rust",
     "rkt": "racket",
     "erl": "erlang",
-    "ex": "elixir"
+    "ex": "elixir",
 }
 
 LANG_SLUG_TO_EXTENSION = {
@@ -43,7 +83,7 @@ LANG_SLUG_TO_EXTENSION = {
     "rust": "rs",
     "racket": "rkt",
     "erlang": "erl",
-    "elixir": "ex"
+    "elixir": "ex",
 }
 
 POSSIBLE_TAGS = [
@@ -117,6 +157,5 @@ POSSIBLE_TAGS = [
     "eulerian-circuit",
     "radix-sort",
     "rejection-sampling",
-    "biconnected-component"
+    "biconnected-component",
 ]
-

@@ -12,27 +12,37 @@ from leetcode_cli.managers.problem_manager import ProblemManager
 from leetcode_cli.managers.problemset_manager import ProblemSetManager
 
 from leetcode_cli.formatters.submission_result_formatter import SubmissionFormatter
-from leetcode_cli.exceptions.exceptions import ConfigError, CodeError, ProblemError, ThemeError
+from leetcode_cli.exceptions.exceptions import (
+    ConfigError,
+    CodeError,
+    ProblemError,
+    ThemeError,
+)
 
 logger = logging.getLogger(__name__)
 
-@click.command(short_help='Submit a solution file to LeetCode')
-@click.argument('file_path', required=True, type=click.Path(exists=True))
+
+@click.command(short_help="Submit a solution file to LeetCode")
+@click.argument("file_path", required=True, type=click.Path(exists=True))
 @click.option(
-    '--include', '-i',
+    "--include",
+    "-i",
     multiple=True,
-    type=click.Choice([
-        "language",
-        "testcases",
-        "runtime_memory",
-        "code_output",
-        "stdout",
-        "error_messages",
-        "detailed_error_messages",
-        "expected_output",
-    ], case_sensitive=False),
-    metavar='SECTION',
-    help='Sections to display. Overrides formatting_config.'
+    type=click.Choice(
+        [
+            "language",
+            "testcases",
+            "runtime_memory",
+            "code_output",
+            "stdout",
+            "error_messages",
+            "detailed_error_messages",
+            "expected_output",
+        ],
+        case_sensitive=False,
+    ),
+    metavar="SECTION",
+    help="Sections to display. Overrides formatting_config.",
 )
 def submit_cmd(file_path, include):
     """
@@ -45,7 +55,9 @@ def submit_cmd(file_path, include):
         code_manager = CodeManager(config_manager)
         theme_manager = ThemeManager(config_manager)
         problemset_manager = ProblemSetManager(config_manager, auth_service)
-        problem_manager = ProblemManager(config_manager, auth_service, problemset_manager)
+        problem_manager = ProblemManager(
+            config_manager, auth_service, problemset_manager
+        )
 
         # Load formatting config
         formatting_config = formatting_config_manager.load_formatting_config()
@@ -74,7 +86,9 @@ def submit_cmd(file_path, include):
                     format_conf["show_expected_output"] = True
 
         # Parse path => (id, slug, ext)
-        _, title_slug, file_extension = problem_manager.problem_data_from_path(file_path)
+        _, title_slug, file_extension = problem_manager.problem_data_from_path(
+            file_path
+        )
 
         # read code
         code = code_manager.read_code_from_file(file_path)
@@ -84,9 +98,7 @@ def submit_cmd(file_path, include):
 
         # manager fetches + parses the submission result
         submission_res = problem_manager.get_submission_result(
-            title_slug=title_slug,
-            code=code,
-            lang_slug=lang_slug
+            title_slug=title_slug, code=code, lang_slug=lang_slug
         )
 
         # format

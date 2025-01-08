@@ -10,7 +10,7 @@ from leetcode_cli.exceptions.exceptions import ProblemSetError, ConfigError
 logger = logging.getLogger(__name__)
 
 
-@click.command(short_help='Download all problems metadata')
+@click.command(short_help="Download all problems metadata")
 def download_problems_cmd():
     """
     Download all LeetCode problems metadata and save locally in order to speed up some commands and enable showing/creating by ID
@@ -48,5 +48,7 @@ def download_problems_cmd():
         click.echo(f"Configuration Error: {e}", err=True)
 
     except Exception as e:
-        logger.exception("An unexpected error occurred during problems metadata download.")
+        logger.exception(
+            "An unexpected error occurred during problems metadata download."
+        )
         click.echo("An unexpected error occurred. Please try again.", err=True)

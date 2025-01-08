@@ -12,13 +12,16 @@ class ProblemFormatter:
     """
     Formats a single Problem object, referencing MAPPINGS['PROBLEM_DESCRIPTION'] for tags, difficulties, etc.
     """
-    def __init__(self, problem: Problem, format_conf: dict, theme_manager: ThemeManager):
+
+    def __init__(
+        self, problem: Problem, format_conf: dict, theme_manager: ThemeManager
+    ):
         self.problem = problem
         self.format_conf = format_conf
         self.theme_manager = theme_manager
         self.theme_data = theme_manager.load_theme_data()
 
-        self.ANSI_RESET = "\033[0m"       # Reset all styles
+        self.ANSI_RESET = "\033[0m"  # Reset all styles
 
     def get_formatted_problem(self) -> str:
         sections = []
@@ -35,7 +38,10 @@ class ProblemFormatter:
             sections.append(self.languages)
 
         if self.format_conf.get("show_description", True):
-            desc_str = self.description.rstrip("\xa0").lstrip("\n").rstrip("\n") or "No description available."
+            desc_str = (
+                self.description.rstrip("\xa0").lstrip("\n").rstrip("\n")
+                or "No description available."
+            )
             sections.append(desc_str)
 
         if self.format_conf.get("show_examples", True):
@@ -57,9 +63,15 @@ class ProblemFormatter:
         difficulty = self.problem.difficulty
         try:
             # Styling for title
-            title_ansi, title_symbol_left, title_symbol_right = self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "title")
+            title_ansi, title_symbol_left, title_symbol_right = (
+                self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "title")
+            )
             styled_title = f"{title_ansi}{title_symbol_left}[{self.problem.question_frontend_id}] {self.problem.title}{title_symbol_right}"
-            diff_ansi, diff_symbol_left, diff_symbol_right = self.theme_manager.get_styling("PROBLEM_DESCRIPTION", difficulty.capitalize())
+            diff_ansi, diff_symbol_left, diff_symbol_right = (
+                self.theme_manager.get_styling(
+                    "PROBLEM_DESCRIPTION", difficulty.capitalize()
+                )
+            )
 
         except ThemeError as te:
             logger.error(f"Theming Error: {te}")
@@ -86,7 +98,11 @@ class ProblemFormatter:
         if not self.problem.constraints:
             return ""
         try:
-            constraints_ansi, constraints_symbol_left, constraints_symbol_right = self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "constraints_string")
+            constraints_ansi, constraints_symbol_left, constraints_symbol_right = (
+                self.theme_manager.get_styling(
+                    "PROBLEM_DESCRIPTION", "constraints_string"
+                )
+            )
 
         except ThemeError as te:
             logger.error(f"Theming Error: {te}")
@@ -103,42 +119,60 @@ class ProblemFormatter:
         if not tags:
             return ""
         try:
-            label_ansi, label_symbol_left, label_symbol_right = self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "tag_label")
+            label_ansi, label_symbol_left, label_symbol_right = (
+                self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "tag_label")
+            )
 
         except ThemeError as te:
             logger.error(f"Theming Error: {te}")
             raise te
 
-        out = [f"{label_ansi}{label_symbol_left}tags:{label_symbol_right}{self.ANSI_RESET}"]
+        out = [
+            f"{label_ansi}{label_symbol_left}tags:{label_symbol_right}{self.ANSI_RESET}"
+        ]
         for t in tags:
             try:
-                tag_ansi, tag_symbol_left, tag_symbol_right = self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "tag")
+                tag_ansi, tag_symbol_left, tag_symbol_right = (
+                    self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "tag")
+                )
 
             except ThemeError as te:
                 logger.error(f"Theming Error: {te}")
                 raise te
 
-            out.append(f"{tag_ansi}{tag_symbol_left}{t.lower()}{tag_symbol_right}{self.ANSI_RESET}")
+            out.append(
+                f"{tag_ansi}{tag_symbol_left}{t.lower()}{tag_symbol_right}{self.ANSI_RESET}"
+            )
 
         return " ".join(out)
 
     @property
     def languages(self) -> str:
-        langs = {sn['langSlug'] for sn in self.problem.code_snippets if sn.get('langSlug')}
+        langs = {
+            sn["langSlug"] for sn in self.problem.code_snippets if sn.get("langSlug")
+        }
         if not langs:
             return "No code snippets available."
 
         try:
-            label_ansi, label_symbol_left, label_symbol_right = self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "language_label")
-            lang_ansi, lang_symbol_left, lang_symbol_right = self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "language")
+            label_ansi, label_symbol_left, label_symbol_right = (
+                self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "language_label")
+            )
+            lang_ansi, lang_symbol_left, lang_symbol_right = (
+                self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "language")
+            )
 
         except ThemeError as te:
             logger.error(f"Theming Error: {te}")
             raise te
 
-        out = [f"{label_ansi}{label_symbol_left}langs:{label_symbol_right}{self.ANSI_RESET}"]
+        out = [
+            f"{label_ansi}{label_symbol_left}langs:{label_symbol_right}{self.ANSI_RESET}"
+        ]
         for lang in sorted(langs):
-            out.append(f"{lang_ansi}{lang_symbol_left}{lang}{lang_symbol_right}{self.ANSI_RESET}")
+            out.append(
+                f"{lang_ansi}{lang_symbol_left}{lang}{lang_symbol_right}{self.ANSI_RESET}"
+            )
 
         return " ".join(out)
 
@@ -156,28 +190,30 @@ class ProblemFormatter:
                 ansi_str += el
             elif isinstance(el, Tag):
                 # Handle <sup> tags by prefixing with caret (^)
-                if el.name == 'sup':
-                    ansi_str += '^'
+                if el.name == "sup":
+                    ansi_str += "^"
                     # Traverse the children without any additional styling
                     for child in el.children:
                         traverse(child)
                     return  # Skip further processing
 
                 # Handle <sub> tags by prefixing with underscore (_)
-                elif el.name == 'sub':
-                    ansi_str += '_'
+                elif el.name == "sub":
+                    ansi_str += "_"
                     # Traverse the children without any additional styling
                     for child in el.children:
                         traverse(child)
                     return  # Skip further processing
 
                 # Handle empty <p> tags containing only non-breaking spaces
-                if el.name == 'p' and el.get_text(strip=True) == '\xa0':
+                if el.name == "p" and el.get_text(strip=True) == "\xa0":
                     return  # Skip adding anything for this tag
 
                 # Get the styling for the current tag
                 try:
-                    ansi_code, symbol_left, symbol_right = self.theme_manager.get_styling("PROBLEM_DESCRIPTION", el.name)
+                    ansi_code, symbol_left, symbol_right = (
+                        self.theme_manager.get_styling("PROBLEM_DESCRIPTION", el.name)
+                    )
 
                 except ThemeError as te:
                     raise te
@@ -222,57 +258,105 @@ class ProblemFormatter:
         return ansi_str
 
     def _format_example(self, example: dict) -> str:
-        ex_title = example.get('title', 'Example')
+        ex_title = example.get("title", "Example")
 
         try:
-            ex_title_ansi, ex_title_symbol_left, ex_title_symbol_right = self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "example_title")
+            ex_title_ansi, ex_title_symbol_left, ex_title_symbol_right = (
+                self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "example_title")
+            )
 
         except ThemeError as te:
             logger.error(f"Theming Error: {te}")
             raise te
 
         lines = []
-        lines.append(f"{ex_title_ansi}{ex_title_symbol_left}{ex_title}{ex_title_symbol_right}{self.ANSI_RESET}\n")
+        lines.append(
+            f"{ex_title_ansi}{ex_title_symbol_left}{ex_title}{ex_title_symbol_right}{self.ANSI_RESET}\n"
+        )
 
         # Input
-        raw_input = ", ".join(example.get('input', []))
+        raw_input = ", ".join(example.get("input", []))
         input_str = self._html_to_ansi(raw_input)
         try:
-            ex_input_str_ansi, ex_input_symbol_left, ex_input_symbol_right = self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "example_input_string")
-            ex_input_data_ansi, ex_input_data_symbol_left, ex_input_data_symbol_right = self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "example_input_data")
+            ex_input_str_ansi, ex_input_symbol_left, ex_input_symbol_right = (
+                self.theme_manager.get_styling(
+                    "PROBLEM_DESCRIPTION", "example_input_string"
+                )
+            )
+            (
+                ex_input_data_ansi,
+                ex_input_data_symbol_left,
+                ex_input_data_symbol_right,
+            ) = self.theme_manager.get_styling(
+                "PROBLEM_DESCRIPTION", "example_input_data"
+            )
 
         except ThemeError as te:
             logger.error(f"Theming Error: {te}")
             raise te
 
         input_line = f"{ex_input_str_ansi}{ex_input_symbol_left}Input{ex_input_symbol_right}{self.ANSI_RESET}"
-        input_line += f"{ex_input_data_ansi}{ex_input_data_symbol_left}{input_str}{ex_input_data_symbol_right}{self.ANSI_RESET}".replace("\n", self.ANSI_RESET + "\n" + f"{ex_input_str_ansi}{ex_input_symbol_left}" + " " * (len(ex_input_symbol_right) +  5) + f"{self.ANSI_RESET}{ex_input_data_ansi}")
+        input_line += f"{ex_input_data_ansi}{ex_input_data_symbol_left}{input_str}{ex_input_data_symbol_right}{self.ANSI_RESET}".replace(
+            "\n",
+            self.ANSI_RESET
+            + "\n"
+            + f"{ex_input_str_ansi}{ex_input_symbol_left}"
+            + " " * (len(ex_input_symbol_right) + 5)
+            + f"{self.ANSI_RESET}{ex_input_data_ansi}",
+        )
 
         lines.append(input_line + "\n")
 
         # Output
-        raw_output = example.get('output', "")
+        raw_output = example.get("output", "")
         out_str = self._html_to_ansi(raw_output)
         try:
-            ex_output_str_ansi, ex_output_symbol_left, ex_output_symbol_right = self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "example_output_string")
-            ex_output_data_ansi, ex_output_data_symbol_left, ex_output_data_symbol_right = self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "example_output_data")
+            ex_output_str_ansi, ex_output_symbol_left, ex_output_symbol_right = (
+                self.theme_manager.get_styling(
+                    "PROBLEM_DESCRIPTION", "example_output_string"
+                )
+            )
+            (
+                ex_output_data_ansi,
+                ex_output_data_symbol_left,
+                ex_output_data_symbol_right,
+            ) = self.theme_manager.get_styling(
+                "PROBLEM_DESCRIPTION", "example_output_data"
+            )
 
         except ThemeError as te:
             logger.error(f"Theming Error: {te}")
             raise te
 
         output_line = f"{ex_output_str_ansi}{ex_output_symbol_left}Output{ex_output_symbol_right}{self.ANSI_RESET}"
-        output_line += f"{ex_output_data_ansi}{ex_output_data_symbol_left}{out_str}{ex_output_data_symbol_right}{self.ANSI_RESET}".replace("\n", self.ANSI_RESET + "\n" + f"{ex_output_str_ansi}{ex_output_symbol_left}" + " " * (len(ex_output_symbol_right) + 6) + f"{self.ANSI_RESET}{ex_output_data_ansi}")
+        output_line += f"{ex_output_data_ansi}{ex_output_data_symbol_left}{out_str}{ex_output_data_symbol_right}{self.ANSI_RESET}".replace(
+            "\n",
+            self.ANSI_RESET
+            + "\n"
+            + f"{ex_output_str_ansi}{ex_output_symbol_left}"
+            + " " * (len(ex_output_symbol_right) + 6)
+            + f"{self.ANSI_RESET}{ex_output_data_ansi}",
+        )
 
         lines.append(output_line + "\n")
-        
+
         # Explanation
-        explanation = example.get('explanation', "")
+        explanation = example.get("explanation", "")
         if explanation:
             expl_str = self._html_to_ansi(explanation)
             try:
-                ex_expl_str_ansi, ex_expl_symbol_left, ex_expl_symbol_right = self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "example_explanation_string")
-                ex_expl_data_ansi, ex_expl_data_symbol_left, ex_expl_data_symbol_right = self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "example_explanation_data")
+                ex_expl_str_ansi, ex_expl_symbol_left, ex_expl_symbol_right = (
+                    self.theme_manager.get_styling(
+                        "PROBLEM_DESCRIPTION", "example_explanation_string"
+                    )
+                )
+                (
+                    ex_expl_data_ansi,
+                    ex_expl_data_symbol_left,
+                    ex_expl_data_symbol_right,
+                ) = self.theme_manager.get_styling(
+                    "PROBLEM_DESCRIPTION", "example_explanation_data"
+                )
 
             except ThemeError as te:
                 logger.error(f"Theming Error: {te}")
@@ -280,7 +364,14 @@ class ProblemFormatter:
 
             # Replace newline characters with formatted ANSI reset and new lines with symbols
             explanation_line = f"{ex_expl_str_ansi}{ex_expl_symbol_left}Explanation{ex_expl_symbol_right}{self.ANSI_RESET}"
-            explanation_line += f"{ex_expl_data_ansi}{ex_expl_data_symbol_left}{expl_str}{ex_expl_data_symbol_right}{self.ANSI_RESET}".replace("\n", self.ANSI_RESET + "\n" + f"{ex_expl_str_ansi}{ex_output_symbol_left}" + " " * (len(ex_expl_symbol_right) + 11) + f"{self.ANSI_RESET}{ex_expl_data_ansi}")
+            explanation_line += f"{ex_expl_data_ansi}{ex_expl_data_symbol_left}{expl_str}{ex_expl_data_symbol_right}{self.ANSI_RESET}".replace(
+                "\n",
+                self.ANSI_RESET
+                + "\n"
+                + f"{ex_expl_str_ansi}{ex_output_symbol_left}"
+                + " " * (len(ex_expl_symbol_right) + 11)
+                + f"{self.ANSI_RESET}{ex_expl_data_ansi}",
+            )
 
             lines.append(explanation_line + "\n")
 

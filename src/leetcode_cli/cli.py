@@ -14,23 +14,24 @@ from leetcode_cli.commands.theme import theme_cmd
 
 from leetcode_cli.init_app_files import initialize_leetcode_cli
 
+
 class OrderedGroup(click.Group):
     def list_commands(self, ctx):
         """List commands in the order they were added."""
         return self.commands.keys()
 
+
 def configure_logging():
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
-        handlers=[
-            logging.StreamHandler()
-        ]
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        handlers=[logging.StreamHandler()],
     )
+
 
 @click.group(
     cls=OrderedGroup,
-    context_settings=dict(help_option_names=['-h', '--help'], max_content_width=200)
+    context_settings=dict(help_option_names=["-h", "--help"], max_content_width=200),
 )
 @click.pass_context
 def cli(ctx):
@@ -41,6 +42,7 @@ def cli(ctx):
     """
     if ctx.invoked_subcommand is None:
         click.echo(cli.get_help(ctx))
+
 
 cli.add_command(list_cmd, "list")
 cli.add_command(show_cmd, "show")
@@ -53,6 +55,7 @@ cli.add_command(config_cmd, "config")
 cli.add_command(theme_cmd, "theme")
 cli.add_command(download_problems_cmd, "download-problems")
 
+
 def main():
     configure_logging()
     # Optionally disable critical logs; up to you:
@@ -60,6 +63,7 @@ def main():
 
     initialize_leetcode_cli()
     cli()
+
 
 if __name__ == "__main__":
     main()

@@ -9,6 +9,7 @@ from leetcode_cli.models.theme import ThemeData
 
 logger = logging.getLogger(__name__)
 
+
 class ThemeManager:
     """
     Manages theme loading and retrieval of specific styling for each section/key.
@@ -29,7 +30,9 @@ class ThemeManager:
 
     def __init__(self, config_manager: ConfigManager):
         self.config_manager = config_manager
-        self.themes_dir = self.get_themes_dir()  # moved the helper call to a private function
+        self.themes_dir = (
+            self.get_themes_dir()
+        )  # moved the helper call to a private function
         self.theme_data: Optional[ThemeData] = None
 
     #
@@ -54,7 +57,8 @@ class ThemeManager:
             return []
 
         themes = [
-            d for d in os.listdir(self.themes_dir)
+            d
+            for d in os.listdir(self.themes_dir)
             if os.path.isdir(os.path.join(self.themes_dir, d))
         ]
 
@@ -73,7 +77,9 @@ class ThemeManager:
         """
         available_themes = self.list_themes()
         if theme_name not in available_themes:
-            logger.error(f"Theme '{theme_name}' does not exist. Available themes: {available_themes}")
+            logger.error(
+                f"Theme '{theme_name}' does not exist. Available themes: {available_themes}"
+            )
             return False
 
         self.config_manager.set_theme(theme_name)
@@ -96,16 +102,20 @@ class ThemeManager:
 
         # Validate mandatory top-level keys
         if "ANSI_CODES" not in ansi_data:
-            raise ThemeError(f"'ANSI_CODES' missing in ansi_codes.yaml for theme '{theme_name}'.")
+            raise ThemeError(
+                f"'ANSI_CODES' missing in ansi_codes.yaml for theme '{theme_name}'."
+            )
 
         if "SYMBOLS" not in symbols_data:
-            raise ThemeError(f"'SYMBOLS' missing in symbols.yaml for theme '{theme_name}'.")
+            raise ThemeError(
+                f"'SYMBOLS' missing in symbols.yaml for theme '{theme_name}'."
+            )
 
         # Merge the loaded data
         merged = {
             "ANSI_CODES": ansi_data["ANSI_CODES"],
             "SYMBOLS": symbols_data["SYMBOLS"],
-            **mappings_data
+            **mappings_data,
         }
         logger.debug(f"Theme data for '{theme_name}': {merged}")
 
@@ -116,7 +126,7 @@ class ThemeManager:
             SUBMISSION=merged.get("SUBMISSION", {}),
             PROBLEMSET=merged.get("PROBLEMSET", {}),
             PROBLEM_DESCRIPTION=merged.get("PROBLEM_DESCRIPTION", {}),
-            STATS_FORMATTER=merged.get("STATS_FORMATTER", {})
+            STATS_FORMATTER=merged.get("STATS_FORMATTER", {}),
         )
         return self.theme_data
 
@@ -152,7 +162,6 @@ class ThemeManager:
     # ──────────────────────────────────────────────────────
     #
 
-
     def _parse_ansi_codes(self, ansi_field: str) -> str:
         """
         Convert "green,bold" -> combined ANSI codes from self.theme_data.ANSI_CODES.
@@ -161,7 +170,7 @@ class ThemeManager:
         if not ansi_field:
             return ""
 
-        codes = ansi_field.split(',')
+        codes = ansi_field.split(",")
         final = ""
         for code_key in codes:
             code_key = code_key.strip().lower()
@@ -182,7 +191,7 @@ class ThemeManager:
         if not symbol_field:
             return ""
 
-        parts = symbol_field.split(',')
+        parts = symbol_field.split(",")
         final = ""
         for p in parts:
             p = p.strip().lower()
@@ -207,8 +216,12 @@ class ThemeManager:
             with open(file_path, "r", encoding="utf-8") as f:
                 data = yaml.safe_load(f)
                 if not isinstance(data, dict):
-                    raise ThemeError(f"File '{filename}' for theme '{theme_name}' is not a valid dictionary.")
+                    raise ThemeError(
+                        f"File '{filename}' for theme '{theme_name}' is not a valid dictionary."
+                    )
                 return data
 
         except yaml.YAMLError as e:
-            raise ThemeError(f"YAML error in '{filename}' for theme '{theme_name}': {e}")
+            raise ThemeError(
+                f"YAML error in '{filename}' for theme '{theme_name}': {e}"
+            )

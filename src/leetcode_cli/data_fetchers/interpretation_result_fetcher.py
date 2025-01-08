@@ -3,6 +3,7 @@ import time
 from typing import Dict
 from leetcode_cli.exceptions.exceptions import FetchingError
 
+
 def fetch_interpretation_result(
     cookie: str,
     csrf_token: str,
@@ -10,7 +11,7 @@ def fetch_interpretation_result(
     code: str,
     language: str,
     testcases: str,
-    question_id: int
+    question_id: int,
 ) -> Dict:
     """
     Fetch the 'Run Code' / interpretation result from LeetCode for a given problem.
@@ -57,12 +58,14 @@ def fetch_interpretation_result(
     except ValueError:
         raise FetchingError("Invalid response format from LeetCode.")
 
-    interpret_id = submission.get('interpret_id')
+    interpret_id = submission.get("interpret_id")
     if not interpret_id:
         raise FetchingError("Interpretation ID not received.")
 
     # Check interpretation status until complete
-    check_submission_url = f"https://leetcode.com/submissions/detail/{interpret_id}/check/"
+    check_submission_url = (
+        f"https://leetcode.com/submissions/detail/{interpret_id}/check/"
+    )
     while True:
         try:
             r = requests.get(check_submission_url, headers=headers)
@@ -75,7 +78,7 @@ def fetch_interpretation_result(
         except ValueError:
             raise FetchingError("Invalid response format.")
 
-        if result.get('state') == "SUCCESS":
+        if result.get("state") == "SUCCESS":
             return result
 
         time.sleep(0.10)

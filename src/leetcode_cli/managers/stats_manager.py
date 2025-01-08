@@ -10,16 +10,17 @@ from leetcode_cli.managers.config_manager import ConfigManager
 from leetcode_cli.exceptions.exceptions import FetchingError, StatsError, ParsingError
 from leetcode_cli.parsers.stats_data_parser import (
     parse_user_stats_data,
-    parse_single_year_calendar
+    parse_single_year_calendar,
 )
 from leetcode_cli.models.stats import UserStatsModel, UserActivityModel
 
 from leetcode_cli.data_fetchers.stats_data_fetcher import (
     fetch_user_stats,
-    fetch_user_activity
+    fetch_user_activity,
 )
 
 logger = logging.getLogger(__name__)
+
 
 class StatsManager:
     """
@@ -48,7 +49,9 @@ class StatsManager:
             logger.error(f"Failed to get_user_stats: {e}")
             raise StatsError(str(e))
 
-    def get_joined_activity(self, username: str, prev_year: int, curr_year: int) -> UserActivityModel:
+    def get_joined_activity(
+        self, username: str, prev_year: int, curr_year: int
+    ) -> UserActivityModel:
         """
         Fetch raw calendar data for two years, parse them, then join + slice + fill to produce a final UserActivityModel.
         """
@@ -87,19 +90,19 @@ class StatsManager:
 
         today_utc = datetime.utcnow().date()
         start_date = today_utc - timedelta(days=365)
-        start_dt = datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc)
+        start_dt = datetime.combine(
+            start_date, datetime.min.time(), tzinfo=timezone.utc
+        )
         end_dt = datetime.combine(today_utc, datetime.min.time(), tzinfo=timezone.utc)
 
         start_ts = int(start_dt.timestamp())
         end_ts = int(end_dt.timestamp())
 
         # slice
-        sliced = {
-            ts: cnt
-            for ts, cnt in merged.items()
-            if start_ts <= ts < end_ts
-        }
-        logger.debug(f"Sliced calendar data from {start_date} to {today_utc}, total {len(sliced)} days.")
+        sliced = {ts: cnt for ts, cnt in merged.items() if start_ts <= ts < end_ts}
+        logger.debug(
+            f"Sliced calendar data from {start_date} to {today_utc}, total {len(sliced)} days."
+        )
         return sliced
 
     def _fill_daily_activity(self, daily_activity: Dict[int, int]) -> Dict[int, int]:
@@ -110,7 +113,9 @@ class StatsManager:
         today_utc = datetime.utcnow().date()
         start_date = today_utc - timedelta(days=365)
 
-        start_dt = datetime.combine(start_date, datetime.min.time(), tzinfo=timezone.utc)
+        start_dt = datetime.combine(
+            start_date, datetime.min.time(), tzinfo=timezone.utc
+        )
         end_dt = datetime.combine(today_utc, datetime.min.time(), tzinfo=timezone.utc)
 
         current = start_dt
@@ -119,5 +124,7 @@ class StatsManager:
             filled[ts] = daily_activity.get(ts, 0)
             current += timedelta(days=1)
 
-        logger.debug(f"Filled missing days from {start_date} to {today_utc}, total {len(filled)} days.")
+        logger.debug(
+            f"Filled missing days from {start_date} to {today_utc}, total {len(filled)} days."
+        )
         return filled

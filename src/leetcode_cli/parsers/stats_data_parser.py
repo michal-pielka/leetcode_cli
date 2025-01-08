@@ -7,6 +7,7 @@ from leetcode_cli.exceptions.exceptions import ParsingError
 
 logger = logging.getLogger(__name__)
 
+
 def parse_user_stats_data(json_data: Dict[str, Any]) -> UserStatsModel:
     """
     Parse the raw stats JSON into a UserStatsModel (accepted/failed/untouched).
@@ -43,12 +44,15 @@ def parse_single_year_calendar(json_data: Dict[str, Any]) -> Dict[int, int]:
     """
     try:
         matched = json_data["data"]["matchedUser"]
-        calendar_str = matched["userCalendar"]["submissionCalendar"]  # e.g. "{\"1620000000\":1, ...}"
+        calendar_str = matched["userCalendar"][
+            "submissionCalendar"
+        ]  # e.g. "{\"1620000000\":1, ...}"
     except (KeyError, TypeError) as e:
         logger.error(f"Missing or invalid calendar data: {e}")
         raise ParsingError(f"Missing or invalid calendar data: {e}")
 
     import json
+
     try:
         calendar_dict = json.loads(calendar_str)  # { "1620000000": 1, ...}
         # Convert keys to int

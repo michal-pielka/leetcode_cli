@@ -9,27 +9,39 @@ from leetcode_cli.managers.formatting_config_manager import FormattingConfigMana
 from leetcode_cli.managers.theme_manager import ThemeManager
 from leetcode_cli.managers.problemset_manager import ProblemSetManager
 
-from leetcode_cli.formatters.interpretation_result_formatter import InterpretationFormatter
-from leetcode_cli.exceptions.exceptions import ConfigError, CodeError, ProblemError, ThemeError
+from leetcode_cli.formatters.interpretation_result_formatter import (
+    InterpretationFormatter,
+)
+from leetcode_cli.exceptions.exceptions import (
+    ConfigError,
+    CodeError,
+    ProblemError,
+    ThemeError,
+)
 
 logger = logging.getLogger(__name__)
 
-@click.command(short_help='Test a solution file')
-@click.argument('file_path', required=True, type=click.Path(exists=True))
+
+@click.command(short_help="Test a solution file")
+@click.argument("file_path", required=True, type=click.Path(exists=True))
 @click.option(
-    '--include', '-i',
+    "--include",
+    "-i",
     multiple=True,
-    type=click.Choice([
-        "language",
-        "testcases",
-        "expected_output",
-        "code_output",
-        "stdout",
-        "error_messages",
-        "detailed_error_messages",
-    ], case_sensitive=False),
-    metavar='SECTION',
-    help='Sections to display. Overrides formatting_config.'
+    type=click.Choice(
+        [
+            "language",
+            "testcases",
+            "expected_output",
+            "code_output",
+            "stdout",
+            "error_messages",
+            "detailed_error_messages",
+        ],
+        case_sensitive=False,
+    ),
+    metavar="SECTION",
+    help="Sections to display. Overrides formatting_config.",
 )
 def test_cmd(file_path, include):
     """
@@ -41,7 +53,9 @@ def test_cmd(file_path, include):
         auth_service = AuthService(config_manager)
         code_manager = CodeManager(config_manager)
         problemset_manager = ProblemSetManager(config_manager, auth_service)
-        problem_manager = ProblemManager(config_manager, auth_service, problemset_manager)
+        problem_manager = ProblemManager(
+            config_manager, auth_service, problemset_manager
+        )
         formatting_config_manager = FormattingConfigManager(config_manager)
         theme_manager = ThemeManager(config_manager)
 
@@ -70,7 +84,9 @@ def test_cmd(file_path, include):
                     format_conf["show_detailed_error_messages"] = True
 
         # 4) Parse local file => question_id, slug, extension
-        _, title_slug, file_extension = problem_manager.problem_data_from_path(file_path)
+        _, title_slug, file_extension = problem_manager.problem_data_from_path(
+            file_path
+        )
 
         # 5) Read code
         code = code_manager.read_code_from_file(file_path)
@@ -86,7 +102,7 @@ def test_cmd(file_path, include):
             title_slug=title_slug,
             code=code,
             lang_slug=lang_slug,
-            testcases=testcases_str
+            testcases=testcases_str,
         )
 
         # 9) Format
@@ -94,7 +110,7 @@ def test_cmd(file_path, include):
             interpretation_res,
             testcases_str,  # pass as a single string
             format_conf,
-            theme_manager
+            theme_manager,
         )
         output_str = formatter.get_formatted_interpretation()
 
@@ -107,4 +123,4 @@ def test_cmd(file_path, include):
 
     except Exception as e:
         logger.exception("Unexpected error in test_cmd.")
-        click.echo("An unexpected error occurred.", err=True)
+        click.echo(f"An unexpected error occurred: {e}", err=True)

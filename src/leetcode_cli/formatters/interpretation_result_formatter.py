@@ -20,7 +20,7 @@ class InterpretationFormatter:
         result: InterpretationResult,
         testcases_str: str,
         format_conf: dict,
-        theme_manager: ThemeManager
+        theme_manager: ThemeManager,
     ):
         self.result = result
         self.testcases_str = testcases_str
@@ -28,7 +28,7 @@ class InterpretationFormatter:
         self.theme_manager = theme_manager
         self.theme_data = theme_manager.load_theme_data()
 
-        self.ANSI_RESET = "\033[0m"       # Reset all styles
+        self.ANSI_RESET = "\033[0m"  # Reset all styles
 
     def get_formatted_interpretation(self) -> str:
         status_code = self.result.status_code
@@ -46,7 +46,9 @@ class InterpretationFormatter:
 
         # Split testcases; each group of lines is one testcase's inputs
         testcases_split = self.testcases_str.split("\n") if self.testcases_str else []
-        parameters_in_testcase = len(testcases_split) // total_testcases if total_testcases > 0 else 1
+        parameters_in_testcase = (
+            len(testcases_split) // total_testcases if total_testcases > 0 else 1
+        )
 
         expected_outputs = self.result.expected_code_answer or []
         code_outputs = self.result.code_answer or []
@@ -88,22 +90,30 @@ class InterpretationFormatter:
 
             # Retrieve style codes for the status
             try:
-                s_ansi, s_left, s_right = self.theme_manager.get_styling("INTERPRETATION", status_key)
+                s_ansi, s_left, s_right = self.theme_manager.get_styling(
+                    "INTERPRETATION", status_key
+                )
             except ThemeError as te:
                 raise te
 
             # Print the status line, e.g. "  ✘ Wrong Answer"
-            parsed_result += f"\n  {s_ansi}{s_left}{status_key}{s_right}{self.ANSI_RESET}\n"
+            parsed_result += (
+                f"\n  {s_ansi}{s_left}{status_key}{s_right}{self.ANSI_RESET}\n"
+            )
 
             # Show fields
             if show_language:
                 parsed_result += self._format_label_value("Language", lang)
 
             if show_testcases and testcase_lines:
-                parsed_result += self._format_label_value("Testcase", ", ".join(testcase_lines))
+                parsed_result += self._format_label_value(
+                    "Testcase", ", ".join(testcase_lines)
+                )
 
             if show_expected_output:
-                parsed_result += self._format_label_value("Expected Output", expected_out)
+                parsed_result += self._format_label_value(
+                    "Expected Output", expected_out
+                )
 
             if show_code_output and code_out:
                 parsed_result += self._format_label_value("Your Output", code_out)
@@ -113,15 +123,23 @@ class InterpretationFormatter:
 
             if show_errors:
                 if runtime_error:
-                    parsed_result += self._format_label_value("Error Message", runtime_error)
+                    parsed_result += self._format_label_value(
+                        "Error Message", runtime_error
+                    )
                 if compile_error:
-                    parsed_result += self._format_label_value("Error Message", compile_error)
+                    parsed_result += self._format_label_value(
+                        "Error Message", compile_error
+                    )
 
             if detailed_errors:
                 if full_runtime_error:
-                    parsed_result += self._format_label_value("Detailed Error", full_runtime_error)
+                    parsed_result += self._format_label_value(
+                        "Detailed Error", full_runtime_error
+                    )
                 if full_compile_error:
-                    parsed_result += self._format_label_value("Detailed Error", full_compile_error)
+                    parsed_result += self._format_label_value(
+                        "Detailed Error", full_compile_error
+                    )
 
         return parsed_result
 
@@ -158,7 +176,9 @@ class InterpretationFormatter:
         We left-justify label in a fixed-width area so columns align nicely.
         """
         try:
-            ansi_code, sym_left, sym_right = self.theme_manager.get_styling("INTERPRETATION", "field_label")
+            ansi_code, sym_left, sym_right = self.theme_manager.get_styling(
+                "INTERPRETATION", "field_label"
+            )
         except ThemeError as te:
             logger.error(f"Theming Error: {te}")
             raise te
@@ -174,7 +194,9 @@ class InterpretationFormatter:
         Formats the field value using 'field_value' from INTERPRETATION.
         """
         try:
-            ansi_code, sym_left, sym_right = self.theme_manager.get_styling("INTERPRETATION", "field_value")
+            ansi_code, sym_left, sym_right = self.theme_manager.get_styling(
+                "INTERPRETATION", "field_value"
+            )
         except ThemeError as te:
             logger.error(f"Theming Error: {te}")
             raise te

@@ -2,7 +2,11 @@ import logging
 from datetime import datetime, timedelta, timezone
 from leetcode_cli.models.stats import UserStatsModel, UserActivityModel
 from leetcode_cli.constants.stats_constants import (
-    RECTANGLES_TOTAL, MONTH_SEPARATION, DIFFICULTIES, COLUMNS, MONTH_NAMES
+    RECTANGLES_TOTAL,
+    MONTH_SEPARATION,
+    DIFFICULTIES,
+    COLUMNS,
+    MONTH_NAMES,
 )
 from leetcode_cli.managers.theme_manager import ThemeManager
 from leetcode_cli.exceptions.exceptions import ThemeError
@@ -14,11 +18,12 @@ class StatsFormatter:
     """
     Formats user stats (counts per difficulty) and activity calendar.
     """
+
     def __init__(self, theme_manager: ThemeManager):
         self.theme_manager = theme_manager
         self.theme_data = theme_manager.load_theme_data()
 
-        self.ANSI_RESET = "\033[0m"       # Reset all styles
+        self.ANSI_RESET = "\033[0m"  # Reset all styles
 
     def format_user_stats(self, stats: UserStatsModel) -> str:
         lines = []
@@ -34,15 +39,33 @@ class StatsFormatter:
 
             try:
                 # Get symbols
-                filled_ansi, filled_symbol_left, filled_symbol_right = self.theme_manager.get_styling('STATS_FORMATTER', 'filled_square')
-                empty_ansi, empty_symbol_left, empty_symbol_right = self.theme_manager.get_styling('STATS_FORMATTER', 'empty_square')
+                filled_ansi, filled_symbol_left, filled_symbol_right = (
+                    self.theme_manager.get_styling("STATS_FORMATTER", "filled_square")
+                )
+                empty_ansi, empty_symbol_left, empty_symbol_right = (
+                    self.theme_manager.get_styling("STATS_FORMATTER", "empty_square")
+                )
 
                 # ANSI color for the difficulty
-                diff_ansi, diff_symbol_left, diff_symbol_right = self.theme_manager.get_styling('STATS_FORMATTER', difficulty.upper())
+                diff_ansi, diff_symbol_left, diff_symbol_right = (
+                    self.theme_manager.get_styling(
+                        "STATS_FORMATTER", difficulty.upper()
+                    )
+                )
 
                 # Build the bar with each symbol wrapped
-                filled_bar = ''.join([f"{diff_ansi}{filled_symbol_left}{filled_symbol_right}{self.ANSI_RESET}" for _ in range(filled)])
-                empty_bar = ''.join([f"{diff_ansi}{empty_symbol_left}{empty_symbol_right}{self.ANSI_RESET}" for _ in range(RECTANGLES_TOTAL - filled)])
+                filled_bar = "".join(
+                    [
+                        f"{diff_ansi}{filled_symbol_left}{filled_symbol_right}{self.ANSI_RESET}"
+                        for _ in range(filled)
+                    ]
+                )
+                empty_bar = "".join(
+                    [
+                        f"{diff_ansi}{empty_symbol_left}{empty_symbol_right}{self.ANSI_RESET}"
+                        for _ in range(RECTANGLES_TOTAL - filled)
+                    ]
+                )
                 bar = filled_bar + empty_bar
 
                 # Combine all parts with proper styling
@@ -59,7 +82,7 @@ class StatsFormatter:
         if not daily_activity:
             return "No activity data."
 
-        output = [[' ' for _ in range(COLUMNS)] for _ in range(7)]
+        output = [[" " for _ in range(COLUMNS)] for _ in range(7)]
         date_counts = {}
         for ts, count in daily_activity.items():
             try:
@@ -89,17 +112,31 @@ class StatsFormatter:
                 try:
                     # Determine tier based on submissions
                     tier = self._determine_tier(subs, min_sub, max_sub)
-                    color, symbol_left, symbol_right = self.theme_manager.get_styling('STATS_FORMATTER', tier)
-                    symbol = self.theme_manager.get_styling('STATS_FORMATTER', 'filled_square')[1]
-                    output[weekday][week_index] = f"{color}{symbol_left}{symbol}{symbol_right}{self.ANSI_RESET}"
+                    color, symbol_left, symbol_right = self.theme_manager.get_styling(
+                        "STATS_FORMATTER", tier
+                    )
+                    symbol = self.theme_manager.get_styling(
+                        "STATS_FORMATTER", "filled_square"
+                    )[1]
+                    output[weekday][
+                        week_index
+                    ] = f"{color}{symbol_left}{symbol}{symbol_right}{self.ANSI_RESET}"
                 except ThemeError as te:
                     logger.error(f"Theming Error: {te}")
                     raise te
             else:
                 try:
-                    tier0_ansi, tier0_symbol_left, tier0_symbol_right = self.theme_manager.get_styling('STATS_FORMATTER', 'CALENDAR_TIER0')
-                    symbol = self.theme_manager.get_styling('STATS_FORMATTER', 'empty_square')[1]
-                    output[weekday][week_index] = f"{tier0_ansi}{tier0_symbol_left}{symbol}{tier0_symbol_right}{self.ANSI_RESET}"
+                    tier0_ansi, tier0_symbol_left, tier0_symbol_right = (
+                        self.theme_manager.get_styling(
+                            "STATS_FORMATTER", "CALENDAR_TIER0"
+                        )
+                    )
+                    symbol = self.theme_manager.get_styling(
+                        "STATS_FORMATTER", "empty_square"
+                    )[1]
+                    output[weekday][
+                        week_index
+                    ] = f"{tier0_ansi}{tier0_symbol_left}{symbol}{tier0_symbol_right}{self.ANSI_RESET}"
                 except ThemeError as te:
                     logger.error(f"Theming Error: {te}")
                     raise te
@@ -113,7 +150,7 @@ class StatsFormatter:
                 weekday += 1
 
         # Mark months
-        output_months = [' ' for _ in range(COLUMNS)]
+        output_months = [" " for _ in range(COLUMNS)]
         months_starts = []
         week_index = 3
         weekday = all_dates[0].weekday()
@@ -134,8 +171,8 @@ class StatsFormatter:
                 if 0 <= tgt < COLUMNS:
                     output_months[tgt] = char
 
-        months_parsed = ''.join(output_months)
-        cal_parsed = '\n'.join(''.join(row) for row in output)
+        months_parsed = "".join(output_months)
+        cal_parsed = "\n".join("".join(row) for row in output)
         return f"{months_parsed}\n{cal_parsed}"
 
     def _determine_tier(self, subs: int, min_sub: int, max_sub: int) -> str:

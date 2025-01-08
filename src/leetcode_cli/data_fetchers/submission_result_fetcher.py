@@ -3,13 +3,14 @@ import time
 from typing import Dict
 from leetcode_cli.exceptions.exceptions import FetchingError
 
+
 def fetch_submission_result(
     cookie: str,
     csrf_token: str,
     title_slug: str,
     code: str,
     language: str,
-    question_id: int
+    question_id: int,
 ) -> Dict:
     """
     Fetches the final submission result from LeetCode (i.e., the "Submit" action).
@@ -54,12 +55,14 @@ def fetch_submission_result(
     except ValueError:
         raise FetchingError("Invalid response format from LeetCode.")
 
-    submission_id = submission.get('submission_id')
+    submission_id = submission.get("submission_id")
     if not submission_id:
         raise FetchingError("Submission ID not received.")
 
     # Poll for final status
-    check_submission_url = f"https://leetcode.com/submissions/detail/{submission_id}/check/"
+    check_submission_url = (
+        f"https://leetcode.com/submissions/detail/{submission_id}/check/"
+    )
     while True:
         try:
             r = requests.get(check_submission_url, headers=headers)
@@ -72,7 +75,7 @@ def fetch_submission_result(
         except ValueError:
             raise FetchingError("Invalid response format.")
 
-        if result.get('state') == "SUCCESS":
+        if result.get("state") == "SUCCESS":
             return result
 
         time.sleep(0.10)

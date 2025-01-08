@@ -12,13 +12,21 @@ from leetcode_cli.models.problem import Problem
 
 # Import fetchers + parsers needed
 from leetcode_cli.data_fetchers.problem_data_fetcher import (
-    fetch_problem_data, fetch_random_title_slug, fetch_problem_testcases, fetch_problem_id, fetch_problem_frontend_id
+    fetch_problem_data,
+    fetch_random_title_slug,
+    fetch_problem_testcases,
+    fetch_problem_id,
+    fetch_problem_frontend_id,
 )
-from leetcode_cli.data_fetchers.interpretation_result_fetcher import fetch_interpretation_result
+from leetcode_cli.data_fetchers.interpretation_result_fetcher import (
+    fetch_interpretation_result,
+)
 from leetcode_cli.data_fetchers.submission_result_fetcher import fetch_submission_result
 
 from leetcode_cli.parsers.problem_data_parser import parse_problem_data
-from leetcode_cli.parsers.interpretation_result_parser import parse_interpretation_result
+from leetcode_cli.parsers.interpretation_result_parser import (
+    parse_interpretation_result,
+)
 from leetcode_cli.parsers.submission_result_parser import parse_submission_result
 
 logger = logging.getLogger(__name__)
@@ -35,7 +43,12 @@ class ProblemManager:
       - If metadata is empty or no matching data found, fallback to network.
     """
 
-    def __init__(self, config_manager: ConfigManager, auth_service: AuthService, problemset_manager: ProblemSetManager):
+    def __init__(
+        self,
+        config_manager: ConfigManager,
+        auth_service: AuthService,
+        problemset_manager: ProblemSetManager,
+    ):
         self.config_manager = config_manager
         self.auth_service = auth_service
         self.problemset_manager = problemset_manager
@@ -65,7 +78,9 @@ class ProblemManager:
 
         return problem_obj
 
-    def get_random_problem(self, difficulty: Optional[str] = None, tags: Optional[List[str]] = None) -> Problem:
+    def get_random_problem(
+        self, difficulty: Optional[str] = None, tags: Optional[List[str]] = None
+    ) -> Problem:
         """
         Fetch a random problem slug, parse the resulting problem,
         and return a Problem object.
@@ -73,11 +88,17 @@ class ProblemManager:
         1) Try picking a random local problem that matches difficulty/tags.
         2) If no local match or metadata empty, fallback to network.
         """
-        title_slug = self.problemset_manager.get_random_local_problem_slug(difficulty, tags)
+        title_slug = self.problemset_manager.get_random_local_problem_slug(
+            difficulty, tags
+        )
 
         if not title_slug:
             slug_from_net = fetch_random_title_slug(difficulty=difficulty, tags=tags)
-            title_slug = slug_from_net.get("data", {}).get("randomQuestion", {}).get("titleSlug", "")
+            title_slug = (
+                slug_from_net.get("data", {})
+                .get("randomQuestion", {})
+                .get("titleSlug", "")
+            )
 
         if not title_slug:
             raise FetchingError("No random problem found with those filters.")
@@ -103,7 +124,9 @@ class ProblemManager:
         frontend_id = raw.get("data", {}).get("question", {}).get("questionFrontendId")
 
         if not frontend_id:
-            raise FetchingError(f"Unable to find frontend question ID for slug: '{title_slug}'")
+            raise FetchingError(
+                f"Unable to find frontend question ID for slug: '{title_slug}'"
+            )
 
         return int(frontend_id)
 
@@ -134,10 +157,14 @@ class ProblemManager:
         title_slug = self._try_local_slug_by_frontend_id(frontend_id)
 
         if title_slug:
-            logger.debug(f"Title slug for ID '{frontend_id}' is '{title_slug}' (from local).")
+            logger.debug(
+                f"Title slug for ID '{frontend_id}' is '{title_slug}' (from local)."
+            )
             return title_slug
 
-        raise ProblemError(f"Title slug for frontend ID '{frontend_id}' not found in local metadata.")
+        raise ProblemError(
+            f"Title slug for frontend ID '{frontend_id}' not found in local metadata."
+        )
 
     def get_interpretation_result(
         self, title_slug: str, code: str, lang_slug: str, testcases: str
@@ -152,13 +179,11 @@ class ProblemManager:
             code=code,
             language=lang_slug,
             testcases=testcases,
-            question_id=self.get_problem_id(title_slug)
+            question_id=self.get_problem_id(title_slug),
         )
         return parse_interpretation_result(raw)
 
-    def get_submission_result(
-        self, title_slug: str, code: str, lang_slug: str
-    ):
+    def get_submission_result(self, title_slug: str, code: str, lang_slug: str):
         """
         Return a fully parsed SubmissionResult for the final 'submit' action.
         """
@@ -178,7 +203,7 @@ class ProblemManager:
         """
         try:
             data = fetch_problem_testcases(title_slug)
-            return data.get('data', {}).get('question', {}).get('exampleTestcases', "")
+            return data.get("data", {}).get("question", {}).get("exampleTestcases", "")
 
         except FetchingError as fe:
             logger.error(f"Could not fetch example testcases: {fe}")
@@ -191,12 +216,17 @@ class ProblemManager:
         Raises ProblemError if format is invalid.
         """
         import os
+
         filename = os.path.basename(filepath)
-        parts = filename.split('.')
+        parts = filename.split(".")
 
         if len(parts) != 3:
-            logger.error("Invalid filepath format. Expected {question_id}.{title_slug}.{file_extension}.")
-            raise ProblemError("Invalid filepath format. Expected {question_id}.{title_slug}.{file_extension}.")
+            logger.error(
+                "Invalid filepath format. Expected {question_id}.{title_slug}.{file_extension}."
+            )
+            raise ProblemError(
+                "Invalid filepath format. Expected {question_id}.{title_slug}.{file_extension}."
+            )
 
         return parts[0], parts[1], parts[2]
 
@@ -211,7 +241,9 @@ class ProblemManager:
         Attempt to find front-end ID by searching local metadata.
         If not found, return None.
         """
-        problem = self.problemset_manager.get_problem_by_key_value(key="titleSlug", value=title_slug)
+        problem = self.problemset_manager.get_problem_by_key_value(
+            key="titleSlug", value=title_slug
+        )
 
         if not problem:
             return ""
@@ -223,19 +255,23 @@ class ProblemManager:
         Attempt to find front-end ID by searching local metadata.
         If not found, return None.
         """
-        problem = self.problemset_manager.get_problem_by_key_value(key="titleSlug", value=title_slug)
+        problem = self.problemset_manager.get_problem_by_key_value(
+            key="titleSlug", value=title_slug
+        )
 
         if not problem:
             return ""
 
         return problem.get("questionId", "")
-    
+
     def _try_local_slug_by_frontend_id(self, frontend_id: str) -> str:
         """
         Attempt to find front-end ID by searching local metadata.
         If not found, return None.
         """
-        problem = self.problemset_manager.get_problem_by_key_value(key="frontendQuestionId", value=frontend_id)
+        problem = self.problemset_manager.get_problem_by_key_value(
+            key="frontendQuestionId", value=frontend_id
+        )
 
         if not problem:
             return ""

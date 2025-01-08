@@ -5,33 +5,39 @@ from leetcode_cli.exceptions.exceptions import FetchingError
 
 logger = logging.getLogger(__name__)
 
+
 def fetch_problem_testcases(title_slug):
-    query = GRAPHQL_QUERIES['problem_testcases']
+    query = GRAPHQL_QUERIES["problem_testcases"]
     payload = {
         "query": query,
         "variables": {"titleSlug": title_slug},
-        "operationName": "questionData"
+        "operationName": "questionData",
     }
 
     try:
         response = requests.post(GRAPHQL_URL, json=payload)
         response.raise_for_status()
         result = response.json()
-        
+
     except requests.RequestException as e:
-        raise FetchingError(f"Network error while fetching testcases for {title_slug}: {e}")
+        raise FetchingError(
+            f"Network error while fetching testcases for {title_slug}: {e}"
+        )
 
     except ValueError:
-        raise FetchingError("Failed to parse JSON response while fetching problem testcases.")
+        raise FetchingError(
+            "Failed to parse JSON response while fetching problem testcases."
+        )
 
     return result
+
 
 def fetch_problem_id(title_slug):
     query = GRAPHQL_QUERIES["problem_id"]
     payload = {
         "query": query,
         "variables": {"titleSlug": title_slug},
-        "operationName": "questionDetail"
+        "operationName": "questionDetail",
     }
 
     try:
@@ -40,19 +46,22 @@ def fetch_problem_id(title_slug):
         result = response.json()
 
     except requests.RequestException as e:
-        raise FetchingError(f"Network error while fetching problem ID for {title_slug}: {e}")
+        raise FetchingError(
+            f"Network error while fetching problem ID for {title_slug}: {e}"
+        )
 
     except ValueError:
         raise FetchingError("Failed to parse JSON response while fetching problem ID.")
 
     return result
+
 
 def fetch_problem_frontend_id(title_slug):
     query = GRAPHQL_QUERIES["problem_frontend_id"]
     payload = {
         "query": query,
         "variables": {"titleSlug": title_slug},
-        "operationName": "questionDetail"
+        "operationName": "questionDetail",
     }
 
     try:
@@ -61,22 +70,22 @@ def fetch_problem_frontend_id(title_slug):
         result = response.json()
 
     except requests.RequestException as e:
-        raise FetchingError(f"Network error while fetching problem ID for {title_slug}: {e}")
+        raise FetchingError(
+            f"Network error while fetching problem ID for {title_slug}: {e}"
+        )
 
     except ValueError:
         raise FetchingError("Failed to parse JSON response while fetching problem ID.")
 
     return result
 
+
 def fetch_random_title_slug(difficulty, tags):
     query = GRAPHQL_QUERIES["random_title_slug"]
     payload = {
         "query": query,
-        "variables": {
-            "categorySlug": "all-code-essentials",
-            "filters": {}
-        },
-        "operationName": "randomQuestion"
+        "variables": {"categorySlug": "all-code-essentials", "filters": {}},
+        "operationName": "randomQuestion",
     }
 
     if difficulty:
@@ -94,16 +103,19 @@ def fetch_random_title_slug(difficulty, tags):
         raise FetchingError(f"Netword error while fetching random title slug: {e}")
 
     except ValueError:
-        raise FetchingError("Failed to parse JSON response while fetching random title slug.")
+        raise FetchingError(
+            "Failed to parse JSON response while fetching random title slug."
+        )
 
     return result
+
 
 def fetch_problem_data(title_slug):
     query = GRAPHQL_QUERIES["problem_detail"]
     payload = {
         "query": query,
         "variables": {"titleSlug": title_slug},
-        "operationName": "questionDetail"
+        "operationName": "questionDetail",
     }
 
     try:
@@ -112,9 +124,13 @@ def fetch_problem_data(title_slug):
         result = response.json()
 
     except requests.RequestException as e:
-        raise FetchingError(f"Network error while fetching problem data for {title_slug}: {e}")
+        raise FetchingError(
+            f"Network error while fetching problem data for {title_slug}: {e}"
+        )
 
     except ValueError:
-        raise FetchingError("Failed to parse JSON response while fetching problem data.")
+        raise FetchingError(
+            "Failed to parse JSON response while fetching problem data."
+        )
 
     return result

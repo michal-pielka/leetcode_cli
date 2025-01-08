@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List, Optional
 
+
 @dataclass
 class ProblemSummary:
     ac_rate: float
@@ -13,8 +14,8 @@ class ProblemSummary:
     title: str
     title_slug: str
 
+
 @dataclass
 class ProblemSet:
     total: int
     questions: List[ProblemSummary] = field(default_factory=list)
-

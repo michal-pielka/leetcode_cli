@@ -11,35 +11,44 @@ from leetcode_cli.exceptions.exceptions import ProblemSetError, ThemeError, Conf
 
 logger = logging.getLogger(__name__)
 
-@click.command(short_help='List LeetCode problems with optional filters')
+
+@click.command(short_help="List LeetCode problems with optional filters")
 @click.option(
-    '--difficulty', '-d',
+    "--difficulty",
+    "-d",
     type=click.Choice(["EASY", "MEDIUM", "HARD"], case_sensitive=False),
-    metavar='DIFFICULTY',
-    help='Filter by difficulty (default: all difficulties).'
+    metavar="DIFFICULTY",
+    help="Filter by difficulty (default: all difficulties).",
 )
 @click.option(
-    '--tag', '-t',
+    "--tag",
+    "-t",
     multiple=True,
     type=click.Choice(POSSIBLE_TAGS, case_sensitive=False),
-    metavar='TAG_NAME',
-    help='Filter by tag (default: all tags).'
+    metavar="TAG_NAME",
+    help="Filter by tag (default: all tags).",
 )
 @click.option(
-    '--limit', '-l',
+    "--limit",
+    "-l",
     type=int,
     default=50,
-    callback=lambda ctx, param, value: value if value > 0 else click.BadParameter('Must be greater than 0.'),
-    metavar='LIMIT',
-    help='Number of results per page (default: 50).'
+    callback=lambda ctx, param, value: (
+        value if value > 0 else click.BadParameter("Must be greater than 0.")
+    ),
+    metavar="LIMIT",
+    help="Number of results per page (default: 50).",
 )
 @click.option(
-    '--page', '-p',
+    "--page",
+    "-p",
     type=int,
     default=1,
-    callback=lambda ctx, param, value: value if value > 0 else click.BadParameter('Must be greater than 0.'),
-    metavar='PAGE',
-    help='Page number to display (default: 1).'
+    callback=lambda ctx, param, value: (
+        value if value > 0 else click.BadParameter("Must be greater than 0.")
+    ),
+    metavar="PAGE",
+    help="Page number to display (default: 1).",
 )
 def list_cmd(difficulty, tag, limit, page):
     """
@@ -52,14 +61,10 @@ def list_cmd(difficulty, tag, limit, page):
         problemset_manager = ProblemSetManager(config_manager, auth_service)
         theme_manager = ThemeManager(config_manager)
 
-
         # Get problemset data
         try:
             problemset = problemset_manager.get_problemset(
-                tags=tag,
-                difficulty=difficulty,
-                limit=limit,
-                page=page
+                tags=tag, difficulty=difficulty, limit=limit, page=page
             )
 
         except Exception as e:

@@ -6,17 +6,20 @@ from leetcode_cli.exceptions.exceptions import FetchingError
 
 logger = logging.getLogger(__name__)
 
-def fetch_problemset(cookie=None, csrf_token=None, tags=None, difficulty=None, limit=50, skip=0):
-    query = GRAPHQL_QUERIES['problemset_data']
+
+def fetch_problemset(
+    cookie=None, csrf_token=None, tags=None, difficulty=None, limit=50, skip=0
+):
+    query = GRAPHQL_QUERIES["problemset_data"]
     payload = {
         "query": query,
         "variables": {
             "categorySlug": "all-code-essentials",
             "skip": skip,
             "limit": limit,
-            "filters": {}
+            "filters": {},
         },
-        "operationName": "problemsetQuestionList"
+        "operationName": "problemsetQuestionList",
     }
 
     if tags:
@@ -50,16 +53,16 @@ def fetch_problemset(cookie=None, csrf_token=None, tags=None, difficulty=None, l
 
 
 def fetch_problemset_metadata():
-    query = GRAPHQL_QUERIES['problemset_metadata']
+    query = GRAPHQL_QUERIES["problemset_metadata"]
     payload = {
         "query": query,
         "variables": {
             "categorySlug": "all-code-essentials",
             "skip": 0,
             "limit": 10000000,
-            "filters": {}
+            "filters": {},
         },
-        "operationName": "problemsetQuestionList"
+        "operationName": "problemsetQuestionList",
     }
 
     try:

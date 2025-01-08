@@ -42,7 +42,7 @@ class ProblemSetManager:
                 tags=tags,
                 difficulty=difficulty,
                 limit=limit,
-                skip=(page - 1) * limit
+                skip=(page - 1) * limit,
             )
 
         except Exception as e:
@@ -56,7 +56,6 @@ class ProblemSetManager:
         except ProblemSetError as e:
             logger.error(e)
             raise e
-
 
     def load_problemset_metadata(self) -> Dict[str, Any]:
         """
@@ -84,7 +83,9 @@ class ProblemSetManager:
                 raise ProblemSetError("Failed to read problems_metadata.json.")
 
         else:
-            logger.warning(f"problems_metadata.json not found at '{self.problems_data_path}'.")
+            logger.warning(
+                f"problems_metadata.json not found at '{self.problems_data_path}'."
+            )
             return {}
 
     def save_problemset_metadata(self, data: Dict[str, Any]) -> None:
@@ -124,7 +125,11 @@ class ProblemSetManager:
             ProblemSetError: If the problem cannot be found.
         """
         problems_data = self.load_problemset_metadata()
-        questions = problems_data.get('data', {}).get('problemsetQuestionList', {}).get('questions', [])
+        questions = (
+            problems_data.get("data", {})
+            .get("problemsetQuestionList", {})
+            .get("questions", [])
+        )
 
         for problem in questions:
             if str(problem.get(key, "")).lower() == str(value).lower():
@@ -134,13 +139,17 @@ class ProblemSetManager:
         logger.warning(f"Problem with {key}='{value}' not found in cached data.")
         return {}
 
-    def get_random_local_problem_slug(self, difficulty: Optional[str], tags: Optional[List[str]]) -> Optional[str]:
+    def get_random_local_problem_slug(
+        self, difficulty: Optional[str], tags: Optional[List[str]]
+    ) -> Optional[str]:
         """
         Randomly select a local problem that matches the given difficulty and tag filters.
         Returns its 'titleSlug', or None if no match found.
         """
         data = self.load_problemset_metadata()
-        questions = data.get('data', {}).get('problemsetQuestionList', {}).get('questions', [])
+        questions = (
+            data.get("data", {}).get("problemsetQuestionList", {}).get("questions", [])
+        )
 
         # Filter by difficulty & tags if provided
         filtered = []
@@ -159,7 +168,7 @@ class ProblemSetManager:
         # Randomly choose one from the filtered list
         chosen = random.choice(filtered)
         return chosen.get("titleSlug")
-    
+
     def get_problems_data_path(self) -> str:
         """
         Construct the path to problems_metadata.json in config_dir.
@@ -178,7 +187,9 @@ class ProblemSetManager:
         Helper to check if the question has all the required tags.
         'topicTags' is typically a list of dicts with 'slug' keys.
         """
-        question_tags = [t.get("slug", "").lower() for t in question.get("topicTags", [])]
+        question_tags = [
+            t.get("slug", "").lower() for t in question.get("topicTags", [])
+        ]
 
         for required_tag in required_tags:
             if required_tag.lower() not in question_tags:

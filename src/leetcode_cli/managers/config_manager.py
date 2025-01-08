@@ -9,10 +9,12 @@ from leetcode_cli.exceptions.exceptions import ConfigError
 
 logger = logging.getLogger(__name__)
 
+
 class ConfigManager:
     """
     Manages loading and saving of configuration settings.
     """
+
     def __init__(self):
         self.config_path = self._get_config_path()
         self.config_dir = os.path.dirname(self.config_path)
@@ -72,7 +74,7 @@ class ConfigManager:
         Extracts the CSRF token from the cookie string, if present.
         """
         cookie = self._get_key("cookie", "")
-        match = re.search(r'csrftoken=([^;]+)', cookie)
+        match = re.search(r"csrftoken=([^;]+)", cookie)
         if match:
             return match.group(1)
 
@@ -137,4 +139,3 @@ class ConfigManager:
         else:
             logger.info("config.json not found. Returning empty config.")
             return {}
-

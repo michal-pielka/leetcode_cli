@@ -15,29 +15,33 @@ from leetcode_cli.exceptions.exceptions import ConfigError, ProblemError, ThemeE
 
 logger = logging.getLogger(__name__)
 
-@click.command(short_help='Show a random problem')
+
+@click.command(short_help="Show a random problem")
 @click.option(
-    '--difficulty', '-d',
+    "--difficulty",
+    "-d",
     type=click.Choice(["EASY", "MEDIUM", "HARD"], case_sensitive=False),
-    metavar='DIFFICULTY',
-    help='Filter random problems by difficulty.'
+    metavar="DIFFICULTY",
+    help="Filter random problems by difficulty.",
 )
 @click.option(
-    '--tag', '-t',
+    "--tag",
+    "-t",
     multiple=True,
     type=click.Choice(POSSIBLE_TAGS, case_sensitive=False),
-    metavar='TAG_NAME',
-    help='Filter random problems by tag.'
+    metavar="TAG_NAME",
+    help="Filter random problems by tag.",
 )
 @click.option(
-    '--include', '-i',
+    "--include",
+    "-i",
     multiple=True,
     type=click.Choice(
-        ["title", "tags", "langs", "description", "examples", "constraints"], 
-        case_sensitive=False
+        ["title", "tags", "langs", "description", "examples", "constraints"],
+        case_sensitive=False,
     ),
-    metavar='SECTION',
-    help='Sections to display. Overrides formatting_config.'
+    metavar="SECTION",
+    help="Sections to display. Overrides formatting_config.",
 )
 def random_cmd(difficulty, tag, include):
     """
@@ -52,7 +56,9 @@ def random_cmd(difficulty, tag, include):
         formatting_config_manager = FormattingConfigManager(config_manager)
         theme_manager = ThemeManager(config_manager)
         problemset_manager = ProblemSetManager(config_manager, auth_service)
-        problem_manager = ProblemManager(config_manager, auth_service, problemset_manager)
+        problem_manager = ProblemManager(
+            config_manager, auth_service, problemset_manager
+        )
 
         # Load format config
         formatting_config = formatting_config_manager.load_formatting_config()
@@ -68,7 +74,7 @@ def random_cmd(difficulty, tag, include):
                 "langs": "show_langs",
                 "description": "show_description",
                 "examples": "show_examples",
-                "constraints": "show_constraints"
+                "constraints": "show_constraints",
             }
             for item in include:
                 if item in mapping:
@@ -99,6 +105,7 @@ def random_cmd(difficulty, tag, include):
     except (ConfigError, ProblemError, ThemeError) as e:
         logger.error(e)
         click.echo(f"Error: {e}")
+
     except Exception as e:
         logger.exception("An unexpected error occurred in random_cmd.")
         click.echo(f"An error occurred: {e}")

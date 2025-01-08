@@ -1,12 +1,14 @@
 from dataclasses import dataclass, field
 from typing import Dict
 
+
 @dataclass
 class ThemeData:
     """
     Holds all theme sub-dicts (ANSI_CODES, SYMBOLS, etc.).
     Each field corresponds to one key in the loaded theme data.
     """
+
     ANSI_CODES: Dict[str, str] = field(default_factory=dict)
     SYMBOLS: Dict[str, str] = field(default_factory=dict)
     INTERPRETATION: Dict[str, Dict[str, str]] = field(default_factory=dict)

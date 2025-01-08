@@ -24,7 +24,6 @@ GRAPHQL_QUERIES = {
           }
         }
     """,
-
     "user_calendar": """
         query userProfileCalendar($username: String!, $year: Int) {
           matchedUser(username: $username) {
@@ -44,7 +43,6 @@ GRAPHQL_QUERIES = {
           }
         }
     """,
-
     "problemset_data": """
         query problemsetQuestionList($categorySlug: String, $limit: Int, $skip: Int, $filters: QuestionListFilterInput) {
           problemsetQuestionList: questionList(
@@ -70,7 +68,6 @@ GRAPHQL_QUERIES = {
           }
         }
     """,
-
     "problemset_metadata": """
         query problemsetQuestionList($categorySlug: String, $limit: Int, $skip: Int, $filters: QuestionListFilterInput) {
           problemsetQuestionList: questionList(
@@ -88,7 +85,6 @@ GRAPHQL_QUERIES = {
           }
         }
     """,
-
     "code_snippets": """
         query getQuestionDetail($titleSlug: String!) {
           question(titleSlug: $titleSlug) {
@@ -102,7 +98,6 @@ GRAPHQL_QUERIES = {
           }
         }
     """,
-
     "problem_detail": """
         query questionDetail($titleSlug: String!) {
           question(titleSlug: $titleSlug) {
@@ -132,7 +127,6 @@ GRAPHQL_QUERIES = {
           }
         }
     """,
-
     "random_title_slug": """
         query randomQuestion($categorySlug: String, $filters: QuestionListFilterInput) {
             randomQuestion(categorySlug: $categorySlug, filters: $filters) {
@@ -140,7 +134,6 @@ GRAPHQL_QUERIES = {
             }
         }
     """,
-
     "problem_id": """
         query questionDetail($titleSlug: String!) {
           question(titleSlug: $titleSlug) {
@@ -148,7 +141,6 @@ GRAPHQL_QUERIES = {
           }
         }
     """,
-
     "problem_frontend_id": """
         query questionDetail($titleSlug: String!) {
           question(titleSlug: $titleSlug) {
@@ -156,12 +148,11 @@ GRAPHQL_QUERIES = {
           }
         }
     """,
-
     "problem_testcases": """
         query questionData($titleSlug: String!) {
           question(titleSlug: $titleSlug) {
             exampleTestcases
           }
         }
-    """
+    """,
 }

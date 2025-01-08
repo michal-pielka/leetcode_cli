@@ -8,8 +8,8 @@ from leetcode_cli.exceptions.exceptions import ThemeError, ConfigError
 logger = logging.getLogger(__name__)
 
 
-@click.command(short_help='Change or list themes')
-@click.argument('theme_name', required=False)
+@click.command(short_help="Change or list themes")
+@click.argument("theme_name", required=False)
 def theme_cmd(theme_name):
     """
     Show or change the current theme.
@@ -37,7 +37,9 @@ def theme_cmd(theme_name):
         # Attempt to set the provided theme
         success = theme_manager.set_current_theme(theme_name)
         if not success:
-            click.echo(f"Error: Theme '{theme_name}' not found. Use 'leetcode theme' to list available themes.")
+            click.echo(
+                f"Error: Theme '{theme_name}' not found. Use 'leetcode theme' to list available themes."
+            )
             return
 
         # Load theme data to validate
@@ -46,8 +48,10 @@ def theme_cmd(theme_name):
             click.echo(f"Theme set to '{theme_name}'.")
 
         except ThemeError as e:
-            click.echo(f"Warning: Theme '{theme_name}' is set, but it seems invalid:\n  {e}\n"
-                       "You may need to fix its YAML files or switch to another theme.")
+            click.echo(
+                f"Warning: Theme '{theme_name}' is set, but it seems invalid:\n  {e}\n"
+                "You may need to fix its YAML files or switch to another theme."
+            )
 
     except (ConfigError, ThemeError) as e:
         logger.error(e)

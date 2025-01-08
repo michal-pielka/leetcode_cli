@@ -8,21 +8,28 @@ from leetcode_cli.managers.problemset_manager import ProblemSetManager
 from leetcode_cli.managers.formatting_config_manager import FormattingConfigManager
 from leetcode_cli.managers.theme_manager import ThemeManager
 from leetcode_cli.formatters.problem_data_formatter import ProblemFormatter
-from leetcode_cli.exceptions.exceptions import ConfigError, ProblemError, ThemeError, ProblemError
+from leetcode_cli.exceptions.exceptions import (
+    ConfigError,
+    ProblemError,
+    ThemeError,
+    ProblemError,
+)
 
 logger = logging.getLogger(__name__)
 
-@click.command(short_help='Show problem details')
-@click.argument('title_slug_or_frontend_id', required=True)
+
+@click.command(short_help="Show problem details")
+@click.argument("title_slug_or_frontend_id", required=True)
 @click.option(
-    '--include', '-i',
+    "--include",
+    "-i",
     multiple=True,
     type=click.Choice(
-        ["title", "tags", "langs", "description", "examples", "constraints"], 
-        case_sensitive=False
+        ["title", "tags", "langs", "description", "examples", "constraints"],
+        case_sensitive=False,
     ),
-    metavar='SECTION',
-    help='Sections to display. Overrides formatting_config.'
+    metavar="SECTION",
+    help="Sections to display. Overrides formatting_config.",
 )
 def show_cmd(title_slug_or_frontend_id, include):
     """
@@ -37,9 +44,11 @@ def show_cmd(title_slug_or_frontend_id, include):
         auth_service = AuthService(config_manager)
         formatting_config_manager = FormattingConfigManager(config_manager)
         problemset_manager = ProblemSetManager(config_manager, auth_service)
-        problem_manager = ProblemManager(config_manager, auth_service, problemset_manager)
+        problem_manager = ProblemManager(
+            config_manager, auth_service, problemset_manager
+        )
         theme_manager = ThemeManager(config_manager)
-        
+
         formatting_config = formatting_config_manager.load_formatting_config()
 
         # Override formatting configuration if --include is used
@@ -54,7 +63,7 @@ def show_cmd(title_slug_or_frontend_id, include):
                 "langs": "show_langs",
                 "description": "show_description",
                 "examples": "show_examples",
-                "constraints": "show_constraints"
+                "constraints": "show_constraints",
             }
             for item in include:
                 key = mapping.get(item.lower())
@@ -71,12 +80,14 @@ def show_cmd(title_slug_or_frontend_id, include):
 
         if title_slug_or_frontend_id.isdigit():
             # we used that as frontend ID, so fetch the real slug
-            slug = problem_manager.get_title_slug_for_frontend_id(title_slug_or_frontend_id)
+            slug = problem_manager.get_title_slug_for_frontend_id(
+                title_slug_or_frontend_id
+            )
 
         else:
             # else it's a slug
             slug = title_slug_or_frontend_id
-        
+
         config_manager.set_chosen_problem(slug)
 
         try:

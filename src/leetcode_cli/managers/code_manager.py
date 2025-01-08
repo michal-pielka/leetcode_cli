@@ -4,11 +4,15 @@ import logging
 from typing import Tuple
 
 from leetcode_cli.managers.config_manager import ConfigManager
-from leetcode_cli.constants.problem_constants import EXTENSION_TO_LANG_SLUG, LANG_SLUG_TO_EXTENSION
+from leetcode_cli.constants.problem_constants import (
+    EXTENSION_TO_LANG_SLUG,
+    LANG_SLUG_TO_EXTENSION,
+)
 from leetcode_cli.exceptions.exceptions import CodeError
 from leetcode_cli.data_fetchers.code_snippet_fetcher import fetch_code_snippet
 
 logger = logging.getLogger(__name__)
+
 
 class CodeManager:
     """
@@ -18,6 +22,7 @@ class CodeManager:
       - Inferring language & extension
       - Fetching code snippets and creating solution files
     """
+
     def __init__(self, config_manager: ConfigManager):
         self.config_manager = config_manager
 
@@ -45,7 +50,7 @@ class CodeManager:
             raise CodeError(f"File '{file_path}' does not exist.")
 
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 code = f.read()
                 logger.debug(f"Read code from file '{file_path}'.")
                 return code
@@ -112,7 +117,7 @@ class CodeManager:
         # If user provided an extension (like ".cpp" or "cpp")
         if user_ext:
             # Remove leading '.' if any
-            file_extension = user_ext.lstrip('.').lower()
+            file_extension = user_ext.lstrip(".").lower()
             lang_slug = self.determine_language_from_extension(file_extension)
             return lang_slug, file_extension
 
@@ -120,11 +125,7 @@ class CodeManager:
         return self.get_default_lang_and_ext()
 
     def create_solution_file_with_snippet(
-        self,
-        frontend_id: str,
-        title_slug: str,
-        lang_slug: str,
-        file_extension: str
+        self, frontend_id: str, title_slug: str, lang_slug: str, file_extension: str
     ) -> None:
         """
         Fetches the code snippet and creates the solution file.
@@ -140,17 +141,21 @@ class CodeManager:
         """
         try:
             code_data = fetch_code_snippet(title_slug, lang_slug)
-            snippet_list = code_data.get('data', {}).get('question', {}).get('codeSnippets', [])
+            snippet_list = (
+                code_data.get("data", {}).get("question", {}).get("codeSnippets", [])
+            )
             code_str = ""
             for sn in snippet_list:
-                if sn.get('langSlug') == lang_slug:
-                    code_str = sn.get('code', "")
+                if sn.get("langSlug") == lang_slug:
+                    code_str = sn.get("code", "")
                     break
 
             if not code_str:
                 code_str = f"# Solution for {title_slug} in {lang_slug}\n\n"
 
-            self._create_solution_file(frontend_id, title_slug, file_extension, code_str)
+            self._create_solution_file(
+                frontend_id, title_slug, file_extension, code_str
+            )
             file_name = f"{frontend_id}.{title_slug}.{file_extension}"
             logger.debug(f"Solution file '{file_name}' has been created successfully.")
 
@@ -165,11 +170,7 @@ class CodeManager:
     #
 
     def _create_solution_file(
-        self,
-        frontend_id: str,
-        title_slug: str,
-        file_extension: str,
-        code_snippet: str
+        self, frontend_id: str, title_slug: str, file_extension: str, code_snippet: str
     ) -> None:
         """
         Creates a new solution file with the provided code snippet.
@@ -186,11 +187,13 @@ class CodeManager:
         file_name = f"{frontend_id}.{title_slug}.{file_extension}"
 
         if os.path.exists(file_name):
-            logger.warning(f"Solution file '{file_name}' already exists. Not overwriting.")
+            logger.warning(
+                f"Solution file '{file_name}' already exists. Not overwriting."
+            )
             raise CodeError(f"Solution file '{file_name}' already exists.")
 
         try:
-            with open(file_name, 'w', encoding='utf-8') as f:
+            with open(file_name, "w", encoding="utf-8") as f:
                 f.write(code_snippet)
 
             logger.info(f"Solution file '{file_name}' created successfully.")

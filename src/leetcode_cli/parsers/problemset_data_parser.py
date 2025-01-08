@@ -2,12 +2,15 @@ from typing import Dict, Any
 from leetcode_cli.exceptions.exceptions import ParsingError
 from leetcode_cli.models.problemset import ProblemSet, ProblemSummary
 
+
 def parse_problemset_data(json_data: Dict[str, Any]) -> ProblemSet:
     """
     Parses the JSON returned by fetch_problemset into a ProblemSet model.
     """
     if "data" not in json_data or "problemsetQuestionList" not in json_data["data"]:
-        raise ParsingError("Invalid problemset data structure: 'data.problemsetQuestionList' key not found.")
+        raise ParsingError(
+            "Invalid problemset data structure: 'data.problemsetQuestionList' key not found."
+        )
 
     plist = json_data["data"]["problemsetQuestionList"]
 
@@ -20,7 +23,17 @@ def parse_problemset_data(json_data: Dict[str, Any]) -> ProblemSet:
     questions = []
     for q in questions_data:
         # Validate required fields
-        required_fields = ["acRate", "difficulty", "questionId", "topicTags", "frontendQuestionId", "paidOnly", "status", "title", "titleSlug"]
+        required_fields = [
+            "acRate",
+            "difficulty",
+            "questionId",
+            "topicTags",
+            "frontendQuestionId",
+            "paidOnly",
+            "status",
+            "title",
+            "titleSlug",
+        ]
         for field in required_fields:
             if field not in q:
                 raise ParsingError(f"Missing '{field}' in question data.")
@@ -37,7 +50,7 @@ def parse_problemset_data(json_data: Dict[str, Any]) -> ProblemSet:
             paid_only=bool(q["paidOnly"]),
             status=q["status"],
             title=q["title"],
-            title_slug=q["titleSlug"]
+            title_slug=q["titleSlug"],
         )
         questions.append(summary)
 

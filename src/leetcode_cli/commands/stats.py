@@ -15,14 +15,16 @@ from leetcode_cli.exceptions.exceptions import ConfigError, StatsError, ThemeErr
 
 logger = logging.getLogger(__name__)
 
-@click.command(short_help='Display user statistics from LeetCode')
-@click.argument('username', required=False, default=None, metavar='USERNAME')
+
+@click.command(short_help="Display user statistics from LeetCode")
+@click.argument("username", required=False, default=None, metavar="USERNAME")
 @click.option(
-    '--include', '-i',
+    "--include",
+    "-i",
     multiple=True,
     type=click.Choice(["stats", "calendar"], case_sensitive=False),
-    metavar='SECTION',
-    help='Sections to display. Overrides formatting_config.'
+    metavar="SECTION",
+    help="Sections to display. Overrides formatting_config.",
 )
 def stats_cmd(username, include):
     """
@@ -52,7 +54,7 @@ def stats_cmd(username, include):
         # Create a StatsFormatter for final output
         formatter = StatsFormatter(theme_manager)
 
-        if 'stats' in include:
+        if "stats" in include:
             try:
                 user_stats = stats_manager.get_user_stats(username)
                 formatted_stats = formatter.format_user_stats(user_stats)
@@ -63,7 +65,7 @@ def stats_cmd(username, include):
                 logger.error(f"Failed to fetch user stats: {e}")
                 click.echo(f"Error: {e}")
 
-        if 'calendar' in include:
+        if "calendar" in include:
             try:
                 current_year = datetime.now().year
                 prev_year = current_year - 1
