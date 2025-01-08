@@ -1,4 +1,5 @@
 import logging
+import re
 
 from leetcode_cli.graphics.ansi_codes import ANSI_RESET
 from leetcode_cli.models.submission import SubmissionResult
@@ -51,125 +52,124 @@ class SubmissionFormatter:
         full_runtime_error = getattr(self.result, 'full_runtime_error', None)
         full_compile_error = getattr(self.result, 'full_compile_error', None)
 
+        # Obtain the styling for the overall status line
         try:
             ansi_code, symbol_left, symbol_right = self.theme_manager.get_styling("SUBMISSION", status_msg)
-
         except ThemeError as te:
             raise te
 
         ansi_status = f"{ansi_code}{symbol_left}{status_msg}{symbol_right}{ANSI_RESET}"
         parsed_result = f"\n  {ansi_status} \n"
 
-        # Format and append fields
+        # Now we call _format_label_value for each item, instead of manually building strings
         if show_language and lang:
-            label = "Language"
-            formatted_label = self._format_field_label(label)
-            formatted_value = self._format_field_value(lang)
-            parsed_result += f"  {formatted_label} {formatted_value}\n"
+            parsed_result += self._format_label_value("Language", lang)
 
         if show_testcases and total_correct is not None and total_testcases is not None:
-            label = "Passed Testcases"
-            formatted_label = self._format_field_label(label)
-            formatted_value = self._format_field_value(f'{total_correct} / {total_testcases}')
-            parsed_result += f"  {formatted_label} {formatted_value}\n"
+            parsed_result += self._format_label_value(
+                "Passed Testcases", f"{total_correct} / {total_testcases}"
+            )
 
         if show_runtime_memory:
+            # Runtime
             if time_ms and time_beats is not None:
-                formatted_time_beats = f"{time_beats:.2f}%"
-                runtime_str = f'{time_ms} (Beats: {formatted_time_beats})'
-                label = "Runtime"
-                formatted_label = self._format_field_label(label)
-                formatted_value = self._format_field_value(runtime_str)
-                parsed_result += f"  {formatted_label} {formatted_value}\n"
+                runtime_str = f"{time_ms} (Beats: {time_beats:.2f}%)"
+                parsed_result += self._format_label_value("Runtime", runtime_str)
 
+            # Memory
             if memory_size and memory_beats is not None:
-                formatted_memory_beats = f"{memory_beats:.2f}%"
-                memory_str = f'{memory_size} (Beats: {formatted_memory_beats})'
-                label = "Memory Usage"
-                formatted_label = self._format_field_label(label)
-                formatted_value = self._format_field_value(memory_str)
-                parsed_result += f"  {formatted_label} {formatted_value}\n"
+                memory_str = f"{memory_size} (Beats: {memory_beats:.2f}%)"
+                parsed_result += self._format_label_value("Memory Usage", memory_str)
 
         if last_testcase and show_testcases:
-            label = "Failed Testcase"
-            formatted_label = self._format_field_label(label)
-            formatted_value = self._format_field_value(last_testcase.replace("\n", ", "))
-            parsed_result += f"  {formatted_label} {formatted_value}\n"
+            parsed_result += self._format_label_value(
+                "Failed Testcase", last_testcase.replace("\n", ", ")
+            )
 
         if show_expected_output and expected_output:
-            label = "Expected Output"
-            formatted_label = self._format_field_label(label)
-            formatted_value = self._format_field_value(expected_output)
-            parsed_result += f"  {formatted_label} {formatted_value}\n"
+            parsed_result += self._format_label_value("Expected Output", expected_output)
 
         if show_code_output and code_output:
             code_output_str = code_output if isinstance(code_output, str) else "\n".join(code_output)
-            label = "Your Output"
-            formatted_label = self._format_field_label(label)
-            formatted_value = self._format_field_value(code_output_str)
-            parsed_result += f"  {formatted_label} {formatted_value}\n"
+            parsed_result += self._format_label_value("Your Output", code_output_str)
 
         if show_stdout and std_output:
             std_output_str = std_output if isinstance(std_output, str) else "\n".join(std_output)
-            label = "Stdout"
-            formatted_label = self._format_field_label(label)
-            formatted_value = self._format_field_value(std_output_str)
-            parsed_result += f"  {formatted_label} {formatted_value}\n"
+            parsed_result += self._format_label_value("Stdout", std_output_str)
 
         if show_errors:
             if runtime_error:
-                label = "Error Message"
-                formatted_label = self._format_field_label(label)
-                formatted_value = self._format_field_value(runtime_error)
-                parsed_result += f"  {formatted_label} {formatted_value}\n"
-
+                parsed_result += self._format_label_value("Error Message", runtime_error)
             if compile_error:
-                label = "Error Message"
-                formatted_label = self._format_field_label(label)
-                formatted_value = self._format_field_value(compile_error)
-                parsed_result += f"  {formatted_label} {formatted_value}\n"
+                parsed_result += self._format_label_value("Error Message", compile_error)
 
         if detailed_errors:
             if full_runtime_error:
-                label = "Detailed Error"
-                formatted_label = self._format_field_label(label)
-                formatted_value = self._format_field_value(full_runtime_error)
-                parsed_result += f"  {formatted_label} {formatted_value}\n"
-
+                parsed_result += self._format_label_value("Detailed Error", full_runtime_error)
             if full_compile_error:
-                label = "Detailed Error"
-                formatted_label = self._format_field_label(label)
-                formatted_value = self._format_field_value(full_compile_error)
-                parsed_result += f"  {formatted_label} {formatted_value}\n"
+                parsed_result += self._format_label_value("Detailed Error", full_compile_error)
 
         return parsed_result
 
+    def _format_label_value(self, label: str, value: str) -> str:
+        """
+        Combines label and value on one line in a columnar style, using
+        `_format_field_label` and `_format_field_value` under the hood.
+        If the value has multiple lines, subsequent lines are padded.
+        """
+        # Build the label portion
+        label_str = self._format_field_label(label)
+        # Build the multi-line value portion
+        value_lines = self._format_field_value(value).split("\n")
+
+        if len(value_lines) == 1:
+            # Single line scenario
+            return f"  {label_str} {value_lines[0]}\n"
+
+        # Multi-line scenario: the first line is next to label, subsequent lines are padded
+        first_line = f"  {label_str} {value_lines[0]}\n"
+        subsequent = ""
+        # Indent subsequent lines so they align under the value column
+        # "  " + 25 chars from label => 2 + 25 + 1 space => 28 total
+        padding = " " * (2 + 25 + 1)
+        for line in value_lines[1:]:
+            if line.strip():
+                subsequent += f"{padding}{line}\n"
+            else:
+                # If the line is empty, we can still add a newline to keep spacing consistent
+                subsequent += f"{padding}\n"
+
+        return first_line + subsequent
+
     def _format_field_label(self, label: str, width: int = 25) -> str:
         """
-        Formats the field label using the 'field_label' mapping.
+        Formats the field label using the 'field_label' mapping from SUBMISSION.
         """
         try:
             ansi_code, symbol_left, symbol_right = self.theme_manager.get_styling("SUBMISSION", "field_label")
-
         except ThemeError as te:
             logger.error(f"Theming Error: {te}")
             raise te
 
-        # Combine label and symbol_right (":") and left justify
+        # Combine label + symbol_right (often a colon) and left justify
         combined_label = f"{label}{symbol_right}"
-        formatted_label = f"{ansi_code}{symbol_left}{combined_label:<{width}}{ANSI_RESET}"
-        return formatted_label
+        return f"{ansi_code}{symbol_left}{combined_label:<{width}}{ANSI_RESET}"
 
     def _format_field_value(self, value: str) -> str:
         """
-        Formats the field value using the 'field_value' mapping.
+        Formats the field value using the 'field_value' mapping from SUBMISSION.
+        Handles multi-line values by splitting on newline.
         """
         try:
             ansi_code, symbol_left, symbol_right = self.theme_manager.get_styling("SUBMISSION", "field_value")
-
         except ThemeError as te:
             logger.error(f"Theming Error: {te}")
             raise te
 
-        formatted_value = f"{ansi_code}{symbol_left}{value}{symbol_right}{ANSI_RESET}"
-        return formatted_value
+        lines = value.split("\n")
+        out_lines = []
+        for line in lines:
+            # Even if blank, we still produce a line
+            out_lines.append(f"{ansi_code}{symbol_left}{line}{symbol_right}{ANSI_RESET}")
+
+        return "\n".join(out_lines)

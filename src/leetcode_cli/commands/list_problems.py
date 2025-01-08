@@ -1,13 +1,13 @@
 import click
 import logging
 
+from leetcode_cli.constants.problem_constants import POSSIBLE_TAGS
 from leetcode_cli.managers.config_manager import ConfigManager
 from leetcode_cli.managers.theme_manager import ThemeManager
 from leetcode_cli.managers.problemset_manager import ProblemSetManager
+from leetcode_cli.managers.auth_service import AuthService
 from leetcode_cli.formatters.problemset_data_formatter import ProblemSetFormatter
 from leetcode_cli.exceptions.exceptions import ProblemSetError, ThemeError, ConfigError
-from leetcode_cli.data_fetchers.problemset_data_fetcher import fetch_problemset
-from leetcode_cli.parsers.problemset_data_parser import parse_problemset_data
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 @click.option(
     '--tag', '-t',
     multiple=True,
-    type=click.Choice(["array", "string", "hash-table", "dynamic-programming", "tree", "graph", "greedy", "backtracking", "binary-search", "heap", "two-pointers", "sort", "bit-manipulation"], case_sensitive=False),
+    type=click.Choice(POSSIBLE_TAGS, case_sensitive=False),
     metavar='TAG_NAME',
     help='Filter by tag (default: all tags).'
 )
@@ -48,29 +48,21 @@ def list_cmd(difficulty, tag, limit, page):
     try:
         # Initialize managers
         config_manager = ConfigManager()
+        auth_service = AuthService(config_manager)
+        problemset_manager = ProblemSetManager(config_manager, auth_service)
         theme_manager = ThemeManager(config_manager)
 
-        # Fetch problemset with filters
+
+        # Get problemset data
         try:
-            raw = fetch_problemset(
-                cookie=config_manager.get_cookie(),
-                csrf_token=config_manager.extract_csrf_token(),
+            problemset = problemset_manager.get_problemset(
                 tags=tag,
-                difficulty=difficulty if difficulty else None,
+                difficulty=difficulty,
                 limit=limit,
-                skip=(page - 1) * limit
+                page=page
             )
 
         except Exception as e:
-            logger.error(f"Failed to fetch problem set: {e}")
-            click.echo(f"Error: Failed to fetch problem set. {e}")
-            return
-
-        # Parse problemset data
-        try:
-            problemset = parse_problemset_data(raw)
-
-        except ProblemSetError as e:
             click.echo(f"Error: {e}")
             return
 

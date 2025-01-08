@@ -3,8 +3,12 @@ import os
 import json
 from typing import Dict, Any, Optional, Tuple
 
+from leetcode_cli.managers.auth_service import AuthService
 from leetcode_cli.managers.config_manager import ConfigManager
 from leetcode_cli.exceptions.exceptions import ProblemSetError
+
+from leetcode_cli.data_fetchers.problemset_data_fetcher import fetch_problemset
+from leetcode_cli.parsers.problemset_data_parser import parse_problemset_data
 
 logger = logging.getLogger(__name__)
 
@@ -14,8 +18,9 @@ class ProblemSetManager:
     Manages problem set-related functionalities, including loading and saving problem metadata.
     """
 
-    def __init__(self, config_manager: ConfigManager):
+    def __init__(self, config_manager: ConfigManager, auth_service: AuthService):
         self.config_manager = config_manager
+        self.auth_service = auth_service
         self.problems_data_path = self.get_problems_data_path()
 
     def get_problems_data_path(self) -> str:
@@ -41,9 +46,11 @@ class ProblemSetManager:
                     data = json.load(f)
                     logger.debug("Loaded problem set metadata successfully.")
                     return data
+
             except json.JSONDecodeError as e:
                 logger.error(f"problems_metadata.json is corrupted: {e}")
                 raise ProblemSetError("problems_metadata.json is corrupted.")
+
             except OSError as e:
                 logger.error(f"Failed to read problems_metadata.json: {e}")
                 raise ProblemSetError("Failed to read problems_metadata.json.")
@@ -65,7 +72,9 @@ class ProblemSetManager:
             os.makedirs(os.path.dirname(self.problems_data_path), exist_ok=True)
             with open(self.problems_data_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=4)
+
             logger.info(f"Problem set data saved to '{self.problems_data_path}'.")
+
         except OSError as e:
             logger.error(f"Failed to save problems_metadata.json: {e}")
             raise ProblemSetError("Failed to save problems_metadata.json.")
@@ -123,8 +132,32 @@ class ProblemSetManager:
         """
         filename = os.path.basename(filepath)
         parts = filename.split('.')
+
         if len(parts) != 3:
             logger.error("Invalid filepath format. Expected {question_id}.{title_slug}.{file_extension}.")
             raise ProblemSetError("Invalid filepath format. Expected {question_id}.{title_slug}.{file_extension}.")
+
         frontend_id, title_slug, file_extension = parts[0], parts[1], parts[2]
         return frontend_id, title_slug, file_extension
+
+    def get_problemset(self, tags, difficulty, limit, page):
+        try:
+            raw = fetch_problemset(
+                cookie=self.auth_service.get_cookie(),
+                csrf_token=self.auth_service.get_csrf_token(),
+                tags=tags,
+                difficulty=difficulty if difficulty else None,
+                limit=limit,
+                skip=(page - 1) * limit
+            )
+
+        except Exception as e:
+            raise e
+
+        try:
+            problemset_obj = parse_problemset_data(raw)
+
+        except ProblemSetError as e:
+            raise e
+
+        return problemset_obj

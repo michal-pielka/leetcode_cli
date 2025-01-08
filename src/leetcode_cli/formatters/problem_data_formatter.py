@@ -244,7 +244,10 @@ class ProblemFormatter:
             logger.error(f"Theming Error: {te}")
             raise te
 
-        lines.append(f"{ex_input_str_ansi}{ex_input_symbol_left}Input{ex_input_symbol_right}{ANSI_RESET}{ex_input_data_ansi}{ex_input_data_symbol_left}{input_str}{ex_input_data_symbol_right}{ANSI_RESET}\n")
+        input_line = f"{ex_input_str_ansi}{ex_input_symbol_left}Input{ex_input_symbol_right}{ANSI_RESET}"
+        input_line += f"{ex_input_data_ansi}{ex_input_data_symbol_left}{input_str}{ex_input_data_symbol_right}{ANSI_RESET}".replace("\n", ANSI_RESET + "\n" + f"{ex_input_str_ansi}{ex_input_symbol_left}" + " " * (len(ex_input_symbol_right) +  5) + f"{ANSI_RESET}{ex_input_data_ansi}")
+
+        lines.append(input_line + "\n")
 
         # Output
         raw_output = example.get('output', "")
@@ -257,8 +260,11 @@ class ProblemFormatter:
             logger.error(f"Theming Error: {te}")
             raise te
 
-        lines.append(f"{ex_output_str_ansi}{ex_output_symbol_left}Output{ex_output_symbol_right}{ANSI_RESET}{ex_output_data_ansi}{ex_output_data_symbol_left}{out_str}{ex_output_data_symbol_right}{ANSI_RESET}")
+        output_line = f"{ex_output_str_ansi}{ex_output_symbol_left}Output{ex_output_symbol_right}{ANSI_RESET}"
+        output_line += f"{ex_output_data_ansi}{ex_output_data_symbol_left}{out_str}{ex_output_data_symbol_right}{ANSI_RESET}".replace("\n", ANSI_RESET + "\n" + f"{ex_output_str_ansi}{ex_output_symbol_left}" + " " * (len(ex_output_symbol_right) + 6) + f"{ANSI_RESET}{ex_output_data_ansi}")
 
+        lines.append(output_line + "\n")
+        
         # Explanation
         explanation = example.get('explanation', "")
         if explanation:
@@ -272,9 +278,9 @@ class ProblemFormatter:
                 raise te
 
             # Replace newline characters with formatted ANSI reset and new lines with symbols
-            replaced = expl_str.replace('\n', f'{ANSI_RESET}\n{ex_expl_data_ansi}{ex_expl_data_symbol_left}{ex_expl_data_symbol_right}')
-            lines.append(
-                f"\n{ex_expl_str_ansi}{ex_expl_symbol_left}Explanation{ex_expl_symbol_right}{ANSI_RESET}"
-                f"{ex_expl_data_ansi}{ex_expl_data_symbol_left}{replaced}{ex_expl_data_symbol_right}{ANSI_RESET}"
-            )
+            explanation_line = f"{ex_expl_str_ansi}{ex_expl_symbol_left}Explanation{ex_expl_symbol_right}{ANSI_RESET}"
+            explanation_line += f"{ex_expl_data_ansi}{ex_expl_data_symbol_left}{expl_str}{ex_expl_data_symbol_right}{ANSI_RESET}".replace("\n", ANSI_RESET + "\n" + f"{ex_expl_str_ansi}{ex_output_symbol_left}" + " " * (len(ex_expl_symbol_right) + 11) + f"{ANSI_RESET}{ex_expl_data_ansi}")
+
+            lines.append(explanation_line + "\n")
+
         return "".join(lines)
