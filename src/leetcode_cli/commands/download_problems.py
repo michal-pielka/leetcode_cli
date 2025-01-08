@@ -2,6 +2,7 @@ import click
 import logging
 
 from leetcode_cli.managers.config_manager import ConfigManager
+from leetcode_cli.managers.auth_service import AuthService
 from leetcode_cli.managers.problemset_manager import ProblemSetManager
 from leetcode_cli.data_fetchers.problemset_data_fetcher import fetch_problemset_metadata
 from leetcode_cli.exceptions.exceptions import ProblemSetError, ConfigError
@@ -12,12 +13,13 @@ logger = logging.getLogger(__name__)
 @click.command(short_help='Download all problems metadata')
 def download_problems_cmd():
     """
-    Download all LeetCode problems metadata and save locally (problems_metadata.json).
+    Download all LeetCode problems metadata and save locally in order to speed up some commands and enable showing/creating by ID
     """
     try:
         # Initialize managers
         config_manager = ConfigManager()
-        problemset_manager = ProblemSetManager(config_manager)
+        auth_service = AuthService(config_manager)
+        problemset_manager = ProblemSetManager(config_manager, auth_service)
 
         # Fetch problemset metadata
         try:

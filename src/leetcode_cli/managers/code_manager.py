@@ -1,22 +1,31 @@
 import os
 import logging
-from typing import Optional, Tuple
+
+from typing import Tuple
 
 from leetcode_cli.managers.config_manager import ConfigManager
-from leetcode_cli.constants.problem_constants import LANG_SLUG_TO_EXTENSION, EXTENSION_TO_LANG_SLUG, POSSIBLE_LANG_SLUGS
+from leetcode_cli.constants.problem_constants import EXTENSION_TO_LANG_SLUG, LANG_SLUG_TO_EXTENSION
 from leetcode_cli.exceptions.exceptions import CodeError
-
 from leetcode_cli.data_fetchers.code_snippet_fetcher import fetch_code_snippet
 
 logger = logging.getLogger(__name__)
 
-
 class CodeManager:
     """
     Manages code-related functionalities, including reading and creating solution files.
+    Handles:
+      - Reading local code files
+      - Inferring language & extension
+      - Fetching code snippets and creating solution files
     """
     def __init__(self, config_manager: ConfigManager):
         self.config_manager = config_manager
+
+    #
+    # ──────────────────────────────────────────────────────
+    #   PUBLIC METHODS
+    # ──────────────────────────────────────────────────────
+    #
 
     def read_code_from_file(self, file_path: str) -> str:
         """
@@ -64,79 +73,64 @@ class CodeManager:
             raise CodeError(f"Unsupported file extension '{file_extension}'.")
 
         logger.debug(f"Determined language '{lang}' from extension '{file_extension}'.")
-
         return lang
 
-    def get_language_and_extension(self, file_extension: Optional[str] = None) -> Tuple[Optional[str], Optional[str]]:
+    def get_default_lang_and_ext(self) -> Tuple[str, str]:
         """
-        Determines the programming language and its file extension.
-
-        Args:
-            file_extension (Optional[str]): The file extension provided by the user.
+        Attempts to retrieve the default language from the user's config,
+        then derive the matching extension from LANG_SLUG_TO_EXTENSION.
 
         Returns:
-            Tuple[Optional[str], Optional[str]]: The language slug and its file extension.
-        """
-        if file_extension:
-            lang_slug = EXTENSION_TO_LANG_SLUG.get(file_extension.lower())
-            if not lang_slug:
-                logger.error(f"Unsupported file extension '{file_extension}'.")
-                return None, None
-
-            logger.debug(f"Language '{lang_slug}' determined from extension '{file_extension}'.")
-
-            return lang_slug, file_extension.lower()
-
-        else:
-            lang_slug = self.config_manager.get_language()
-            if not lang_slug or lang_slug.lower() not in POSSIBLE_LANG_SLUGS:
-                logger.error("Invalid or undefined language in configuration.")
-                return None, None
-
-            ext = LANG_SLUG_TO_EXTENSION.get(lang_slug.lower())
-            if not ext:
-                logger.error(f"File extension for language '{lang_slug}' not found.")
-                return None, None
-
-            logger.debug(f"Language '{lang_slug}' with extension '{ext}' determined from configuration.")
-
-            return lang_slug.lower(), ext.lower()
-
-    def create_solution_file(self, question_id: str, title_slug: str, file_extension: str, code_snippet: str) -> None:
-        """
-        Creates a new solution file with the provided code snippet.
-
-        Args:
-            question_id (str): The numeric ID of the problem.
-            title_slug (str): The title slug of the problem.
-            file_extension (str): The file extension based on the programming language.
-            code_snippet (str): The code to be written into the solution file.
+            (lang_slug, file_extension)
 
         Raises:
-            CodeError: If the file cannot be created.
+            CodeError: If config language is undefined or unsupported.
         """
-        file_name = f"{question_id}.{title_slug}.{file_extension}"
+        config_lang = self.config_manager.get_language()  # e.g. "python"
+        if not config_lang:
+            raise CodeError("No default language is set in config.")
 
-        if os.path.exists(file_name):
-            logger.warning(f"Solution file '{file_name}' already exists. Not overwriting.")
-            raise CodeError(f"Solution file '{file_name}' already exists.")
+        extension = LANG_SLUG_TO_EXTENSION.get(config_lang.lower())
+        if not extension:
+            raise CodeError(f"No known extension for default language '{config_lang}'.")
 
-        try:
-            with open(file_name, 'w', encoding='utf-8') as f:
-                f.write(code_snippet)
+        logger.debug(f"Default language '{config_lang}' => extension '{extension}'.")
+        return config_lang.lower(), extension.lower()
 
-            logger.info(f"Solution file '{file_name}' created successfully.")
+    def infer_lang_and_ext(self, user_ext: str = "") -> Tuple[str, str]:
+        """
+        Infers the (lang_slug, file_extension) from either:
+        1) user-provided extension (e.g. ".cpp" or "py"), or
+        2) config default if user_ext is empty.
 
-        except OSError as e:
-            logger.error(f"Failed to create solution file '{file_name}': {e}")
-            raise CodeError(f"Failed to create solution file '{file_name}': {e}")
+        Returns:
+            (lang_slug, file_extension)
 
-    def create_solution_file_with_snippet(self, question_id: str, title_slug: str, lang_slug: str, file_extension: str) -> None:
+        Raises:
+            CodeError: If either approach fails.
+        """
+        # If user provided an extension (like ".cpp" or "cpp")
+        if user_ext:
+            # Remove leading '.' if any
+            file_extension = user_ext.lstrip('.').lower()
+            lang_slug = self.determine_language_from_extension(file_extension)
+            return lang_slug, file_extension
+
+        # Else, fallback to the default from config
+        return self.get_default_lang_and_ext()
+
+    def create_solution_file_with_snippet(
+        self,
+        frontend_id: str,
+        title_slug: str,
+        lang_slug: str,
+        file_extension: str
+    ) -> None:
         """
         Fetches the code snippet and creates the solution file.
 
         Args:
-            question_id (str): The numeric ID of the problem.
+            frontend_id (str): The numeric ID of the problem.
             title_slug (str): The title slug of the problem.
             lang_slug (str): The language slug.
             file_extension (str): The file extension.
@@ -156,10 +150,51 @@ class CodeManager:
             if not code_str:
                 code_str = f"# Solution for {title_slug} in {lang_slug}\n\n"
 
-            self.create_solution_file(question_id, title_slug, file_extension, code_str)
-            file_name = f"{question_id}.{title_slug}.{file_extension}"
+            self._create_solution_file(frontend_id, title_slug, file_extension, code_str)
+            file_name = f"{frontend_id}.{title_slug}.{file_extension}"
             logger.debug(f"Solution file '{file_name}' has been created successfully.")
 
         except Exception as e:
             logger.error(f"Failed to create solution file with snippet: {e}")
             raise CodeError(f"Failed to create solution file with snippet: {e}")
+
+    #
+    # ──────────────────────────────────────────────────────
+    #   PRIVATE HELPERS
+    # ──────────────────────────────────────────────────────
+    #
+
+    def _create_solution_file(
+        self,
+        frontend_id: str,
+        title_slug: str,
+        file_extension: str,
+        code_snippet: str
+    ) -> None:
+        """
+        Creates a new solution file with the provided code snippet.
+
+        Args:
+            frontend_id (str): The numeric ID of the problem (a/k/a frontendId).
+            title_slug (str): The title slug of the problem.
+            file_extension (str): e.g. "py", "cpp", etc.
+            code_snippet (str): The code to be written into the solution file.
+
+        Raises:
+            CodeError: If the file cannot be created (e.g. file already exists).
+        """
+        file_name = f"{frontend_id}.{title_slug}.{file_extension}"
+
+        if os.path.exists(file_name):
+            logger.warning(f"Solution file '{file_name}' already exists. Not overwriting.")
+            raise CodeError(f"Solution file '{file_name}' already exists.")
+
+        try:
+            with open(file_name, 'w', encoding='utf-8') as f:
+                f.write(code_snippet)
+
+            logger.info(f"Solution file '{file_name}' created successfully.")
+
+        except OSError as e:
+            logger.error(f"Failed to create solution file '{file_name}': {e}")
+            raise CodeError(f"Failed to create solution file '{file_name}': {e}")

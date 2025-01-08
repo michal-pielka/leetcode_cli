@@ -16,14 +16,13 @@ class FormattingConfigManager:
 
     def __init__(self, config_manager: ConfigManager):
         self.config_manager = config_manager
-        self.formatting_config_path = self.get_formatting_config_path()
+        self.formatting_config_path = self._get_formatting_config_path()
 
-    def get_formatting_config_path(self) -> str:
-        """
-        Returns the path to the formatting_config.yaml file.
-        """
-        config_dir = self.config_manager.config_dir
-        return os.path.join(config_dir, "formatting_config.yaml")
+    #
+    # ──────────────────────────────────────────────────────
+    #   PUBLIC METHODS
+    # ──────────────────────────────────────────────────────
+    #
 
     def load_formatting_config(self) -> FormattingConfig:
         """
@@ -59,3 +58,16 @@ class FormattingConfigManager:
             submission=data.get("submission", {}),
             problem_show=data.get("problem_show", {})
         )
+
+    #
+    # ──────────────────────────────────────────────────────
+    #   PRIVATE HELPERS
+    # ──────────────────────────────────────────────────────
+    #
+
+    def _get_formatting_config_path(self) -> str:
+        """
+        Returns the path to the formatting_config.yaml file.
+        """
+        config_dir = self.config_manager.config_dir
+        return os.path.join(config_dir, "formatting_config.yaml")

@@ -1,37 +1,36 @@
+# file: commands/submit.py
+
 import click
 import logging
 
 from leetcode_cli.managers.config_manager import ConfigManager
-from leetcode_cli.managers.formatting_config_manager import FormattingConfigManager, ConfigError
-from leetcode_cli.managers.code_manager import CodeManager, CodeError
-from leetcode_cli.managers.theme_manager import ThemeManager, ThemeError
-from leetcode_cli.managers.problem_manager import ProblemManager, ProblemError
+from leetcode_cli.managers.auth_service import AuthService
+from leetcode_cli.managers.formatting_config_manager import FormattingConfigManager
+from leetcode_cli.managers.code_manager import CodeManager
+from leetcode_cli.managers.theme_manager import ThemeManager
+from leetcode_cli.managers.problem_manager import ProblemManager
 from leetcode_cli.managers.problemset_manager import ProblemSetManager
 
-from leetcode_cli.data_fetchers.submission_result_fetcher import fetch_submission_result
-from leetcode_cli.parsers.submission_result_parser import parse_submission_result
 from leetcode_cli.formatters.submission_result_formatter import SubmissionFormatter
+from leetcode_cli.exceptions.exceptions import ConfigError, CodeError, ProblemError, ThemeError
 
 logger = logging.getLogger(__name__)
 
 @click.command(short_help='Submit a solution file to LeetCode')
-@click.argument('file_path', required=True, type=click.Path(exists=True), metavar='FILE_PATH')
+@click.argument('file_path', required=True, type=click.Path(exists=True))
 @click.option(
     '--include', '-i',
     multiple=True,
-    type=click.Choice(
-        [
-            "language",
-            "testcases",
-            "runtime_memory",
-            "code_output",
-            "stdout",
-            "error_messages",
-            "detailed_error_messages",
-            "expected_output",
-        ],
-        case_sensitive=False
-    ),
+    type=click.Choice([
+        "language",
+        "testcases",
+        "runtime_memory",
+        "code_output",
+        "stdout",
+        "error_messages",
+        "detailed_error_messages",
+        "expected_output",
+    ], case_sensitive=False),
     metavar='SECTION',
     help='Sections to display. Overrides formatting_config.'
 )
@@ -40,19 +39,19 @@ def submit_cmd(file_path, include):
     Submit a solution file to LeetCode.
     """
     try:
-        # 1) Initialize managers
         config_manager = ConfigManager()
+        auth_service = AuthService(config_manager)
         formatting_config_manager = FormattingConfigManager(config_manager)
         code_manager = CodeManager(config_manager)
         theme_manager = ThemeManager(config_manager)
-        problem_manager = ProblemManager(config_manager)
-        problemset_manager = ProblemSetManager(config_manager)
+        problemset_manager = ProblemSetManager(config_manager, auth_service)
+        problem_manager = ProblemManager(config_manager, auth_service, problemset_manager)
 
-        # 2) Load formatting config
+        # Load formatting config
         formatting_config = formatting_config_manager.load_formatting_config()
         format_conf = formatting_config.submission
 
-        # If user passed --include, override
+        # override if user passed --include
         if include:
             for key in format_conf.keys():
                 format_conf[key] = False
@@ -74,64 +73,31 @@ def submit_cmd(file_path, include):
                 elif item == "expected_output":
                     format_conf["show_expected_output"] = True
 
-        # 3) Authentication
-        cookie = config_manager.get_cookie()
-        csrf_token = config_manager.extract_csrf_token()
-        if not cookie or not csrf_token:
-            click.echo("Error: Missing authentication. Set cookie with 'leetcode config cookie <value>'")
-            return
+        # Parse path => (id, slug, ext)
+        _, title_slug, file_extension = problem_manager.problem_data_from_path(file_path)
 
-        # 4) Parse local file path => (question_id, title_slug, file_extension)
-        try:
-            _, title_slug, file_extension = problemset_manager.problem_data_from_path(file_path)
-            question_id = problem_manager.get_problem_id(title_slug)
+        # read code
+        code = code_manager.read_code_from_file(file_path)
 
-        except ProblemError as e:
-            click.echo(f"Error: {e}")
-            return
+        # lang
+        lang_slug = code_manager.determine_language_from_extension(file_extension)
 
-        # 5) Read code from local file
-        try:
-            code = code_manager.read_code_from_file(file_path)
+        # manager fetches + parses the submission result
+        submission_res = problem_manager.get_submission_result(
+            title_slug=title_slug,
+            code=code,
+            lang_slug=lang_slug
+        )
 
-        except CodeError as e:
-            click.echo(f"Error: {e}")
-            return
+        # format
+        formatter = SubmissionFormatter(submission_res, format_conf, theme_manager)
+        result_str = formatter.get_formatted_submission()
+        click.echo(result_str)
 
-        # 6) Determine language from extension
-        try:
-            lang_slug = code_manager.determine_language_from_extension(file_extension)
-
-        except CodeError as e:
-            click.echo(f"Error: {e}")
-            return
-
-        # 7) Fetch submission result from LeetCode
-        try:
-            raw_submission = fetch_submission_result(
-                cookie, csrf_token, title_slug, code, lang_slug, int(question_id)
-            )
-            submission_res = parse_submission_result(raw_submission)
-
-        except Exception as e:
-            logger.error(f"Failed to fetch or parse submission result: {e}")
-            click.echo(f"Error: {e}")
-            return
-
-        # 8) Format and display submission result
-        try:
-            formatter = SubmissionFormatter(submission_res, format_conf, theme_manager)
-            formatted_str = formatter.get_formatted_submission()
-            click.echo(formatted_str)
-
-        except Exception as e:
-            logger.error(f"Failed to format submission result: {e}")
-            click.echo(f"Error: {e}")
-
-    except (ConfigError, ThemeError) as e:
+    except (ConfigError, ThemeError, CodeError, ProblemError) as e:
         logger.error(e)
-        click.echo(f"Configuration/Theme Error: {e}", err=True)
+        click.echo(f"Error: {e}")
 
     except Exception as e:
-        logger.exception("An unexpected error occurred during submission.")
-        click.echo("An unexpected error occurred. Please try again.", err=True)
+        logger.exception("Unexpected error in submit_cmd.")
+        click.echo("An unexpected error occurred.", err=True)

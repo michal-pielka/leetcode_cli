@@ -144,8 +144,15 @@ GRAPHQL_QUERIES = {
     "problem_id": """
         query questionDetail($titleSlug: String!) {
           question(titleSlug: $titleSlug) {
-            questionFrontendId
             questionId
+          }
+        }
+    """,
+
+    "problem_frontend_id": """
+        query questionDetail($titleSlug: String!) {
+          question(titleSlug: $titleSlug) {
+            questionFrontendId
           }
         }
     """,

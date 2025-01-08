@@ -47,6 +47,27 @@ def fetch_problem_id(title_slug):
 
     return result
 
+def fetch_problem_frontend_id(title_slug):
+    query = GRAPHQL_QUERIES["problem_frontend_id"]
+    payload = {
+        "query": query,
+        "variables": {"titleSlug": title_slug},
+        "operationName": "questionDetail"
+    }
+
+    try:
+        response = requests.post(GRAPHQL_URL, json=payload)
+        response.raise_for_status()
+        result = response.json()
+
+    except requests.RequestException as e:
+        raise FetchingError(f"Network error while fetching problem ID for {title_slug}: {e}")
+
+    except ValueError:
+        raise FetchingError("Failed to parse JSON response while fetching problem ID.")
+
+    return result
+
 def fetch_random_title_slug(difficulty, tags):
     query = GRAPHQL_QUERIES["random_title_slug"]
     payload = {

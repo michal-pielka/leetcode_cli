@@ -6,4 +6,4 @@ class AuthService:
         return self.config_manager.get_cookie()
 
     def get_csrf_token(self):
-        return self.config_manager.extract_csrf_token()
+        return self.config_manager.get_csrf_token()

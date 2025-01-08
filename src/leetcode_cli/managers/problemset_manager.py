@@ -1,7 +1,8 @@
 import logging
 import os
 import json
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional, List
+import random
 
 from leetcode_cli.managers.auth_service import AuthService
 from leetcode_cli.managers.config_manager import ConfigManager
@@ -23,12 +24,39 @@ class ProblemSetManager:
         self.auth_service = auth_service
         self.problems_data_path = self.get_problems_data_path()
 
-    def get_problems_data_path(self) -> str:
+    #
+    # ──────────────────────────────────────────────────────
+    #   PUBLIC METHODS
+    # ──────────────────────────────────────────────────────
+    #
+
+    def get_problemset(self, tags=None, difficulty=None, limit=50, page=1):
         """
-        Returns the path to the problems_metadata.json file.
+        High-level method to fetch problemset from the GraphQL API,
+        parse it, and return the structured result.
         """
-        config_dir = self.config_manager.config_dir
-        return os.path.join(config_dir, "problems_metadata.json")
+        try:
+            raw = fetch_problemset(
+                cookie=self.auth_service.get_cookie(),
+                csrf_token=self.auth_service.get_csrf_token(),
+                tags=tags,
+                difficulty=difficulty,
+                limit=limit,
+                skip=(page - 1) * limit
+            )
+
+        except Exception as e:
+            logger.error(e)
+            raise e
+
+        try:
+            parsed = parse_problemset_data(raw)
+            return parsed
+
+        except ProblemSetError as e:
+            logger.error(e)
+            raise e
+
 
     def load_problemset_metadata(self) -> Dict[str, Any]:
         """
@@ -54,6 +82,7 @@ class ProblemSetManager:
             except OSError as e:
                 logger.error(f"Failed to read problems_metadata.json: {e}")
                 raise ProblemSetError("Failed to read problems_metadata.json.")
+
         else:
             logger.warning(f"problems_metadata.json not found at '{self.problems_data_path}'.")
             return {}
@@ -70,6 +99,7 @@ class ProblemSetManager:
         """
         try:
             os.makedirs(os.path.dirname(self.problems_data_path), exist_ok=True)
+
             with open(self.problems_data_path, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=4)
 
@@ -104,60 +134,54 @@ class ProblemSetManager:
         logger.warning(f"Problem with {key}='{value}' not found in cached data.")
         return {}
 
-    def get_title_slug(self, frontend_question_id: str) -> Optional[str]:
+    def get_random_local_problem_slug(self, difficulty: Optional[str], tags: Optional[List[str]]) -> Optional[str]:
         """
-        Retrieves the title slug for a given frontend question ID.
-
-        Args:
-            frontend_question_id (str): The frontend question ID.
-
-        Returns:
-            Optional[str]: The title slug if found, else None.
+        Randomly select a local problem that matches the given difficulty and tag filters.
+        Returns its 'titleSlug', or None if no match found.
         """
-        problem = self.get_problem_by_key_value("frontendQuestionId", frontend_question_id)
-        return problem.get("titleSlug", None)
+        data = self.load_problemset_metadata()
+        questions = data.get('data', {}).get('problemsetQuestionList', {}).get('questions', [])
 
-    def problem_data_from_path(self, filepath: str) -> Tuple[str, str, str]:
+        # Filter by difficulty & tags if provided
+        filtered = []
+        for q in questions:
+            if difficulty and q.get("difficulty", "").lower() != difficulty.lower():
+                continue
+
+            if tags and not self._matches_tags(q, tags):
+                continue
+
+            filtered.append(q)
+
+        if not filtered:
+            return None
+
+        # Randomly choose one from the filtered list
+        chosen = random.choice(filtered)
+        return chosen.get("titleSlug")
+    
+    def get_problems_data_path(self) -> str:
         """
-        Parses the problem data from the solution file path.
-
-        Args:
-            filepath (str): The solution file path.
-
-        Returns:
-            Tuple[str, str, str]: A tuple containing (question_id, title_slug, file_extension).
-
-        Raises:
-            ProblemSetError: If the filepath format is invalid.
+        Construct the path to problems_metadata.json in config_dir.
         """
-        filename = os.path.basename(filepath)
-        parts = filename.split('.')
+        config_dir = self.config_manager.config_dir
+        return os.path.join(config_dir, "problems_metadata.json")
 
-        if len(parts) != 3:
-            logger.error("Invalid filepath format. Expected {question_id}.{title_slug}.{file_extension}.")
-            raise ProblemSetError("Invalid filepath format. Expected {question_id}.{title_slug}.{file_extension}.")
+    #
+    # ──────────────────────────────────────────────────────
+    #   PRIVATE HELPERS
+    # ──────────────────────────────────────────────────────
+    #
 
-        frontend_id, title_slug, file_extension = parts[0], parts[1], parts[2]
-        return frontend_id, title_slug, file_extension
+    def _matches_tags(self, question: dict, required_tags: List[str]) -> bool:
+        """
+        Helper to check if the question has all the required tags.
+        'topicTags' is typically a list of dicts with 'slug' keys.
+        """
+        question_tags = [t.get("slug", "").lower() for t in question.get("topicTags", [])]
 
-    def get_problemset(self, tags, difficulty, limit, page):
-        try:
-            raw = fetch_problemset(
-                cookie=self.auth_service.get_cookie(),
-                csrf_token=self.auth_service.get_csrf_token(),
-                tags=tags,
-                difficulty=difficulty if difficulty else None,
-                limit=limit,
-                skip=(page - 1) * limit
-            )
+        for required_tag in required_tags:
+            if required_tag.lower() not in question_tags:
+                return False
 
-        except Exception as e:
-            raise e
-
-        try:
-            problemset_obj = parse_problemset_data(raw)
-
-        except ProblemSetError as e:
-            raise e
-
-        return problemset_obj
+        return True
