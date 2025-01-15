@@ -43,7 +43,7 @@ class ThemeManager:
 
     def get_themes_dir(self) -> str:
         """
-        Private helper to locate the "~/.config/leetcode/themes" directory.
+        Private helper to locate the "~/.leetcode/themes" directory.
         """
         config_dir = os.path.dirname(self.config_manager.config_path)
         return os.path.join(config_dir, "themes")

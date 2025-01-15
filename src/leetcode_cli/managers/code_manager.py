@@ -151,7 +151,7 @@ class CodeManager:
                     break
 
             if not code_str:
-                code_str = f"# Solution for {title_slug} in {lang_slug}\n\n"
+                code_str = f"# That problem does not have a code snippet for {lang_slug} and is probably not submittable in that language.\n\n"
 
             self._create_solution_file(
                 frontend_id, title_slug, file_extension, code_str

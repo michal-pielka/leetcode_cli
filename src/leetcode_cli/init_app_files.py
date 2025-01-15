@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 def initialize_leetcode_cli():
     """
-    Main entry point to ensure all necessary files and folders exist in ~/.config/leetcode/.
+    Main entry point to ensure all necessary files and folders exist in ~/.leetcode/.
     This function is idempotent—safe to call multiple times without harm.
     """
     try:
@@ -49,7 +49,7 @@ def initialize_leetcode_cli():
 
 def _ensure_config_directory(config_dir: str):
     """
-    Creates ~/.config/leetcode directory if it does not exist.
+    Creates ~/.leetcode directory if it does not exist.
     """
     try:
         os.makedirs(config_dir, exist_ok=True)
@@ -62,7 +62,7 @@ def _ensure_config_directory(config_dir: str):
 
 def _ensure_config_file_exists(config_path: str):
     """
-    Creates ~/.config/leetcode/config.json file if it does not exist.
+    Creates ~/.leetcode/config.json file if it does not exist.
     """
     if not os.path.exists(config_path):
         try:
@@ -99,7 +99,7 @@ def _ensure_minimum_config_fields(config_manager: ConfigManager):
 
 def _ensure_formatting_config_file_exists(config_dir: str):
     """
-    Creates ~/.config/leetcode/formatting_config.yaml if it does not exist,
+    Creates ~/.leetcode/formatting_config.yaml if it does not exist,
     or re-creates it if the existing file is corrupted/unusable.
     """
     formatting_path = os.path.join(config_dir, "formatting_config.yaml")
@@ -150,7 +150,7 @@ def _ensure_formatting_config_file_exists(config_dir: str):
 
 def _ensure_minimum_formatting_config_fields(config_dir: str):
     """
-    Fills ~/.config/leetcode/formatting_config.yaml with top-level sections
+    Fills ~/.leetcode/formatting_config.yaml with top-level sections
     if they’re missing (e.g., 'interpretation', 'submission', 'problem_show').
     """
     formatting_path = os.path.join(config_dir, "formatting_config.yaml")
@@ -186,7 +186,7 @@ def _ensure_minimum_formatting_config_fields(config_dir: str):
 
 def _ensure_themes_directory(themes_dir: str):
     """
-    Creates ~/.config/leetcode/themes directory if it doesn't exist.
+    Creates ~/.leetcode/themes directory if it doesn't exist.
     """
     try:
         os.makedirs(themes_dir, exist_ok=True)
@@ -226,7 +226,7 @@ def _discover_available_themes() -> List[str]:
 
 def _ensure_theme_folder(theme_name: str, theme_manager: ThemeManager):
     """
-    Ensures that a theme folder exists in ~/.config/leetcode/themes/{theme_name},
+    Ensures that a theme folder exists in ~/.leetcode/themes/{theme_name},
     and that it contains the necessary YAML files (ansi_codes.yaml, symbols.yaml, mappings.yaml).
     """
     themes_dir = theme_manager.get_themes_dir()
