@@ -1,5 +1,3 @@
-# file: managers/problem_manager.py
-
 import logging
 from typing import Optional, Tuple, List
 
