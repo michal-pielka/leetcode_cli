@@ -308,7 +308,3 @@ def _extract_yaml_from_py(file_path: str, variable_name: str) -> str:
         logger.error(f"Error extracting '{variable_name}' from '{file_path}': {e}")
 
         return ""
-
-
-if __name__ == "__main__":
-    initialize_leetcode_cli()

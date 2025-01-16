@@ -60,7 +60,6 @@ def main():
     configure_logging()
     # Optionally disable critical logs; up to you:
     logging.disable(logging.CRITICAL)
-
     initialize_leetcode_cli()
     cli()
 
