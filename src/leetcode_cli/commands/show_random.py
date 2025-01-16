@@ -11,7 +11,7 @@ from leetcode_cli.managers.theme_manager import ThemeManager
 from leetcode_cli.managers.problem_manager import ProblemManager
 from leetcode_cli.managers.auth_service import AuthService
 from leetcode_cli.formatters.problem_data_formatter import ProblemFormatter
-from leetcode_cli.exceptions.exceptions import ConfigError, ProblemError, ThemeError
+from leetcode_cli.exceptions.exceptions import ConfigError, FormattingError, ProblemError, ThemeError, ParsingError
 
 logger = logging.getLogger(__name__)
 
