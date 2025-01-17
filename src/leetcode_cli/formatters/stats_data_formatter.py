@@ -48,9 +48,7 @@ class StatsFormatter:
 
                 # ANSI color for the difficulty
                 diff_ansi, diff_symbol_left, diff_symbol_right = (
-                    self.theme_manager.get_styling(
-                        "STATS", difficulty.upper()
-                    )
+                    self.theme_manager.get_styling("STATS", difficulty.upper())
                 )
 
                 # Build the bar with each symbol wrapped
@@ -115,9 +113,7 @@ class StatsFormatter:
                     color, symbol_left, symbol_right = self.theme_manager.get_styling(
                         "STATS", tier
                     )
-                    symbol = self.theme_manager.get_styling(
-                        "STATS", "filled_square"
-                    )[1]
+                    symbol = self.theme_manager.get_styling("STATS", "filled_square")[1]
                     output[weekday][
                         week_index
                     ] = f"{color}{symbol_left}{symbol}{symbol_right}{self.ANSI_RESET}"
@@ -127,13 +123,9 @@ class StatsFormatter:
             else:
                 try:
                     tier0_ansi, tier0_symbol_left, tier0_symbol_right = (
-                        self.theme_manager.get_styling(
-                            "STATS", "CALENDAR_TIER0"
-                        )
+                        self.theme_manager.get_styling("STATS", "CALENDAR_TIER0")
                     )
-                    symbol = self.theme_manager.get_styling(
-                        "STATS", "empty_square"
-                    )[1]
+                    symbol = self.theme_manager.get_styling("STATS", "empty_square")[1]
                     output[weekday][
                         week_index
                     ] = f"{tier0_ansi}{tier0_symbol_left}{symbol}{tier0_symbol_right}{self.ANSI_RESET}"

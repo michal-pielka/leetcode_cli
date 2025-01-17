@@ -74,7 +74,9 @@ class ProblemManager:
         problem_obj = parse_problem_data(raw_data)
 
         if not self._is_available_for_free_user(problem_obj):
-            raise ProblemError("Sorry, this problem is paid-only and requires a subscription to view, please try again.")
+            raise ProblemError(
+                "Sorry, this problem is paid-only and requires a subscription to view, please try again."
+            )
 
         logger.debug(f"Parsed problem data for slug '{title_slug}'.")
 
@@ -109,7 +111,9 @@ class ProblemManager:
         problem_obj = parse_problem_data(raw_data)
 
         if not self._is_available_for_free_user(problem_obj):
-            raise ProblemError("Sorry, this problem is paid-only and requires a subscription to view, please try again.")
+            raise ProblemError(
+                "Sorry, this problem is paid-only and requires a subscription to view, please try again."
+            )
 
         problem_obj.__dict__["_title_slug"] = title_slug
 

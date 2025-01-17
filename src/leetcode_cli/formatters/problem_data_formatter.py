@@ -212,7 +212,9 @@ class ProblemFormatter:
                 # Get the styling for the current tag
                 try:
                     ansi_code, symbol_left, symbol_right = (
-                        self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "html_" + el.name.lower())
+                        self.theme_manager.get_styling(
+                            "PROBLEM_DESCRIPTION", "html_" + el.name.lower()
+                        )
                     )
 
                 except ThemeError as te:
@@ -262,7 +264,9 @@ class ProblemFormatter:
 
         try:
             ex_title_ansi, ex_title_symbol_left, ex_title_symbol_right = (
-                self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "label_example_title")
+                self.theme_manager.get_styling(
+                    "PROBLEM_DESCRIPTION", "label_example_title"
+                )
             )
 
         except ThemeError as te:
