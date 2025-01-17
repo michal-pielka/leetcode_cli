@@ -64,12 +64,12 @@ class ProblemFormatter:
         try:
             # Styling for title
             title_ansi, title_symbol_left, title_symbol_right = (
-                self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "title")
+                self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "label_title")
             )
             styled_title = f"{title_ansi}{title_symbol_left}[{self.problem.question_frontend_id}] {self.problem.title}{title_symbol_right}"
             diff_ansi, diff_symbol_left, diff_symbol_right = (
                 self.theme_manager.get_styling(
-                    "PROBLEM_DESCRIPTION", difficulty.capitalize()
+                    "PROBLEM_DESCRIPTION", "difficulty_" + difficulty.lower()
                 )
             )
 
@@ -100,7 +100,7 @@ class ProblemFormatter:
         try:
             constraints_ansi, constraints_symbol_left, constraints_symbol_right = (
                 self.theme_manager.get_styling(
-                    "PROBLEM_DESCRIPTION", "constraints_string"
+                    "PROBLEM_DESCRIPTION", "label_constraints"
                 )
             )
 
@@ -120,7 +120,7 @@ class ProblemFormatter:
             return ""
         try:
             label_ansi, label_symbol_left, label_symbol_right = (
-                self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "tag_label")
+                self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "label_tags")
             )
 
         except ThemeError as te:
@@ -133,7 +133,7 @@ class ProblemFormatter:
         for t in tags:
             try:
                 tag_ansi, tag_symbol_left, tag_symbol_right = (
-                    self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "tag")
+                    self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "value_tags")
                 )
 
             except ThemeError as te:
@@ -156,10 +156,10 @@ class ProblemFormatter:
 
         try:
             label_ansi, label_symbol_left, label_symbol_right = (
-                self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "language_label")
+                self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "label_languages")
             )
             lang_ansi, lang_symbol_left, lang_symbol_right = (
-                self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "language")
+                self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "value_languages")
             )
 
         except ThemeError as te:
@@ -212,7 +212,7 @@ class ProblemFormatter:
                 # Get the styling for the current tag
                 try:
                     ansi_code, symbol_left, symbol_right = (
-                        self.theme_manager.get_styling("PROBLEM_DESCRIPTION", el.name)
+                        self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "html_" + el.name.lower())
                     )
 
                 except ThemeError as te:
@@ -262,7 +262,7 @@ class ProblemFormatter:
 
         try:
             ex_title_ansi, ex_title_symbol_left, ex_title_symbol_right = (
-                self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "example_title")
+                self.theme_manager.get_styling("PROBLEM_DESCRIPTION", "label_example_title")
             )
 
         except ThemeError as te:
@@ -280,7 +280,7 @@ class ProblemFormatter:
         try:
             ex_input_str_ansi, ex_input_symbol_left, ex_input_symbol_right = (
                 self.theme_manager.get_styling(
-                    "PROBLEM_DESCRIPTION", "example_input_string"
+                    "PROBLEM_DESCRIPTION", "label_example_input"
                 )
             )
             (
@@ -288,7 +288,7 @@ class ProblemFormatter:
                 ex_input_data_symbol_left,
                 ex_input_data_symbol_right,
             ) = self.theme_manager.get_styling(
-                "PROBLEM_DESCRIPTION", "example_input_data"
+                "PROBLEM_DESCRIPTION", "value_example_input"
             )
 
         except ThemeError as te:
@@ -313,7 +313,7 @@ class ProblemFormatter:
         try:
             ex_output_str_ansi, ex_output_symbol_left, ex_output_symbol_right = (
                 self.theme_manager.get_styling(
-                    "PROBLEM_DESCRIPTION", "example_output_string"
+                    "PROBLEM_DESCRIPTION", "label_example_input"
                 )
             )
             (
@@ -321,7 +321,7 @@ class ProblemFormatter:
                 ex_output_data_symbol_left,
                 ex_output_data_symbol_right,
             ) = self.theme_manager.get_styling(
-                "PROBLEM_DESCRIPTION", "example_output_data"
+                "PROBLEM_DESCRIPTION", "value_example_input"
             )
 
         except ThemeError as te:
@@ -347,7 +347,7 @@ class ProblemFormatter:
             try:
                 ex_expl_str_ansi, ex_expl_symbol_left, ex_expl_symbol_right = (
                     self.theme_manager.get_styling(
-                        "PROBLEM_DESCRIPTION", "example_explanation_string"
+                        "PROBLEM_DESCRIPTION", "label_example_explanation"
                     )
                 )
                 (
@@ -355,7 +355,7 @@ class ProblemFormatter:
                     ex_expl_data_symbol_left,
                     ex_expl_data_symbol_right,
                 ) = self.theme_manager.get_styling(
-                    "PROBLEM_DESCRIPTION", "example_explanation_data"
+                    "PROBLEM_DESCRIPTION", "value_example_explanation"
                 )
 
             except ThemeError as te:

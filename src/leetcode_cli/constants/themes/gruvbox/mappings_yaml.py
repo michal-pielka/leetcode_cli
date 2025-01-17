@@ -1,325 +1,403 @@
-MAPPINGS_YAML = """# Gruvbox-inspired mappings, replicating ALL keys from default_theme
+MAPPINGS_YAML = """# Gruvbox-inspired mappings, now renamed to match the new default theme keys.
+# Values (style, prefix, suffix) remain unchanged, only the keys are updated.
+# For example, 'Accepted' -> 'status_accepted', 'title' -> 'text_title', etc.
 
 INTERPRETATION:
-  Accepted:
-    ansi: "green,bold"
-    symbol_left: "checkmark,space"
-    symbol_right: ""
-  Wrong Answer:
-    ansi: "red,bold"
-    symbol_left: "cross,space"
-    symbol_right: ""
-  Memory Limit Exceeded:
-    ansi: "red,bold"
-    symbol_left: "cross,space"
-    symbol_right: ""
-  Output Limit Exceeded:
-    ansi: "red,bold"
-    symbol_left: "cross,space"
-    symbol_right: ""
-  Time Limit Exceeded:
-    ansi: "red,bold"
-    symbol_left: "cross,space"
-    symbol_right: ""
-  Runtime Error:
-    ansi: "red,bold"
-    symbol_left: "cross,space"
-    symbol_right: ""
-  Compile Error:
-    ansi: "red,bold"
-    symbol_left: "cross,space"
-    symbol_right: ""
-  unknown:
-    ansi: "orange,bold"
-    symbol_left: "cross,space"
-    symbol_right: ""
-  field_label:
-    ansi: "white,bold"
-    symbol_left: ""
-    symbol_right: "colon"
-  field_value:
-    ansi: "white"
-    symbol_left: ""
-    symbol_right: ""
+  status_accepted:
+    style: "green,bold"
+    prefix: "checkmark,space"
+    suffix: ""
+
+  status_wrong_answer:
+    style: "red,bold"
+    prefix: "cross,space"
+    suffix: ""
+
+  status_memory_limit_exceeded:
+    style: "red,bold"
+    prefix: "cross,space"
+    suffix: ""
+
+  status_output_limit_exceeded:
+    style: "red,bold"
+    prefix: "cross,space"
+    suffix: ""
+
+  status_time_limit_exceeded:
+    style: "red,bold"
+    prefix: "cross,space"
+    suffix: ""
+
+  status_runtime_error:
+    style: "red,bold"
+    prefix: "cross,space"
+    suffix: ""
+
+  status_compile_error:
+    style: "red,bold"
+    prefix: "cross,space"
+    suffix: ""
+
+  status_unknown:
+    style: "orange,bold"
+    prefix: "cross,space"
+    suffix: ""
+
+  label_field:
+    style: "white,bold"
+    prefix: ""
+    suffix: "colon"
+
+  value_field:
+    style: "white"
+    prefix: ""
+    suffix: ""
+
 
 SUBMISSION:
-  Accepted:
-    ansi: "green,bold"
-    symbol_left: "checkmark,space"
-    symbol_right: ""
-  Wrong Answer:
-    ansi: "red,bold"
-    symbol_left: "cross,space"
-    symbol_right: ""
-  Memory Limit Exceeded:
-    ansi: "red,bold"
-    symbol_left: "cross,space"
-    symbol_right: ""
-  Output Limit Exceeded:
-    ansi: "red,bold"
-    symbol_left: "cross,space"
-    symbol_right: ""
-  Time Limit Exceeded:
-    ansi: "red,bold"
-    symbol_left: "cross,space"
-    symbol_right: ""
-  Runtime Error:
-    ansi: "red,bold"
-    symbol_left: "cross,space"
-    symbol_right: ""
-  Compile Error:
-    ansi: "red,bold"
-    symbol_left: "cross,space"
-    symbol_right: ""
-  unknown:
-    ansi: "orange,bold"
-    symbol_left: "cross,space"
-    symbol_right: ""
-  field_label:
-    ansi: "white,bold"
-    symbol_left: ""
-    symbol_right: "colon"
-  field_value:
-    ansi: "white"
-    symbol_left: ""
-    symbol_right: ""
+  status_accepted:
+    style: "green,bold"
+    prefix: "checkmark,space"
+    suffix: ""
+
+  status_wrong_answer:
+    style: "red,bold"
+    prefix: "cross,space"
+    suffix: ""
+
+  status_memory_limit_exceeded:
+    style: "red,bold"
+    prefix: "cross,space"
+    suffix: ""
+
+  status_output_limit_exceeded:
+    style: "red,bold"
+    prefix: "cross,space"
+    suffix: ""
+
+  status_time_limit_exceeded:
+    style: "red,bold"
+    prefix: "cross,space"
+    suffix: ""
+
+  status_runtime_error:
+    style: "red,bold"
+    prefix: "cross,space"
+    suffix: ""
+
+  status_compile_error:
+    style: "red,bold"
+    prefix: "cross,space"
+    suffix: ""
+
+  status_unknown:
+    style: "orange,bold"
+    prefix: "cross,space"
+    suffix: ""
+
+  label_field:
+    style: "white,bold"
+    prefix: ""
+    suffix: "colon"
+
+  value_field:
+    style: "white"
+    prefix: ""
+    suffix: ""
+
 
 PROBLEMSET:
-  title:
-    ansi: "white,bold"
-    symbol_left: ""
-    symbol_right: ""
-  acceptance_rate:
-    ansi: "white"
-    symbol_left: "parenthesis_left"
-    symbol_right: "percentage,parenthesis_right"
-  question_id:
-    ansi: "white,bold"
-    symbol_left: "bracket_left"
-    symbol_right: "bracket_right"
-  Easy:
-    ansi: "green,bold"
-    symbol_left: ""
-    symbol_right: ""
-  Medium:
-    ansi: "orange,bold"
-    symbol_left: ""
-    symbol_right: ""
-  Hard:
-    ansi: "red,bold"
-    symbol_left: ""
-    symbol_right: ""
-  ac:
-    ansi: "green"
-    symbol_left: "checkmark"
-    symbol_right: ""
-  notac:
-    ansi: "orange"
-    symbol_left: "snowflake"
-    symbol_right: ""
-  not_started:
-    ansi: ""
-    symbol_left: "space"
-    symbol_right: ""
+  text_title:
+    style: "white,bold"
+    prefix: ""
+    suffix: ""
+
+  text_acceptance_rate:
+    style: "white"
+    prefix: "parenthesis_left"
+    suffix: "percentage,parenthesis_right"
+
+  text_question_id:
+    style: "white,bold"
+    prefix: "bracket_left"
+    suffix: "bracket_right"
+
+  difficulty_easy:
+    style: "green,bold"
+    prefix: ""
+    suffix: ""
+
+  difficulty_medium:
+    style: "orange,bold"
+    prefix: ""
+    suffix: ""
+
+  difficulty_hard:
+    style: "red,bold"
+    prefix: ""
+    suffix: ""
+
+  status_ac:
+    style: "green"
+    prefix: "checkmark"
+    suffix: ""
+
+  status_notac:
+    style: "orange"
+    prefix: "snowflake"
+    suffix: ""
+
+  status_not_started:
+    style: ""
+    prefix: "space"
+    suffix: ""
+
 
 PROBLEM_DESCRIPTION:
-  strong:
-    ansi: "bold"
-    symbol_left: ""
-    symbol_right: ""
-  p:
-    ansi: "white"
-    symbol_left: ""
-    symbol_right: ""
-  br:
-    ansi: ""
-    symbol_left: ""
-    symbol_right: ""
-  ul:
-    ansi: ""
-    symbol_left: ""
-    symbol_right: ""
-  li:
-    ansi: ""
-    symbol_left: "dot"
-    symbol_right: ""
-  sup:
-    ansi: ""
-    symbol_left: "caret"
-    symbol_right: ""
-  b:
-    ansi: "bold"
-    symbol_left: ""
-    symbol_right: ""
-  em:
-    ansi: "italic"
-    symbol_left: ""
-    symbol_right: ""
-  i:
-    ansi: "italic"
-    symbol_left: ""
-    symbol_right: ""
-  u:
-    ansi: "underline"
-    symbol_left: ""
-    symbol_right: ""
-  span:
-    ansi: ""
-    symbol_left: ""
-    symbol_right: ""
-  ol:
-    ansi: ""
-    symbol_left: ""
-    symbol_right: ""
-  table:
-    ansi: ""
-    symbol_left: ""
-    symbol_right: ""
-  img:
-    ansi: ""
-    symbol_left: ""
-    symbol_right: ""
-  a:
-    ansi: ""
-    symbol_left: ""
-    symbol_right: ""
-  sub:
-    ansi: ""
-    symbol_left: ""
-    symbol_right: ""
-  blockquote:
-    ansi: ""
-    symbol_left: ""
-    symbol_right: ""
-  ptable:
-    ansi: ""
-    symbol_left: ""
-    symbol_right: ""
-  font:
-    ansi: ""
-    symbol_left: ""
-    symbol_right: ""
-  var:
-    ansi: ""
-    symbol_left: ""
-    symbol_right: ""
-  meta:
-    ansi: ""
-    symbol_left: ""
-    symbol_right: ""
-  div:
-    ansi: ""
-    symbol_left: ""
-    symbol_right: ""
-  style:
-    ansi: ""
-    symbol_left: ""
-    symbol_right: ""
-  code:
-    ansi: "gray_bg"
-    symbol_left: "space"
-    symbol_right: "space"
-  pre:
-    ansi: "red"
-    symbol_left: ""
-    symbol_right: ""
+  html_strong:
+    style: "bold"
+    prefix: ""
+    suffix: ""
 
-  tag_label:
-    ansi: "white,bold"
-    symbol_left: ""
-    symbol_right: ""
-  tag:
-    ansi: "orange_bg,black,bold"
-    symbol_left: "space"
-    symbol_right: "space"
-  language_label:
-    ansi: "white,bold"
-    symbol_left: ""
-    symbol_right: ""
-  language:
-    ansi: "red_bg,white,bold"
-    symbol_left: "space"
-    symbol_right: "space"
-  title:
-    ansi: "white,bold"
-    symbol_left: ""
-    symbol_right: ""
-  Easy:
-    ansi: "green,bold"
-    symbol_left: "bracket_left"
-    symbol_right: "bracket_right"
-  Medium:
-    ansi: "orange,bold"
-    symbol_left: "bracket_left"
-    symbol_right: "bracket_right"
-  Hard:
-    ansi: "red,bold"
-    symbol_left: "bracket_left"
-    symbol_right: "bracket_right"
-  example_title:
-    ansi: "white,bold"
-    symbol_left: ""
-    symbol_right: ""
-  example_input_string:
-    ansi: "white,bold"
-    symbol_left: "pipe,space"
-    symbol_right: "colon,space"
-  example_output_string:
-    ansi: "white,bold"
-    symbol_left: "pipe,space"
-    symbol_right: "colon,space"
-  example_explanation_string:
-    ansi: "white,bold"
-    symbol_left: "pipe,space"
-    symbol_right: "colon,space"
-  example_input_data:
-    ansi: "gray"
-    symbol_left: ""
-    symbol_right: ""
-  example_output_data:
-    ansi: "gray"
-    symbol_left: ""
-    symbol_right: ""
-  example_explanation_data:
-    ansi: "gray"
-    symbol_left: ""
-    symbol_right: ""
-  constraints_string:
-    ansi: "white,bold"
-    symbol_left: ""
-    symbol_right: ""
+  html_p:
+    style: "white"
+    prefix: ""
+    suffix: ""
 
-STATS_FORMATTER:
-  EASY:
-    ansi: "green"
-    symbol_left: ""
-    symbol_right: ""
-  MEDIUM:
-    ansi: "orange"
-    symbol_left: ""
-    symbol_right: ""
-  HARD:
-    ansi: "red"
-    symbol_left: ""
-    symbol_right: ""
-  CALENDAR_TIER0:
-    ansi: "gray"
-    symbol_left: ""
-    symbol_right: ""
-  CALENDAR_TIER1:
-    ansi: "orange,bold"
-    symbol_left: ""
-    symbol_right: ""
-  filled_square:
-    ansi: ""
-    symbol_left: "filled_square"
-    symbol_right: ""
-  empty_square:
-    ansi: ""
-    symbol_left: "empty_square"
-    symbol_right: ""
-  field:
-    ansi: "white,bold"
-    symbol_left: ""
-    symbol_right: ""
+  html_br:
+    style: ""
+    prefix: ""
+    suffix: ""
+
+  html_ul:
+    style: ""
+    prefix: ""
+    suffix: ""
+
+  html_li:
+    style: ""
+    prefix: "dot"
+    suffix: ""
+
+  html_sup:
+    style: ""
+    prefix: "caret"
+    suffix: ""
+
+  html_b:
+    style: "bold"
+    prefix: ""
+    suffix: ""
+
+  html_em:
+    style: "italic"
+    prefix: ""
+    suffix: ""
+
+  html_i:
+    style: "italic"
+    prefix: ""
+    suffix: ""
+
+  html_u:
+    style: "underline"
+    prefix: ""
+    suffix: ""
+
+  html_span:
+    style: ""
+    prefix: ""
+    suffix: ""
+
+  html_ol:
+    style: ""
+    prefix: ""
+    suffix: ""
+
+  html_table:
+    style: ""
+    prefix: ""
+    suffix: ""
+
+  html_img:
+    style: ""
+    prefix: ""
+    suffix: ""
+
+  html_a:
+    style: ""
+    prefix: ""
+    suffix: ""
+
+  html_sub:
+    style: ""
+    prefix: ""
+    suffix: ""
+
+  html_blockquote:
+    style: ""
+    prefix: ""
+    suffix: ""
+
+  html_ptable:
+    style: ""
+    prefix: ""
+    suffix: ""
+
+  html_font:
+    style: ""
+    prefix: ""
+    suffix: ""
+
+  html_var:
+    style: ""
+    prefix: ""
+    suffix: ""
+
+  html_meta:
+    style: ""
+    prefix: ""
+    suffix: ""
+
+  html_div:
+    style: ""
+    prefix: ""
+    suffix: ""
+
+  html_style:
+    style: ""
+    prefix: ""
+    suffix: ""
+
+  html_code:
+    style: "gray_bg"
+    prefix: "space"
+    suffix: "space"
+
+  html_pre:
+    style: "red"
+    prefix: ""
+    suffix: ""
+
+  label_tags:
+    style: "white,bold"
+    prefix: ""
+    suffix: ""
+
+  value_tags:
+    style: "orange_bg,black,bold"
+    prefix: "space"
+    suffix: "space"
+
+  label_languages:
+    style: "white,bold"
+    prefix: ""
+    suffix: ""
+
+  value_languages:
+    style: "red_bg,white,bold"
+    prefix: "space"
+    suffix: "space"
+
+  label_title:
+    style: "white,bold"
+    prefix: ""
+    suffix: ""
+
+  difficulty_easy:
+    style: "green,bold"
+    prefix: "bracket_left"
+    suffix: "bracket_right"
+
+  difficulty_medium:
+    style: "orange,bold"
+    prefix: "bracket_left"
+    suffix: "bracket_right"
+
+  difficulty_hard:
+    style: "red,bold"
+    prefix: "bracket_left"
+    suffix: "bracket_right"
+
+  label_example_title:
+    style: "white,bold"
+    prefix: ""
+    suffix: ""
+
+  label_example_input:
+    style: "white,bold"
+    prefix: "pipe,space"
+    suffix: "colon,space"
+
+  label_example_output:
+    style: "white,bold"
+    prefix: "pipe,space"
+    suffix: "colon,space"
+
+  label_example_explanation:
+    style: "white,bold"
+    prefix: "pipe,space"
+    suffix: "colon,space"
+
+  value_example_input:
+    style: "gray"
+    prefix: ""
+    suffix: ""
+
+  value_example_output:
+    style: "gray"
+    prefix: ""
+    suffix: ""
+
+  value_example_explanation:
+    style: "gray"
+    prefix: ""
+    suffix: ""
+
+  label_constraints:
+    style: "white,bold"
+    prefix: ""
+    suffix: ""
+
+
+STATS:
+  difficulty_easy:
+    style: "green"
+    prefix: ""
+    suffix: ""
+
+  difficulty_medium:
+    style: "orange"
+    prefix: ""
+    suffix: ""
+
+  difficulty_hard:
+    style: "red"
+    prefix: ""
+    suffix: ""
+
+  calendar_tier0:
+    style: "gray"
+    prefix: ""
+    suffix: ""
+
+  calendar_tier1:
+    style: "orange,bold"
+    prefix: ""
+    suffix: ""
+
+  square_filled:
+    style: ""
+    prefix: "filled_square"
+    suffix: ""
+
+  square_empty:
+    style: ""
+    prefix: "empty_square"
+    suffix: ""
+
+  label_field:
+    style: "white,bold"
+    prefix: ""
+    suffix: ""
 """

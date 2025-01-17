@@ -58,7 +58,7 @@ class SubmissionFormatter:
         # Obtain the styling for the overall status line
         try:
             ansi_code, symbol_left, symbol_right = self.theme_manager.get_styling(
-                "SUBMISSION", status_msg
+                "SUBMISSION", "status_" + status_msg.lower().replace(" ", "_")
             )
         except ThemeError as te:
             raise te
@@ -168,7 +168,7 @@ class SubmissionFormatter:
         """
         try:
             ansi_code, symbol_left, symbol_right = self.theme_manager.get_styling(
-                "SUBMISSION", "field_label"
+                "SUBMISSION", "label_field"
             )
         except ThemeError as te:
             logger.error(f"Theming Error: {te}")
@@ -185,7 +185,7 @@ class SubmissionFormatter:
         """
         try:
             ansi_code, symbol_left, symbol_right = self.theme_manager.get_styling(
-                "SUBMISSION", "field_value"
+                "SUBMISSION", "value_field"
             )
         except ThemeError as te:
             logger.error(f"Theming Error: {te}")

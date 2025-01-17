@@ -285,17 +285,17 @@ PROBLEM_DESCRIPTION:
     prefix: ""
     suffix: ""
 
-  value_tag:
+  value_tags:
     style: "cyan_bg,white,bold"
     prefix: "space"
     suffix: "space"
 
-  label_langs:
+  label_languages:
     style: "white,bold"
     prefix: ""
     suffix: ""
 
-  value_langs:
+  value_languages:
     style: "orange_bg,black,bold"
     prefix: "space"
     suffix: "space"

@@ -150,9 +150,9 @@ class ThemeManager:
             raise ThemeError(f"Key '{key}' not found in section '{section}'.")
 
         # e.g. raw_mapping => {"ansi": "green,bold", "symbol_left": "checkmark,space", "symbol_right": ""}
-        combined_ansi = self._parse_ansi_codes(raw_mapping.get("ansi", ""))
-        combined_left = self._parse_symbols(raw_mapping.get("symbol_left", ""))
-        combined_right = self._parse_symbols(raw_mapping.get("symbol_right", ""))
+        combined_ansi = self._parse_ansi_codes(raw_mapping.get("style", ""))
+        combined_left = self._parse_symbols(raw_mapping.get("prefix", ""))
+        combined_right = self._parse_symbols(raw_mapping.get("suffix", ""))
 
         return (combined_ansi, combined_left, combined_right)
 

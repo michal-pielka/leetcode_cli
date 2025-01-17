@@ -40,16 +40,16 @@ class StatsFormatter:
             try:
                 # Get symbols
                 filled_ansi, filled_symbol_left, filled_symbol_right = (
-                    self.theme_manager.get_styling("STATS_FORMATTER", "filled_square")
+                    self.theme_manager.get_styling("STATS", "square_filled")
                 )
                 empty_ansi, empty_symbol_left, empty_symbol_right = (
-                    self.theme_manager.get_styling("STATS_FORMATTER", "empty_square")
+                    self.theme_manager.get_styling("STATS", "square_empty")
                 )
 
                 # ANSI color for the difficulty
                 diff_ansi, diff_symbol_left, diff_symbol_right = (
                     self.theme_manager.get_styling(
-                        "STATS_FORMATTER", difficulty.upper()
+                        "STATS", difficulty.upper()
                     )
                 )
 
@@ -113,10 +113,10 @@ class StatsFormatter:
                     # Determine tier based on submissions
                     tier = self._determine_tier(subs, min_sub, max_sub)
                     color, symbol_left, symbol_right = self.theme_manager.get_styling(
-                        "STATS_FORMATTER", tier
+                        "STATS", tier
                     )
                     symbol = self.theme_manager.get_styling(
-                        "STATS_FORMATTER", "filled_square"
+                        "STATS", "filled_square"
                     )[1]
                     output[weekday][
                         week_index
@@ -128,11 +128,11 @@ class StatsFormatter:
                 try:
                     tier0_ansi, tier0_symbol_left, tier0_symbol_right = (
                         self.theme_manager.get_styling(
-                            "STATS_FORMATTER", "CALENDAR_TIER0"
+                            "STATS", "CALENDAR_TIER0"
                         )
                     )
                     symbol = self.theme_manager.get_styling(
-                        "STATS_FORMATTER", "empty_square"
+                        "STATS", "empty_square"
                     )[1]
                     output[weekday][
                         week_index

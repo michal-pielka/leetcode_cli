@@ -42,7 +42,7 @@ class ProblemSetFormatter:
         # Title padded to 79 characters
         title = q.title.ljust(79)
         title_ansi, title_left, title_right = self.theme_manager.get_styling(
-            "PROBLEMSET", "title"
+            "PROBLEMSET", "text_title"
         )
         formatted_title = (
             f"{title_ansi}{title_left}{title}{title_right}{self.ANSI_RESET}"
@@ -50,7 +50,7 @@ class ProblemSetFormatter:
 
         question_id = q.frontend_question_id.rjust(4)
         id_ansi, id_left, id_right = self.theme_manager.get_styling(
-            "PROBLEMSET", "question_id"
+            "PROBLEMSET", "text_question_id"
         )
         formatted_question_id = (
             f"{id_ansi}{id_left}{question_id}{id_right}{self.ANSI_RESET}"
@@ -58,7 +58,7 @@ class ProblemSetFormatter:
 
         ac_rate = f"{float(q.ac_rate):.2f}"
         ac_ansi, ac_left, ac_right = self.theme_manager.get_styling(
-            "PROBLEMSET", "acceptance_rate"
+            "PROBLEMSET", "text_acceptance_rate"
         )
         formatted_ac_rate = f"{ac_ansi}{ac_left}{ac_rate}{ac_right}{self.ANSI_RESET}"
 
@@ -66,7 +66,7 @@ class ProblemSetFormatter:
         diff_key = difficulty_str.capitalize()  # e.g., "Easy", "Medium", "Hard"
         try:
             diff_ansi, diff_left, diff_right = self.theme_manager.get_styling(
-                "PROBLEMSET", diff_key
+                "PROBLEMSET", "difficulty_" + diff_key.lower()
             )
 
         except ThemeError as te:
@@ -80,7 +80,7 @@ class ProblemSetFormatter:
         status_key = q.status.lower() if q.status else "not_started"
         try:
             status_ansi, status_left, status_right = self.theme_manager.get_styling(
-                "PROBLEMSET", status_key
+                "PROBLEMSET", "status_" + status_key.lower()
             )
 
         except ThemeError as te:

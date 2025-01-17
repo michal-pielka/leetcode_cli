@@ -80,18 +80,12 @@ class InterpretationFormatter:
                 # Typically 10 means 'Accepted' or 'Wrong Answer'
                 status_key = "Accepted" if code_out == expected_out else "Wrong Answer"
             else:
-                status_key = status_msg or "unknown"
-
-            # Attempt theming for the status
-            try:
-                self.theme_manager.get_styling("INTERPRETATION", status_key)
-            except ThemeError as te:
-                raise te
+                status_key = status_msg or "Unknown"
 
             # Retrieve style codes for the status
             try:
                 s_ansi, s_left, s_right = self.theme_manager.get_styling(
-                    "INTERPRETATION", status_key
+                    "INTERPRETATION", "status_" + status_key.lower().replace(" ", "_")
                 )
             except ThemeError as te:
                 raise te
@@ -177,7 +171,7 @@ class InterpretationFormatter:
         """
         try:
             ansi_code, sym_left, sym_right = self.theme_manager.get_styling(
-                "INTERPRETATION", "field_label"
+                "INTERPRETATION", "label_field"
             )
         except ThemeError as te:
             logger.error(f"Theming Error: {te}")
@@ -195,7 +189,7 @@ class InterpretationFormatter:
         """
         try:
             ansi_code, sym_left, sym_right = self.theme_manager.get_styling(
-                "INTERPRETATION", "field_value"
+                "INTERPRETATION", "value_field"
             )
         except ThemeError as te:
             logger.error(f"Theming Error: {te}")
