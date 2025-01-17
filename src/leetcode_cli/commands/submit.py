@@ -112,4 +112,4 @@ def submit_cmd(file_path, include):
 
     except Exception as e:
         logger.exception("Unexpected error in submit_cmd.")
-        click.echo("An unexpected error occurred.", err=True)
+        click.echo(f"An unexpected error occurred: {e}", err=True)
