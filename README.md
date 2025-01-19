@@ -114,7 +114,8 @@ Below is an overview of all the available CLI commands. For each command, you ca
   leetcode list [--difficulty EASY|MEDIUM|HARD] [--tag TAG_NAME] [--limit 50] [--page 1]
   ```
   - **Description**: Lists LeetCode problems with optional filters for difficulty, tags, pagination, etc.
-  - https://github.com/user-attachments/assets/1b754752-769d-4922-8b70-a0a0e1886f4f
+
+https://github.com/user-attachments/assets/1b754752-769d-4922-8b70-a0a0e1886f4f
 
 ---
 
