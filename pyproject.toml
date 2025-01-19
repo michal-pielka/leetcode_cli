@@ -3,13 +3,17 @@ name = "leetcode_cli"
 version = "0.1.0"
 description = "A CLI for interacting with LeetCode."
 authors = [
-    { name = "Your Name", email = "your.email@example.com" }
+    { name = "Michal Pielka" }
 ]
-license = { text = "MIT" }
+
+license = { file = "LICENCE" }
+
 readme = "README.md"
 dependencies = [
-    "click>=8.0",
-    "requests>=2.0",  # Adjust based on your usage
+    "click>=8.0.0",
+    "requests>=2.25.1",
+    "PyYAML>=5.4",
+    "beautifulsoup4>=4.9.3"
 ]
 
 [build-system]
