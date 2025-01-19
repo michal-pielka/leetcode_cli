@@ -216,7 +216,9 @@ https://github.com/user-attachments/assets/e74cb1c9-cd66-45e6-a39e-014339da8532
 
 https://github.com/user-attachments/assets/33de30a9-062f-4a77-976b-438e765503f1
 
+
 ---
+
 
 ## Contributing
 
@@ -227,9 +229,11 @@ Contributions, bug reports, and feature requests are welcome! Feel free to open 
 3. Commit your changes
 4. Open a pull request
 
+
 ---
+
 
 ## License
 
-This project is provided under the [MIT License](LICENSE).  
+This project is provided under the [MIT License](LICENCE).  
 Feel free to use, modify, and distribute this software in accordance with the license terms.
