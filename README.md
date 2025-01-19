@@ -2,7 +2,9 @@
 
 A highly customizable command-line interface for interacting with LeetCode. This tool allows you to list problems, view problem details, test and submit solutions, display user stats, and more — all without leaving the terminal.
 
+
 ---
+
 
 ## Table of Contents
 
@@ -24,7 +26,9 @@ A highly customizable command-line interface for interacting with LeetCode. This
 6. [Contributing](#contributing)
 7. [License](#license)
 
+
 ---
+
 
 ## Overview
 
@@ -38,7 +42,9 @@ This CLI tool aims to streamline your LeetCode experience by providing a unified
 - **View** your user statistics and daily submission calendar.
 - **Customize** output formatting and theming to suit your preferences.
 
+
 ---
+
 
 ## Installation
 
@@ -58,7 +64,9 @@ This CLI tool aims to streamline your LeetCode experience by providing a unified
    python cli.py --help
    ``` 
 
+
 ---
+
 
 ## Initialization
 
@@ -71,7 +79,9 @@ initialize_leetcode_cli()
 ```
 This step is automatically invoked whenever you run any `leetcode` command from the `cli.py` entry point.
 
+
 ---
+
 
 ## Configuration
 
@@ -89,7 +99,9 @@ leetcode config language python
 
 These values are stored in `~/.leetcode/config.json`.
 
+
 ---
+
 
 ## Commands
 
@@ -101,14 +113,8 @@ Below is an overview of all the available CLI commands. For each command, you ca
   ```bash
   leetcode list [--difficulty EASY|MEDIUM|HARD] [--tag TAG_NAME] [--limit 50] [--page 1]
   ```
-- **Description**: Lists LeetCode problems with optional filters for difficulty, tags, pagination, etc.
-
-
-https://github.com/user-attachments/assets/dc163a7a-a6a5-4528-a610-d9389071b9ee
-
-
-**Video Demonstration Placeholder**  
-*(Insert a link, screenshot, or embedded video here)*
+  - **Description**: Lists LeetCode problems with optional filters for difficulty, tags, pagination, etc.
+  - **https://github.com/user-attachments/assets/1b754752-769d-4922-8b70-a0a0e1886f4f**
 
 ---
 
@@ -119,9 +125,7 @@ https://github.com/user-attachments/assets/dc163a7a-a6a5-4528-a610-d9389071b9ee
   leetcode show <title_slug_or_frontend_id> [--include SECTION ...]
   ```
 - **Description**: Shows detailed information for a specified problem and marks it as the "chosen_problem" in your config. You can override which sections to display via `--include`.
-
-**Video Demonstration Placeholder**  
-*(Insert a link, screenshot, or embedded video here)*
+- **https://github.com/user-attachments/assets/c9719d50-4261-4a6f-be8e-ec39f722f79c**
 
 ---
 
@@ -132,9 +136,7 @@ https://github.com/user-attachments/assets/dc163a7a-a6a5-4528-a610-d9389071b9ee
   leetcode random [--difficulty EASY|MEDIUM|HARD] [--tag TAG_NAME] [--include SECTION ...]
   ```
 - **Description**: Shows detailed information for a random problem with optional filters for difficulty and tags. Marks that problem as the “chosen_problem” in your config. You can override which sections to display via `--include`.
-
-**Video Demonstration Placeholder**  
-*(Insert a link, screenshot, or embedded video here)*
+- **https://github.com/user-attachments/assets/d85b4a6c-fadb-4d28-a417-e3c73db76642**
 
 ---
 
@@ -145,9 +147,7 @@ https://github.com/user-attachments/assets/dc163a7a-a6a5-4528-a610-d9389071b9ee
   leetcode create [TITLE_SLUG_OR_ID]
   ```
 - **Description**: Creates a local solution file for a given problem with official code snippets for your default language, unless provided with a different language.
-
-**Video Demonstration Placeholder**  
-*(Insert a link, screenshot, or embedded video here)*
+- **https://github.com/user-attachments/assets/e74cb1c9-cd66-45e6-a39e-014339da8532**
 
 ---
 
@@ -158,10 +158,7 @@ https://github.com/user-attachments/assets/dc163a7a-a6a5-4528-a610-d9389071b9ee
   leetcode test <file_path> [--include SECTION ...]
   ```
 - **Description**: Tests your solution file against the example testcases provided by LeetCode.
-
-**Video Demonstration Placeholder**  
-*(Insert a link, screenshot, or embedded video here)*
-
+  
 ---
 
 ### submit
@@ -171,9 +168,6 @@ https://github.com/user-attachments/assets/dc163a7a-a6a5-4528-a610-d9389071b9ee
   leetcode submit <file_path> [--include SECTION ...]
   ```
 - **Description**: Submits your solution file directly to LeetCode and shows the submission result.
-
-**Video Demonstration Placeholder**  
-*(Insert a link, screenshot, or embedded video here)*
 
 ---
 
@@ -185,9 +179,6 @@ https://github.com/user-attachments/assets/dc163a7a-a6a5-4528-a610-d9389071b9ee
   ```
 - **Description**: Shows your overall accepted/failed counts per difficulty and a daily submission calendar.
 
-**Video Demonstration Placeholder**  
-*(Insert a link, screenshot, or embedded video here)*
-
 ---
 
 ### theme
@@ -197,9 +188,6 @@ https://github.com/user-attachments/assets/dc163a7a-a6a5-4528-a610-d9389071b9ee
   leetcode theme [theme_name]
   ```
 - **Description**: Lists available themes (if no argument is given) or sets a new theme.
-
-**Video Demonstration Placeholder**  
-*(Insert a link, screenshot, or embedded video here)*
 
 ---
 
@@ -221,9 +209,7 @@ https://github.com/user-attachments/assets/dc163a7a-a6a5-4528-a610-d9389071b9ee
   leetcode config <key> <value> # set a config key
   ```
 - **Description**: Manages your `cookie`, `username`, and `language` fields in `~/.leetcode/config.json`.
-
-**Video Demonstration Placeholder**  
-*(Insert a link, screenshot, or embedded video here)*
+- **https://github.com/user-attachments/assets/33de30a9-062f-4a77-976b-438e765503f1**
 
 ---
 
