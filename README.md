@@ -100,13 +100,11 @@ Below is an overview of all the available CLI commands. For each command, you ca
 - **Description**: Lists LeetCode problems with optional filters for difficulty, tags, pagination, etc.
 
 <details>
-<summary><strong>2. list Command</strong></summary>
-
-**Usage**: `leetcode list [--difficulty ...] [--tag ...]`
-
+<summary><strong>Video Demonstration</strong></summary>
 > **Video Demonstration Placeholder**  
 > *(Insert a link, screenshot, or embedded video here)*
 </details>
+
 
 ### show
 
@@ -117,13 +115,11 @@ Below is an overview of all the available CLI commands. For each command, you ca
 - **Description**: Shows detailed information for a specified problem and marks it as the "chosen_problem" in your config. You can override which sections to display via `--include`.
 
 <details>
-<summary><strong>3. show Command</strong></summary>
-
-**Usage**: `leetcode show <title_slug_or_frontend_id> [--include ...]`
-
+<summary><strong>Video Demonstration</strong></summary>
 > **Video Demonstration Placeholder**  
 > *(Insert a link, screenshot, or embedded video here)*
 </details>
+
 
 ### random
 
@@ -134,13 +130,11 @@ Below is an overview of all the available CLI commands. For each command, you ca
 - **Description**: Shows detailed information for a random problem with optional filters for difficulty and tags. Marks that problem as the “chosen_problem” in your config. You can override which sections to display via `--include`.
 
 <details>
-<summary><strong>4. random Command</strong></summary>
-
-**Usage**: `leetcode random [--difficulty ...] [--tag ...] [--include ...]`
-
+<summary><strong>Video Demonstration</strong></summary>
 > **Video Demonstration Placeholder**  
 > *(Insert a link, screenshot, or embedded video here)*
 </details>
+
 
 ### create
 
@@ -151,13 +145,11 @@ Below is an overview of all the available CLI commands. For each command, you ca
 - **Description**: Creates a local solution file for a given problem with official code snippets for your default language, unless provided with a different language.
 
 <details>
-<summary><strong>5. create Command</strong></summary>
-
-**Usage**: `leetcode create [TITLE_SLUG_OR_ID]`
-
+<summary><strong>Video Demonstration</strong></summary>
 > **Video Demonstration Placeholder**  
 > *(Insert a link, screenshot, or embedded video here)*
 </details>
+
 
 ### test
 
@@ -168,13 +160,11 @@ Below is an overview of all the available CLI commands. For each command, you ca
 - **Description**: Tests your solution file against the example testcases provided by LeetCode.
 
 <details>
-<summary><strong>6. test Command</strong></summary>
-
-**Usage**: `leetcode test <file_path> [--include ...]`
-
+<summary><strong>Video Demonstration</strong></summary>
 > **Video Demonstration Placeholder**  
 > *(Insert a link, screenshot, or embedded video here)*
 </details>
+
 
 ### submit
 
@@ -183,6 +173,7 @@ Below is an overview of all the available CLI commands. For each command, you ca
   leetcode submit <file_path> [--include SECTION ...]
   ```
 - **Description**: Submits your solution file directly to LeetCode and shows the submission result.
+
 
 ### stats
 
@@ -193,23 +184,18 @@ Below is an overview of all the available CLI commands. For each command, you ca
 - **Description**: Shows your overall accepted/failed counts per difficulty and a daily submission calendar.
 
 <details>
-<summary><strong>8. stats Command</strong></summary>
-
-**Usage**: `leetcode stats [USERNAME] [--include stats|calendar]`
-
+<summary><strong>Video Demonstration</strong></summary>
 > **Video Demonstration Placeholder**  
 > *(Insert a link, screenshot, or embedded video here)*
 </details>
 
 
 <details>
-<summary><strong>7. submit Command</strong></summary>
-
-**Usage**: `leetcode submit <file_path> [--include ...]`
-
+<summary><strong>Video Demonstration</strong></summary>
 > **Video Demonstration Placeholder**  
 > *(Insert a link, screenshot, or embedded video here)*
 </details>
+
 
 ### theme
 
@@ -227,6 +213,7 @@ Below is an overview of all the available CLI commands. For each command, you ca
 > **Video Demonstration Placeholder**  
 > *(Insert a link, screenshot, or embedded video here)*
 </details>
+
 
 ### download-problems
 
@@ -271,4 +258,3 @@ Contributions, bug reports, and feature requests are welcome! Feel free to open 
 
 This project is provided under the [MIT License](LICENSE).  
 Feel free to use, modify, and distribute this software in accordance with the license terms.
-```
