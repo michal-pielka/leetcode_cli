@@ -238,18 +238,3 @@ Contributions, bug reports, and feature requests are welcome! Feel free to open 
 
 This project is provided under the [MIT License](LICENSE).  
 Feel free to use, modify, and distribute this software in accordance with the license terms.
-```
-
----
-
-### Changes Made:
-
-1. **Aligned Video Placeholders**: Removed the `<details>` and `<summary>` tags to place the video placeholders directly below each command's description. This ensures that the video links are on the same indentation level as the usage and description, making the formatting more consistent and left-aligned.
-
-2. **Consistent Separation**: Added `---` separators between commands for better readability.
-
-3. **Removed Redundant Details Blocks**: For commands like `theme` and `config`, consolidated the video placeholders without nested `<details>` sections to maintain alignment.
-
-4. **General Formatting**: Ensured consistent bullet points, code blocks, and spacing throughout the document for a cleaner appearance.
-
-Feel free to adjust the placeholders with actual video links or screenshots as needed.
