@@ -62,7 +62,7 @@ This CLI tool aims to streamline your LeetCode experience by providing a unified
 
 ## Initialization
 
-The CLI will ensure necessary config, theme files and directories exist in your home folder `~/.leetcode` on Linux/macOS and `~/AppData/Roaming` on Windows). 
+The CLI will ensure necessary config, theme files, and directories exist in your home folder (`~/.leetcode` on Linux/macOS and `~/AppData/Roaming` on Windows).
 
 This is done via:
 ```python
@@ -103,12 +103,10 @@ Below is an overview of all the available CLI commands. For each command, you ca
   ```
 - **Description**: Lists LeetCode problems with optional filters for difficulty, tags, pagination, etc.
 
-<details>
-<summary><strong>Video Demonstration</strong></summary>
-> **Video Demonstration Placeholder**  
-> *(Insert a link, screenshot, or embedded video here)*
-</details>
+**Video Demonstration Placeholder**  
+*(Insert a link, screenshot, or embedded video here)*
 
+---
 
 ### show
 
@@ -118,12 +116,10 @@ Below is an overview of all the available CLI commands. For each command, you ca
   ```
 - **Description**: Shows detailed information for a specified problem and marks it as the "chosen_problem" in your config. You can override which sections to display via `--include`.
 
-<details>
-<summary><strong>Video Demonstration</strong></summary>
-> **Video Demonstration Placeholder**  
-> *(Insert a link, screenshot, or embedded video here)*
-</details>
+**Video Demonstration Placeholder**  
+*(Insert a link, screenshot, or embedded video here)*
 
+---
 
 ### random
 
@@ -133,12 +129,10 @@ Below is an overview of all the available CLI commands. For each command, you ca
   ```
 - **Description**: Shows detailed information for a random problem with optional filters for difficulty and tags. Marks that problem as the “chosen_problem” in your config. You can override which sections to display via `--include`.
 
-<details>
-<summary><strong>Video Demonstration</strong></summary>
-> **Video Demonstration Placeholder**  
-> *(Insert a link, screenshot, or embedded video here)*
-</details>
+**Video Demonstration Placeholder**  
+*(Insert a link, screenshot, or embedded video here)*
 
+---
 
 ### create
 
@@ -148,12 +142,10 @@ Below is an overview of all the available CLI commands. For each command, you ca
   ```
 - **Description**: Creates a local solution file for a given problem with official code snippets for your default language, unless provided with a different language.
 
-<details>
-<summary><strong>Video Demonstration</strong></summary>
-> **Video Demonstration Placeholder**  
-> *(Insert a link, screenshot, or embedded video here)*
-</details>
+**Video Demonstration Placeholder**  
+*(Insert a link, screenshot, or embedded video here)*
 
+---
 
 ### test
 
@@ -163,12 +155,10 @@ Below is an overview of all the available CLI commands. For each command, you ca
   ```
 - **Description**: Tests your solution file against the example testcases provided by LeetCode.
 
-<details>
-<summary><strong>Video Demonstration</strong></summary>
-> **Video Demonstration Placeholder**  
-> *(Insert a link, screenshot, or embedded video here)*
-</details>
+**Video Demonstration Placeholder**  
+*(Insert a link, screenshot, or embedded video here)*
 
+---
 
 ### submit
 
@@ -178,6 +168,10 @@ Below is an overview of all the available CLI commands. For each command, you ca
   ```
 - **Description**: Submits your solution file directly to LeetCode and shows the submission result.
 
+**Video Demonstration Placeholder**  
+*(Insert a link, screenshot, or embedded video here)*
+
+---
 
 ### stats
 
@@ -187,19 +181,10 @@ Below is an overview of all the available CLI commands. For each command, you ca
   ```
 - **Description**: Shows your overall accepted/failed counts per difficulty and a daily submission calendar.
 
-<details>
-<summary><strong>Video Demonstration</strong></summary>
-> **Video Demonstration Placeholder**  
-> *(Insert a link, screenshot, or embedded video here)*
-</details>
+**Video Demonstration Placeholder**  
+*(Insert a link, screenshot, or embedded video here)*
 
-
-<details>
-<summary><strong>Video Demonstration</strong></summary>
-> **Video Demonstration Placeholder**  
-> *(Insert a link, screenshot, or embedded video here)*
-</details>
-
+---
 
 ### theme
 
@@ -209,15 +194,10 @@ Below is an overview of all the available CLI commands. For each command, you ca
   ```
 - **Description**: Lists available themes (if no argument is given) or sets a new theme.
 
-<details>
-<summary><strong>9. theme Command</strong></summary>
+**Video Demonstration Placeholder**  
+*(Insert a link, screenshot, or embedded video here)*
 
-**Usage**: `leetcode theme [theme_name]`
-
-> **Video Demonstration Placeholder**  
-> *(Insert a link, screenshot, or embedded video here)*
-</details>
-
+---
 
 ### download-problems
 
@@ -226,6 +206,8 @@ Below is an overview of all the available CLI commands. For each command, you ca
   leetcode download-problems
   ```
 - **Description**: Downloads a full JSON metadata listing of all LeetCode problems and saves it locally, enabling references by problem ID.
+
+---
 
 ### config
 
@@ -236,14 +218,8 @@ Below is an overview of all the available CLI commands. For each command, you ca
   ```
 - **Description**: Manages your `cookie`, `username`, and `language` fields in `~/.leetcode/config.json`.
 
-<details>
-<summary><strong>1. config Command</strong></summary>
-
-**Usage**: `leetcode config <key> <value>` or just `leetcode config`
-
-> **Video Demonstration Placeholder**  
-> *(Insert a link, screenshot, or embedded video here)*
-</details>
+**Video Demonstration Placeholder**  
+*(Insert a link, screenshot, or embedded video here)*
 
 ---
 
@@ -262,3 +238,18 @@ Contributions, bug reports, and feature requests are welcome! Feel free to open 
 
 This project is provided under the [MIT License](LICENSE).  
 Feel free to use, modify, and distribute this software in accordance with the license terms.
+```
+
+---
+
+### Changes Made:
+
+1. **Aligned Video Placeholders**: Removed the `<details>` and `<summary>` tags to place the video placeholders directly below each command's description. This ensures that the video links are on the same indentation level as the usage and description, making the formatting more consistent and left-aligned.
+
+2. **Consistent Separation**: Added `---` separators between commands for better readability.
+
+3. **Removed Redundant Details Blocks**: For commands like `theme` and `config`, consolidated the video placeholders without nested `<details>` sections to maintain alignment.
+
+4. **General Formatting**: Ensured consistent bullet points, code blocks, and spacing throughout the document for a cleaner appearance.
+
+Feel free to adjust the placeholders with actual video links or screenshots as needed.
