@@ -1,6 +1,6 @@
 # LeetCode CLI
 
-A customizable command-line interface for interacting with LeetCode. This tool allows you to list problems, view problem details, test and submit solutions, display user stats, and more — all without leaving the terminal.
+A highly customizable command-line interface for interacting with LeetCode. This tool allows you to list problems, view problem details, test and submit solutions, display user stats, and more — all without leaving the terminal.
 
 ---
 
@@ -99,6 +99,15 @@ Below is an overview of all the available CLI commands. For each command, you ca
   ```
 - **Description**: Lists LeetCode problems with optional filters for difficulty, tags, pagination, etc.
 
+<details>
+<summary><strong>2. list Command</strong></summary>
+
+**Usage**: `leetcode list [--difficulty ...] [--tag ...]`
+
+> **Video Demonstration Placeholder**  
+> *(Insert a link, screenshot, or embedded video here)*
+</details>
+
 ### show
 
 - **Usage**:  
@@ -106,6 +115,15 @@ Below is an overview of all the available CLI commands. For each command, you ca
   leetcode show <title_slug_or_frontend_id> [--include SECTION ...]
   ```
 - **Description**: Shows detailed information for a specified problem and marks it as the "chosen_problem" in your config. You can override which sections to display via `--include`.
+
+<details>
+<summary><strong>3. show Command</strong></summary>
+
+**Usage**: `leetcode show <title_slug_or_frontend_id> [--include ...]`
+
+> **Video Demonstration Placeholder**  
+> *(Insert a link, screenshot, or embedded video here)*
+</details>
 
 ### random
 
@@ -115,6 +133,15 @@ Below is an overview of all the available CLI commands. For each command, you ca
   ```
 - **Description**: Shows detailed information for a random problem with optional filters for difficulty and tags. Marks that problem as the “chosen_problem” in your config. You can override which sections to display via `--include`.
 
+<details>
+<summary><strong>4. random Command</strong></summary>
+
+**Usage**: `leetcode random [--difficulty ...] [--tag ...] [--include ...]`
+
+> **Video Demonstration Placeholder**  
+> *(Insert a link, screenshot, or embedded video here)*
+</details>
+
 ### create
 
 - **Usage**:  
@@ -123,6 +150,15 @@ Below is an overview of all the available CLI commands. For each command, you ca
   ```
 - **Description**: Creates a local solution file for a given problem with official code snippets for your default language, unless provided with a different language.
 
+<details>
+<summary><strong>5. create Command</strong></summary>
+
+**Usage**: `leetcode create [TITLE_SLUG_OR_ID]`
+
+> **Video Demonstration Placeholder**  
+> *(Insert a link, screenshot, or embedded video here)*
+</details>
+
 ### test
 
 - **Usage**:  
@@ -130,6 +166,15 @@ Below is an overview of all the available CLI commands. For each command, you ca
   leetcode test <file_path> [--include SECTION ...]
   ```
 - **Description**: Tests your solution file against the example testcases provided by LeetCode.
+
+<details>
+<summary><strong>6. test Command</strong></summary>
+
+**Usage**: `leetcode test <file_path> [--include ...]`
+
+> **Video Demonstration Placeholder**  
+> *(Insert a link, screenshot, or embedded video here)*
+</details>
 
 ### submit
 
@@ -147,6 +192,25 @@ Below is an overview of all the available CLI commands. For each command, you ca
   ```
 - **Description**: Shows your overall accepted/failed counts per difficulty and a daily submission calendar.
 
+<details>
+<summary><strong>8. stats Command</strong></summary>
+
+**Usage**: `leetcode stats [USERNAME] [--include stats|calendar]`
+
+> **Video Demonstration Placeholder**  
+> *(Insert a link, screenshot, or embedded video here)*
+</details>
+
+
+<details>
+<summary><strong>7. submit Command</strong></summary>
+
+**Usage**: `leetcode submit <file_path> [--include ...]`
+
+> **Video Demonstration Placeholder**  
+> *(Insert a link, screenshot, or embedded video here)*
+</details>
+
 ### theme
 
 - **Usage**:  
@@ -154,6 +218,15 @@ Below is an overview of all the available CLI commands. For each command, you ca
   leetcode theme [theme_name]
   ```
 - **Description**: Lists available themes (if no argument is given) or sets a new theme.
+
+<details>
+<summary><strong>9. theme Command</strong></summary>
+
+**Usage**: `leetcode theme [theme_name]`
+
+> **Video Demonstration Placeholder**  
+> *(Insert a link, screenshot, or embedded video here)*
+</details>
 
 ### download-problems
 
@@ -172,97 +245,10 @@ Below is an overview of all the available CLI commands. For each command, you ca
   ```
 - **Description**: Manages your `cookie`, `username`, and `language` fields in `~/.leetcode/config.json`.
 
----
-
-## Placeholders for Demonstrations
-
-Below are placeholders where you can embed or link to your video demonstrations for each command:
-
 <details>
 <summary><strong>1. config Command</strong></summary>
 
 **Usage**: `leetcode config <key> <value>` or just `leetcode config`
-
-> **Video Demonstration Placeholder**  
-> *(Insert a link, screenshot, or embedded video here)*
-</details>
-
-<details>
-<summary><strong>2. list Command</strong></summary>
-
-**Usage**: `leetcode list [--difficulty ...] [--tag ...]`
-
-> **Video Demonstration Placeholder**  
-> *(Insert a link, screenshot, or embedded video here)*
-</details>
-
-<details>
-<summary><strong>3. show Command</strong></summary>
-
-**Usage**: `leetcode show <title_slug_or_frontend_id> [--include ...]`
-
-> **Video Demonstration Placeholder**  
-> *(Insert a link, screenshot, or embedded video here)*
-</details>
-
-<details>
-<summary><strong>4. random Command</strong></summary>
-
-**Usage**: `leetcode random [--difficulty ...] [--tag ...] [--include ...]`
-
-> **Video Demonstration Placeholder**  
-> *(Insert a link, screenshot, or embedded video here)*
-</details>
-
-<details>
-<summary><strong>5. create Command</strong></summary>
-
-**Usage**: `leetcode create [TITLE_SLUG_OR_ID]`
-
-> **Video Demonstration Placeholder**  
-> *(Insert a link, screenshot, or embedded video here)*
-</details>
-
-<details>
-<summary><strong>6. test Command</strong></summary>
-
-**Usage**: `leetcode test <file_path> [--include ...]`
-
-> **Video Demonstration Placeholder**  
-> *(Insert a link, screenshot, or embedded video here)*
-</details>
-
-<details>
-<summary><strong>7. submit Command</strong></summary>
-
-**Usage**: `leetcode submit <file_path> [--include ...]`
-
-> **Video Demonstration Placeholder**  
-> *(Insert a link, screenshot, or embedded video here)*
-</details>
-
-<details>
-<summary><strong>8. stats Command</strong></summary>
-
-**Usage**: `leetcode stats [USERNAME] [--include stats|calendar]`
-
-> **Video Demonstration Placeholder**  
-> *(Insert a link, screenshot, or embedded video here)*
-</details>
-
-<details>
-<summary><strong>9. theme Command</strong></summary>
-
-**Usage**: `leetcode theme [theme_name]`
-
-> **Video Demonstration Placeholder**  
-> *(Insert a link, screenshot, or embedded video here)*
-</details>
-
-<details>
-<summary><strong>10. download-problems Command</strong></summary>
-
-**Usage**: `leetcode download-problems`
 
 > **Video Demonstration Placeholder**  
 > *(Insert a link, screenshot, or embedded video here)*
