@@ -114,7 +114,7 @@ Below is an overview of all the available CLI commands. For each command, you ca
   leetcode list [--difficulty EASY|MEDIUM|HARD] [--tag TAG_NAME] [--limit 50] [--page 1]
   ```
   - **Description**: Lists LeetCode problems with optional filters for difficulty, tags, pagination, etc.
-  - **https://github.com/user-attachments/assets/1b754752-769d-4922-8b70-a0a0e1886f4f**
+  - https://github.com/user-attachments/assets/1b754752-769d-4922-8b70-a0a0e1886f4f
 
 ---
 
@@ -125,7 +125,7 @@ Below is an overview of all the available CLI commands. For each command, you ca
   leetcode show <title_slug_or_frontend_id> [--include SECTION ...]
   ```
 - **Description**: Shows detailed information for a specified problem and marks it as the "chosen_problem" in your config. You can override which sections to display via `--include`.
-- **https://github.com/user-attachments/assets/c9719d50-4261-4a6f-be8e-ec39f722f79c**
+  https://github.com/user-attachments/assets/c9719d50-4261-4a6f-be8e-ec39f722f79c
 
 ---
 
