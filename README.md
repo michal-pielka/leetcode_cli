@@ -21,9 +21,8 @@ A highly customizable command-line interface for interacting with LeetCode. This
    - [theme](#theme)
    - [download-problems](#download-problems)
    - [config](#config)
-6. [Placeholders for Demonstrations](#placeholders-for-demonstrations)
-7. [Contributing](#contributing)
-8. [License](#license)
+6. [Contributing](#contributing)
+7. [License](#license)
 
 ---
 
@@ -49,10 +48,15 @@ This CLI tool aims to streamline your LeetCode experience by providing a unified
    ```bash
    pip install -r requirements.txt
    ```
-4. (Optional) If you want to use this as a global command, you can install it as a pip package using `pip install .`. For local development or usage, simply run:
+4. Install the app as a global command:
+   ```bash
+   pip install .
+   ``` 
+
+5. For local development or usage, simply run:
    ```bash
    python cli.py --help
-   ```
+   ``` 
 
 ---
 
