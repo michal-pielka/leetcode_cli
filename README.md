@@ -126,7 +126,8 @@ https://github.com/user-attachments/assets/1b754752-769d-4922-8b70-a0a0e1886f4f
   leetcode show <title_slug_or_frontend_id> [--include SECTION ...]
   ```
 - **Description**: Shows detailed information for a specified problem and marks it as the "chosen_problem" in your config. You can override which sections to display via `--include`.
-  https://github.com/user-attachments/assets/c9719d50-4261-4a6f-be8e-ec39f722f79c
+
+https://github.com/user-attachments/assets/c9719d50-4261-4a6f-be8e-ec39f722f79c
 
 ---
 
@@ -137,7 +138,8 @@ https://github.com/user-attachments/assets/1b754752-769d-4922-8b70-a0a0e1886f4f
   leetcode random [--difficulty EASY|MEDIUM|HARD] [--tag TAG_NAME] [--include SECTION ...]
   ```
 - **Description**: Shows detailed information for a random problem with optional filters for difficulty and tags. Marks that problem as the “chosen_problem” in your config. You can override which sections to display via `--include`.
-- **https://github.com/user-attachments/assets/d85b4a6c-fadb-4d28-a417-e3c73db76642**
+
+https://github.com/user-attachments/assets/d85b4a6c-fadb-4d28-a417-e3c73db76642
 
 ---
 
@@ -148,7 +150,8 @@ https://github.com/user-attachments/assets/1b754752-769d-4922-8b70-a0a0e1886f4f
   leetcode create [TITLE_SLUG_OR_ID]
   ```
 - **Description**: Creates a local solution file for a given problem with official code snippets for your default language, unless provided with a different language.
-- **https://github.com/user-attachments/assets/e74cb1c9-cd66-45e6-a39e-014339da8532**
+
+https://github.com/user-attachments/assets/e74cb1c9-cd66-45e6-a39e-014339da8532
 
 ---
 
@@ -210,7 +213,8 @@ https://github.com/user-attachments/assets/1b754752-769d-4922-8b70-a0a0e1886f4f
   leetcode config <key> <value> # set a config key
   ```
 - **Description**: Manages your `cookie`, `username`, and `language` fields in `~/.leetcode/config.json`.
-- **https://github.com/user-attachments/assets/33de30a9-062f-4a77-976b-438e765503f1**
+
+https://github.com/user-attachments/assets/33de30a9-062f-4a77-976b-438e765503f1
 
 ---
 
