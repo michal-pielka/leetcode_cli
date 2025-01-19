@@ -1,17 +1,19 @@
-# leetcode_cli/models/stats.py
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict
 
 
 @dataclass
 class UserStatsModel:
     """
-    Represents user stats by difficulty, including accepted, failed, and untouched counts.
+    Represents user stats by difficulty, including accepted, failed, untouched counts,
+    plus how many users you beat per difficulty.
     """
 
     accepted: Dict[str, int]
     failed: Dict[str, int]
     untouched: Dict[str, int]
+    beats: Dict[str, float] = field(default_factory=dict)  # e.g. {"EASY": 72.5, ...}
+    total_submissions: int = 0
 
 
 @dataclass

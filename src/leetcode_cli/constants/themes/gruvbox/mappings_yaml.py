@@ -361,43 +361,6 @@ PROBLEM_DESCRIPTION:
 
 
 STATS:
-  difficulty_easy:
-    style: "green"
-    prefix: ""
-    suffix: ""
-
-  difficulty_medium:
-    style: "orange"
-    prefix: ""
-    suffix: ""
-
-  difficulty_hard:
-    style: "red"
-    prefix: ""
-    suffix: ""
-
-  calendar_tier0:
-    style: "gray"
-    prefix: ""
-    suffix: ""
-
-  calendar_tier1:
-    style: "orange,bold"
-    prefix: ""
-    suffix: ""
-
-  square_filled:
-    style: ""
-    prefix: "filled_square"
-    suffix: ""
-
-  square_empty:
-    style: ""
-    prefix: "empty_square"
-    suffix: ""
-
-  label_field:
-    style: "white,bold"
-    prefix: ""
-    suffix: ""
+  calendar_least_submissions: "dark_green"    # somewhat dark green
+  calendar_most_submissions: "bright_green"   # bright green
 """

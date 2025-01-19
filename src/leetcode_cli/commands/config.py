@@ -14,9 +14,7 @@ def config_cmd(key, value):
     """
     Configure or view user settings.
 
-    Usage:
-      - leetcode config           (shows all config key-value pairs)
-      - leetcode config KEY VALUE (sets config KEY to VALUE)
+    Usage: leetcode config (shows all config key-value pairs), leetcode config KEY VALUE (sets config KEY to VALUE)
 
     Valid keys include 'cookie', 'username', and 'language'.
     """

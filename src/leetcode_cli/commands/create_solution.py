@@ -34,7 +34,7 @@ def create_cmd(title_slug_or_id):
 
             if not title_slug_or_id:
                 click.echo(
-                    "Error: No chosen problem found. Please specify a problem or use 'leetcode show' to select one."
+                    "Error: No chosen problem found. Please specify a problem or use 'leetcode show' or 'leetcode random' to select one."
                 )
                 return
 

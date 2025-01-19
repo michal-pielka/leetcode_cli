@@ -47,7 +47,9 @@ def fetch_problemset(
         raise FetchingError(f"Network error while fetching problemset: {e}")
 
     except ValueError:
-        raise FetchingError("Failed to parse JSON response while fetching problemset, there might be an issue with your cookie.")
+        raise FetchingError(
+            "Failed to parse JSON response while fetching problemset, there might be an issue with your cookie."
+        )
 
     return result
 

@@ -9,6 +9,8 @@ ANSI_CODES:
   gray: "\\u001b[90m"                     # Gray text color
   white: "\\u001b[38;2;255;255;255m"      # White text color using RGB values
   black: "\\u001b[38;2;0;0;0m"            # Black text color using RGB values
+  dark_green: "\\u001b[38;2;0;90;0m"
+  bright_green: "\\u001b[38;2;0;255;0m"
 
   # Background Colors
   gray_bg: "\\u001b[100m"                 # Gray background color

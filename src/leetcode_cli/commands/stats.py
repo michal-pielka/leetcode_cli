@@ -1,5 +1,3 @@
-# file: commands/stats.py
-
 import click
 import logging
 from datetime import datetime
@@ -24,22 +22,17 @@ logger = logging.getLogger(__name__)
     multiple=True,
     type=click.Choice(["stats", "calendar"], case_sensitive=False),
     metavar="SECTION",
-    help="Sections to display. Overrides formatting_config.",
+    help="Sections to display. e.g. --include stats --include calendar",
 )
 def stats_cmd(username, include):
     """
-    Show user stats and/or calendar activity. For example:
-      leetcode stats <username> --include stats --include calendar
+    Show user stats and/or calendar activity, with color gradients for daily squares.
     """
     try:
         config_manager = ConfigManager()
         auth_service = AuthService(config_manager)
         stats_manager = StatsManager(config_manager, auth_service)
         theme_manager = ThemeManager(config_manager)
-        formatting_config_manager = FormattingConfigManager(config_manager)
-
-        # Possibly load formatting_config if the StatsFormatter uses it—(some do, some don't).
-        # e.g., if you have "stats_show" or something. We'll skip that for now.
 
         if not username:
             username = config_manager.get_username()
@@ -47,24 +40,19 @@ def stats_cmd(username, include):
                 click.echo("Error: Username not found in config or CLI param.")
                 return
 
-        # If user didn't specify, show both
+        # If user didn’t specify any --include, show both
         if not include:
             include = ("stats", "calendar")
 
-        # Create a StatsFormatter for final output
-        formatter = StatsFormatter(theme_manager)
+        # 1) Fetch user stats
+        try:
+            user_stats = stats_manager.get_user_stats(username)
+        except StatsError as e:
+            click.echo(f"Failed to fetch stats: {e}")
+            return
 
-        if "stats" in include:
-            try:
-                user_stats = stats_manager.get_user_stats(username)
-                formatted_stats = formatter.format_user_stats(user_stats)
-                click.echo()
-                click.echo(formatted_stats)
-                click.echo()
-            except StatsError as e:
-                logger.error(f"Failed to fetch user stats: {e}")
-                click.echo(f"Error: {e}")
-
+        # 2) Optionally fetch activity calendar
+        user_activity = None
         if "calendar" in include:
             try:
                 current_year = datetime.now().year
@@ -72,13 +60,24 @@ def stats_cmd(username, include):
                 user_activity = stats_manager.get_joined_activity(
                     username, prev_year, current_year
                 )
-                formatted_calendar = formatter.format_user_activity(user_activity)
-                click.echo()
-                click.echo(formatted_calendar)
-                click.echo()
             except StatsError as e:
-                logger.error(f"Failed to fetch user activity: {e}")
-                click.echo(f"Error: {e}")
+                click.echo(f"Failed to fetch user activity: {e}")
+                # we can continue if we want
+
+        # 3) Format the output
+        formatter = StatsFormatter(theme_manager)
+        final_output_lines = []
+
+        if "stats" in include:
+            stats_str = formatter.format_user_stats(user_stats)
+            final_output_lines.append(stats_str)
+
+        if "calendar" in include and user_activity:
+            cal_str = formatter.format_user_activity(user_activity)
+            final_output_lines.append(cal_str)
+
+        # 4) Print
+        click.echo("\n\n".join(final_output_lines))
 
     except (ConfigError, ThemeError, StatsError) as e:
         logger.error(e)

@@ -14,8 +14,7 @@ def theme_cmd(theme_name):
     """
     Show or change the current theme.
 
-    - If THEME_NAME is omitted, list available themes and show the current theme.
-    - If THEME_NAME is provided, attempt to set the theme in config.json.
+    If THEME_NAME is omitted, list available themes and show the current theme. If THEME_NAME is provided, attempt to set the theme in config.json.
     """
     try:
         # Initialize managers
