@@ -103,6 +103,10 @@ Below is an overview of all the available CLI commands. For each command, you ca
   ```
 - **Description**: Lists LeetCode problems with optional filters for difficulty, tags, pagination, etc.
 
+
+https://github.com/user-attachments/assets/dc163a7a-a6a5-4528-a610-d9389071b9ee
+
+
 **Video Demonstration Placeholder**  
 *(Insert a link, screenshot, or embedded video here)*
 
