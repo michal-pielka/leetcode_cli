@@ -1,4 +1,3 @@
-```markdown
 # LeetCode CLI
 
 A customizable command-line interface for interacting with LeetCode. This tool allows you to list problems, view problem details, test and submit solutions, display user stats, and more — all without leaving the terminal.
