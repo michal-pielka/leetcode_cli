@@ -1,5 +1,3 @@
-# file: commands/show_random.py
-
 import click
 import logging
 

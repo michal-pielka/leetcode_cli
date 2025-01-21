@@ -1,5 +1,3 @@
-# file: formatters/stats_data_formatter.py
-
 import logging
 import re
 import calendar

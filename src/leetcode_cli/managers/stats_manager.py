@@ -1,5 +1,3 @@
-# file: leetcode_cli/managers/stats_manager.py
-
 import json
 from datetime import datetime, timezone, timedelta
 import logging
@@ -45,6 +43,7 @@ class StatsManager:
         try:
             raw = fetch_user_stats(username)
             return parse_user_stats_data(raw)
+
         except (FetchingError, ParsingError) as e:
             logger.error(f"Failed to get_user_stats: {e}")
             raise StatsError(str(e))

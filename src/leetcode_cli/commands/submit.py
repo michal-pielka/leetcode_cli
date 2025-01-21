@@ -1,5 +1,3 @@
-# file: commands/submit.py
-
 import click
 import logging
 
