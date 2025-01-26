@@ -1,4 +1,3 @@
-```markdown
 # LeetCode CLI 🚀
 
 [![Python Version](https://img.shields.io/badge/python-3.7%2B-blue)](https://www.python.org/)
@@ -54,7 +53,6 @@ pip install -r requirements.txt
 
 # Install as global package
 pip install .
-```
 
 ## Quick Start 🚦
 
