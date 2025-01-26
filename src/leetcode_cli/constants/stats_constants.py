@@ -1,5 +1,4 @@
 RECTANGLES_TOTAL = 66
-DIFFICULTIES = ["EASY", "MEDIUM", "HARD"]
 MONTH_NAMES = [
     "Jan",
     "Feb",

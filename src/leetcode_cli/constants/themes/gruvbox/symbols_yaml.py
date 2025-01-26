@@ -6,6 +6,7 @@ SYMBOLS:
   caret: "^"
   space: " "
   pipe: "|"
+  slash: "/"
   parenthesis_left: "("
   parenthesis_right: ")"
   bracket_left: "["

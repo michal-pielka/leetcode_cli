@@ -361,6 +361,73 @@ PROBLEM_DESCRIPTION:
     suffix: ""
 
 STATS_FORMATTER:
-  calendar_least_submissions: "dark_green"    # somewhat dark green
-  calendar_most_submissions: "bright_green"   # bright green
+  difficulty_easy:
+    style: "green"
+    prefix: ""
+    suffix: ""
+
+  difficulty_medium:
+    style: "orange"
+    prefix: ""
+    suffix: ""
+
+  difficulty_hard:
+    style: "red"
+    prefix: ""
+    suffix: ""
+
+  correct_problems_easy:
+    style: ""
+    prefix: ""
+    suffix: "space,slash"
+
+  correct_problems_medium:
+    style: ""
+    prefix: ""
+    suffix: "space,slash"
+
+  correct_problems_hard:
+    style: ""
+    prefix: ""
+    suffix: "space,slash"
+
+  total_problems_easy:
+    style: ""
+    prefix: "space"
+    suffix: ""
+
+  total_problems_medium:
+    style: ""
+    prefix: "space"
+    suffix: ""
+
+  total_problems_hard:
+    style: ""
+    prefix: "space"
+    suffix: ""
+
+  beats_number_easy:
+    style: ""
+    prefix: "parenthesis_left"
+    suffix: "percentage,parenthesis_right"
+
+  beats_number_medium:
+    style: ""
+    prefix: "parenthesis_left"
+    suffix: "percentage,parenthesis_right"
+
+  beats_number_hard:
+    style: ""
+    prefix: "parenthesis_left"
+    suffix: "percentage,parenthesis_right"
+
+  calendar_least_submissions: 
+    style: "dark_green"
+    prefix: "filled_square"
+    suffix: ""
+
+  calendar_most_submissions:
+    style: "bright_green"
+    prefix: ""
+    suffix: ""
 """

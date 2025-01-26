@@ -16,5 +16,6 @@ SYMBOLS:
   colon: ":"                     # Colon symbol
   percentage: "%"                # Percentage symbol
   pipe: "|"
+  slash: "/"
   space: " "                     # Space character for spacing
 """

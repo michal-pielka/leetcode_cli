@@ -62,7 +62,6 @@ def stats_cmd(username, include):
                 )
             except StatsError as e:
                 click.echo(f"Failed to fetch user activity: {e}")
-                # we can continue if we want
 
         # 3) Format the output
         formatter = StatsFormatter(theme_manager)
@@ -77,11 +76,14 @@ def stats_cmd(username, include):
             final_output_lines.append(cal_str)
 
         # 4) Print
+        click.echo()
         click.echo("\n\n".join(final_output_lines))
+        click.echo()
 
     except (ConfigError, ThemeError, StatsError) as e:
         logger.error(e)
         click.echo(f"Error: {e}", err=True)
+
     except Exception as e:
         logger.exception("An unexpected error occurred while fetching statistics.")
-        click.echo("An unexpected error occurred. Please try again.", err=True)
+        click.echo(f"An unexpected error occurred: {e}", err=True)

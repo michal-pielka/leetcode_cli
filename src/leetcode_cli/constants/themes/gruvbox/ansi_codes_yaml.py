@@ -7,11 +7,15 @@ ANSI_CODES:
   white: "\\u001b[38;2;235;219;178m"    # Off-white from Gruvbox
   black: "\\u001b[38;2;0;0;0m"            # Black text color using RGB values
   gray: "\\u001b[90m"
-  bold: "\\u001b[1m"
-  italic: "\\u001b[3m"
-  underline: "\\u001b[4m"
+  dark_green: "\\u001b[38;2;0;90;0m"
+  bright_green: "\\u001b[38;2;0;255;0m"
+
   gray_bg: "\\u001b[100m"
   green_bg: "\\u001b[48;2;184;187;38m"
   orange_bg: "\\u001b[48;2;250;189;47m"
   red_bg: "\\u001b[48;2;251;73;52m"
+
+  bold: "\\u001b[1m"
+  italic: "\\u001b[3m"
+  underline: "\\u001b[4m"
 """
