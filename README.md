@@ -3,7 +3,7 @@
 [![Python Version](https://img.shields.io/badge/python-3.7%2B-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A production-grade command-line interface for seamless interaction with LeetCode. Manage problems, test solutions, and track progress - all from your terminal.
+A highly customizable command-line interface for seamless interaction with LeetCode. Manage problems, test solutions, and track progress - all from your terminal.
 
 ## Features ✨
 
@@ -11,19 +11,21 @@ A production-grade command-line interface for seamless interaction with LeetCode
   - List problems with filters (difficulty, tags, pagination)
   - View detailed problem statements with examples and constraints
   - Random problem selection with custom filters
+
 - **Solution Development**
   - Auto-generated solution files with official code snippets
   - Local testing against LeetCode's example cases
-  - Direct solution submission to LeetCode
+  - Direct solution submission to leetcode
+
 - **User Analytics**
   - Submission statistics and acceptance rates
   - Daily submission calendar visualization
+
 - **Customization**
   - Theme support for output styling
   - Configurable default language and user preferences
 
 ## Table of Contents 📖
-
 - [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Configuration](#configuration)
@@ -40,7 +42,7 @@ A production-grade command-line interface for seamless interaction with LeetCode
 ### Setup
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/leetcode-cli.git
+git clone https://github.com/michal-pielka/leetcode_cli
 cd leetcode-cli
 
 # Create and activate virtual environment (recommended)
@@ -53,6 +55,7 @@ pip install -r requirements.txt
 
 # Install as global package
 pip install .
+```
 
 ## Quick Start 🚦
 
@@ -69,17 +72,20 @@ leetcode config language python
 leetcode list --difficulty MEDIUM --tag array
 
 # View problem details
-leetcode show 15   # Using frontend ID
-leetcode show "3sum"  # Using title slug
+leetcode show 15    # Using ID
+leetcode show two-sum   # Using title slug
 
 # Create solution file
-leetcode create 15 --language python
+leetcode create    # Creates last seen problem solution file for default language
+leetcode create 1    # Creates two-sum [1] problem solution file for default language
+leetcode create two-sum    # Creates two-sum [1] problem solution file for default language
+leetcode create .cpp    # Creates last seen problem solution file for C++
 
 # Test solution
-leetcode test solutions/15_3sum.py
+leetcode test 15_3sum.py
 
 # Submit solution
-leetcode submit solutions/15_3sum.py
+leetcode submit 15_3sum.py
 ```
 
 ## Configuration ⚙️
@@ -89,10 +95,10 @@ Configuration files are stored in `~/.leetcode/` (Linux/macOS) or `%APPDATA%/.le
 ### Key Configuration Options
 | Key       | Description                                  | Example Value              |
 |-----------|----------------------------------------------|----------------------------|
-| cookie    | LeetCode session cookie (required)          | abc123def456ghi789jkl0     |
-| username  | LeetCode username for stats                 | code_champion              |
-| language  | Default programming language                | python3                    |
-| theme     | Output color theme                          | dark                       |
+| cookie    | LeetCode session cookie (required)           | abc123def456ghi789jkl0     |
+| username  | LeetCode username for stats                  | sample_username            |
+| language  | Default programming language                 | python                     |
+| theme     | Output color theme                           | gruvbox                       |
 
 **Security Note:** Never share your LeetCode session cookie. [Learn how to retrieve your cookie securely](https://leetcode.com/discuss/general-discussion/1604748/using-leetcode-api-authentication-cookies).
 
@@ -104,45 +110,49 @@ leetcode list [--difficulty DIFFICULTY] [--tag TAG] [--limit LIMIT] [--page PAGE
 ```
 - **Filters:**
   - `--difficulty`: Easy/Medium/Hard
-  - `--tag`: Problem category (e.g., array, tree)
+  - `--tag`: Problem category (e.g., array, binary-search)
   - `--limit`: Results per page (default: 50)
-  - `--page`: Pagination offset
+  - `--page`: Page number (default: 1)
 
 ### `show`
 ```bash
 leetcode show <IDENTIFIER> [--include CONTENT_SECTIONS]
 ```
-- **Identifier:** Frontend ID or title slug
+- **Identifier:** Question ID or title slug
 - **Sections:** description, examples, constraints, tags
 
 ### `create`
 ```bash
-leetcode create [IDENTIFIER] [--language LANG]
+leetcode create [IDENTIFIER]
 ```
 - Generates solution file with official code template
 - Uses configured language if not specified
 
 ### `test`
 ```bash
-leetcode test <FILEPATH> [--verbose]
+leetcode test <FILEPATH>
 ```
 - Validates solution against LeetCode's test cases
-- `--verbose`: Show detailed execution results
 
 ### `submit`
 ```bash
-leetcode submit <FILEPATH> [--watch]
+leetcode submit <FILEPATH>
 ```
 - Submits solution and displays real-time status
-- `--watch`: Poll for submission results continuously
 
 ### Full Command List
-| Command               | Description                                  |
-|-----------------------|----------------------------------------------|
-| `stats [USERNAME]`    | Display user statistics and calendar         |
-| `theme [THEME_NAME]`  | Configure output color scheme                |
-| `download-problems`   | Cache complete problem metadata              |
-| `config [KEY] [VALUE]`| Manage configuration settings                |
+| Command               | Description                                   |
+|-----------------------|-----------------------------------------------|
+| `list`                | Display problemset                            |
+| `show [IDENTIFIER]`   | Display specified problem's description       |
+| `random`              | Display random problem's description          |
+| `create [IDENTIFIER]` | Create specified problem's solution file      |
+| `test [FILEPATH]`     | Test solution file against leetcode testcases |
+| `submit [FILEPATH]`   | Submit solution file to leetcode              |
+| `stats [USERNAME]`    | Display user statistics and calendar          |
+| `config [KEY] [VALUE]`| Manage configuration settings                 |
+| `theme [THEME_NAME]`  | Select a color-symbol theme                   |
+| `download-problems`   | Cache problem metadata                        |
 
 ## Contributing 🤝
 
@@ -153,15 +163,6 @@ We welcome contributions! Please follow these steps:
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
-
-**Development Setup:**
-```bash
-# Install development dependencies
-pip install -r dev-requirements.txt
-
-# Run tests
-python -m pytest tests/
-```
 
 ## License 📄
 
