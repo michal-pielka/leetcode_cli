@@ -1,239 +1,175 @@
-# LeetCode CLI
+```markdown
+# LeetCode CLI 🚀
 
-A highly customizable command-line interface for interacting with LeetCode. This tool allows you to list problems, view problem details, test and submit solutions, display user stats, and more — all without leaving the terminal.
+[![Python Version](https://img.shields.io/badge/python-3.7%2B-blue)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+A production-grade command-line interface for seamless interaction with LeetCode. Manage problems, test solutions, and track progress - all from your terminal.
 
----
+## Features ✨
 
+- **Comprehensive Problem Management**
+  - List problems with filters (difficulty, tags, pagination)
+  - View detailed problem statements with examples and constraints
+  - Random problem selection with custom filters
+- **Solution Development**
+  - Auto-generated solution files with official code snippets
+  - Local testing against LeetCode's example cases
+  - Direct solution submission to LeetCode
+- **User Analytics**
+  - Submission statistics and acceptance rates
+  - Daily submission calendar visualization
+- **Customization**
+  - Theme support for output styling
+  - Configurable default language and user preferences
 
-## Table of Contents
+## Table of Contents 📖
 
-1. [Overview](#overview)
-2. [Installation](#installation)
-3. [Initialization](#initialization)
-4. [Configuration](#configuration)
-5. [Commands](#commands)
-   - [list](#list)
-   - [show](#show)
-   - [random](#random)
-   - [create](#create)
-   - [test](#test)
-   - [submit](#submit)
-   - [stats](#stats)
-   - [theme](#theme)
-   - [download-problems](#download-problems)
-   - [config](#config)
-6. [Contributing](#contributing)
-7. [License](#license)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Configuration](#configuration)
+- [Command Reference](#command-reference)
+- [Contributing](#contributing)
+- [License](#license)
 
+## Installation ⚙️
 
----
+### Prerequisites
+- Python 3.7+
+- pip package manager
 
-
-## Overview
-
-This CLI tool aims to streamline your LeetCode experience by providing a unified command-line interface. Key features include:
-
-- **Manage** and **list** LeetCode problems with filtering (difficulty, tags).
-- **View** full problem statements, examples, constraints, and tags.
-- **Create** solution files pre-filled with official code snippets.
-- **Test** solutions against LeetCode’s example testcases.
-- **Submit** solutions directly to LeetCode.
-- **View** your user statistics and daily submission calendar.
-- **Customize** output formatting and theming to suit your preferences.
-
-
----
-
-
-## Installation
-
-1. Clone this repository or download the source code.
-2. Make sure you have Python 3.7+ installed.
-3. Install dependencies (preferably in a virtual environment):
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Install the app as a global command:
-   ```bash
-   pip install .
-   ``` 
-
-5. For local development or usage, simply run:
-   ```bash
-   python cli.py --help
-   ``` 
-
-
----
-
-
-## Initialization
-
-The CLI will ensure necessary config, theme files, and directories exist in your home folder (`~/.leetcode` on Linux/macOS and `~/AppData/Roaming` on Windows).
-
-This is done via:
-```python
-from leetcode_cli.init_app_files import initialize_leetcode_cli
-initialize_leetcode_cli()
-```
-This step is automatically invoked whenever you run any `leetcode` command from the `cli.py` entry point.
-
-
----
-
-
-## Configuration
-
-Before using commands that require authentication (e.g., testing or submitting solutions), you should set your LeetCode cookie and optionally your username:
-
+### Setup
 ```bash
-leetcode config cookie your_full_cookie
-leetcode config username your_username
+# Clone repository
+git clone https://github.com/yourusername/leetcode-cli.git
+cd leetcode-cli
+
+# Create and activate virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate  # Linux/macOS
+# venv\Scripts\activate  # Windows
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Install as global package
+pip install .
 ```
 
-The `language` config can also be set to a default language for creating solution files:
+## Quick Start 🚦
+
+1. **Initialize Configuration**
 ```bash
+leetcode config cookie YOUR_LEETCODE_SESSION_COOKIE
+leetcode config username YOUR_LEETCODE_USERNAME
 leetcode config language python
 ```
 
-These values are stored in `~/.leetcode/config.json`.
+2. **Basic Workflow**
+```bash
+# Find a medium difficulty array problem
+leetcode list --difficulty MEDIUM --tag array
 
+# View problem details
+leetcode show 15   # Using frontend ID
+leetcode show "3sum"  # Using title slug
 
----
+# Create solution file
+leetcode create 15 --language python
 
+# Test solution
+leetcode test solutions/15_3sum.py
 
-## Commands
+# Submit solution
+leetcode submit solutions/15_3sum.py
+```
 
-Below is an overview of all the available CLI commands. For each command, you can also run `--help` to see usage details.
+## Configuration ⚙️
 
-### list
+Configuration files are stored in `~/.leetcode/` (Linux/macOS) or `%APPDATA%/.leetcode` (Windows).
 
-- **Usage**:  
-  ```bash
-  leetcode list [--difficulty EASY|MEDIUM|HARD] [--tag TAG_NAME] [--limit 50] [--page 1]
-  ```
-  - **Description**: Lists LeetCode problems with optional filters for difficulty, tags, pagination, etc.
+### Key Configuration Options
+| Key       | Description                                  | Example Value              |
+|-----------|----------------------------------------------|----------------------------|
+| cookie    | LeetCode session cookie (required)          | abc123def456ghi789jkl0     |
+| username  | LeetCode username for stats                 | code_champion              |
+| language  | Default programming language                | python3                    |
+| theme     | Output color theme                          | dark                       |
 
-https://github.com/user-attachments/assets/1b754752-769d-4922-8b70-a0a0e1886f4f
+**Security Note:** Never share your LeetCode session cookie. [Learn how to retrieve your cookie securely](https://leetcode.com/discuss/general-discussion/1604748/using-leetcode-api-authentication-cookies).
 
----
+## Command Reference 📚
 
-### show
+### `list`
+```bash
+leetcode list [--difficulty DIFFICULTY] [--tag TAG] [--limit LIMIT] [--page PAGE]
+```
+- **Filters:**
+  - `--difficulty`: Easy/Medium/Hard
+  - `--tag`: Problem category (e.g., array, tree)
+  - `--limit`: Results per page (default: 50)
+  - `--page`: Pagination offset
 
-- **Usage**:  
-  ```bash
-  leetcode show <title_slug_or_frontend_id> [--include SECTION ...]
-  ```
-- **Description**: Shows detailed information for a specified problem and marks it as the "chosen_problem" in your config. You can override which sections to display via `--include`.
+### `show`
+```bash
+leetcode show <IDENTIFIER> [--include CONTENT_SECTIONS]
+```
+- **Identifier:** Frontend ID or title slug
+- **Sections:** description, examples, constraints, tags
 
-https://github.com/user-attachments/assets/c9719d50-4261-4a6f-be8e-ec39f722f79c
+### `create`
+```bash
+leetcode create [IDENTIFIER] [--language LANG]
+```
+- Generates solution file with official code template
+- Uses configured language if not specified
 
----
+### `test`
+```bash
+leetcode test <FILEPATH> [--verbose]
+```
+- Validates solution against LeetCode's test cases
+- `--verbose`: Show detailed execution results
 
-### random
+### `submit`
+```bash
+leetcode submit <FILEPATH> [--watch]
+```
+- Submits solution and displays real-time status
+- `--watch`: Poll for submission results continuously
 
-- **Usage**:  
-  ```bash
-  leetcode random [--difficulty EASY|MEDIUM|HARD] [--tag TAG_NAME] [--include SECTION ...]
-  ```
-- **Description**: Shows detailed information for a random problem with optional filters for difficulty and tags. Marks that problem as the “chosen_problem” in your config. You can override which sections to display via `--include`.
+### Full Command List
+| Command               | Description                                  |
+|-----------------------|----------------------------------------------|
+| `stats [USERNAME]`    | Display user statistics and calendar         |
+| `theme [THEME_NAME]`  | Configure output color scheme                |
+| `download-problems`   | Cache complete problem metadata              |
+| `config [KEY] [VALUE]`| Manage configuration settings                |
 
-https://github.com/user-attachments/assets/d85b4a6c-fadb-4d28-a417-e3c73db76642
+## Contributing 🤝
 
----
-
-### create
-
-- **Usage**:  
-  ```bash
-  leetcode create [TITLE_SLUG_OR_ID]
-  ```
-- **Description**: Creates a local solution file for a given problem with official code snippets for your default language, unless provided with a different language.
-
-https://github.com/user-attachments/assets/e74cb1c9-cd66-45e6-a39e-014339da8532
-
----
-
-### test
-
-- **Usage**:  
-  ```bash
-  leetcode test <file_path> [--include SECTION ...]
-  ```
-- **Description**: Tests your solution file against the example testcases provided by LeetCode.
-  
----
-
-### submit
-
-- **Usage**:  
-  ```bash
-  leetcode submit <file_path> [--include SECTION ...]
-  ```
-- **Description**: Submits your solution file directly to LeetCode and shows the submission result.
-
----
-
-### stats
-
-- **Usage**:  
-  ```bash
-  leetcode stats [USERNAME] [--include stats --include calendar]
-  ```
-- **Description**: Shows your overall accepted/failed counts per difficulty and a daily submission calendar.
-
----
-
-### theme
-
-- **Usage**:  
-  ```bash
-  leetcode theme [theme_name]
-  ```
-- **Description**: Lists available themes (if no argument is given) or sets a new theme.
-
----
-
-### download-problems
-
-- **Usage**:  
-  ```bash
-  leetcode download-problems
-  ```
-- **Description**: Downloads a full JSON metadata listing of all LeetCode problems and saves it locally, enabling references by problem ID.
-
----
-
-### config
-
-- **Usage**:  
-  ```bash
-  leetcode config               # show all config key-value pairs
-  leetcode config <key> <value> # set a config key
-  ```
-- **Description**: Manages your `cookie`, `username`, and `language` fields in `~/.leetcode/config.json`.
-
-https://github.com/user-attachments/assets/33de30a9-062f-4a77-976b-438e765503f1
-
-
----
-
-
-## Contributing
-
-Contributions, bug reports, and feature requests are welcome! Feel free to open an issue or submit a pull request.
+We welcome contributions! Please follow these steps:
 
 1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Open a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
+**Development Setup:**
+```bash
+# Install development dependencies
+pip install -r dev-requirements.txt
+
+# Run tests
+python -m pytest tests/
+```
+
+## License 📄
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-
-## License
-
-This project is provided under the [MIT License](LICENCE).  
-Feel free to use, modify, and distribute this software in accordance with the license terms.
+**Note:** This is an unofficial tool not affiliated with LeetCode. Use at your own discretion.
+```
