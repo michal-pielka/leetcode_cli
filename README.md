@@ -1,6 +1,4 @@
 
-
-
 # LeetCode CLI 🚀
 
 [![Python Version](https://img.shields.io/badge/python-3.7%2B-blue)](https://www.python.org/)
@@ -123,7 +121,10 @@ Here’s a simplified preview of some of the available options:
 You can edit these defaults to tailor your experience. For example, if you find the error messages too verbose, set `show_detailed_error_messages: false` in the `interpretation` or `submission` sections.
 
 
-https://github.com/user-attachments/assets/e5a3692e-0f3f-4e6a-92f4-a4532e6ea1ae
+
+https://github.com/user-attachments/assets/081c2c82-4a40-4217-8aa5-3510e0dd8c7c
+
+
 
 
 
@@ -202,7 +203,11 @@ To create your own theme:
   ```
 
 
-https://github.com/user-attachments/assets/7e09aaaf-fb34-431b-b92d-695114d63ac7
+
+https://github.com/user-attachments/assets/c3395e70-38ae-4eb6-8999-8e281625fb4b
+
+
+
 
 
 ## Command Reference 📚
@@ -237,7 +242,11 @@ leetcode list [--difficulty DIFFICULTY] [--tag TAG] [--limit LIMIT] [--page PAGE
   - `--page` (default: 1): Page number to display.
 
 
-https://github.com/user-attachments/assets/6771c8d9-0134-4d84-ab1f-dec897dca364
+
+
+https://github.com/user-attachments/assets/b7f709e9-44d9-4482-9a17-2cc856e226c3
+
+
 
 
 ### `show`
@@ -251,7 +260,11 @@ leetcode show <IDENTIFIER> [--include SECTIONS...]
   - `--include` (optional, repeatable): Override default display sections (e.g., `title`, `tags`, `langs`, `description`, `examples`, `constraints`).
 
 
-https://github.com/user-attachments/assets/aa7fd0d7-c8e3-4e20-9038-85594c939450
+
+
+https://github.com/user-attachments/assets/28112411-0ab3-4f48-a23e-ecdbacb065de
+
+
 
 
 ### `random`
@@ -265,7 +278,11 @@ leetcode random [--difficulty DIFFICULTY] [--tag TAG] [--include SECTIONS...]
   - `--include` (optional, repeatable): Override default display sections (as in `show`).
 
 
-https://github.com/user-attachments/assets/1325e72b-782a-48a1-9217-124fc39416c0
+
+
+https://github.com/user-attachments/assets/d2e99784-3b3e-4585-9c0b-c046d41cfe15
+
+
 
 
 ### `create`
@@ -286,7 +303,11 @@ leetcode create <IDENTIFIER>
   - `leetcode create 1.two-sum.py`
 
 
-https://github.com/user-attachments/assets/1600b843-a927-4b5f-abd4-63da2e8c7c62
+
+
+https://github.com/user-attachments/assets/b15e8b74-f6e0-4393-bf58-617419c00b60
+
+
 
 
 ### `test`
@@ -299,7 +320,11 @@ leetcode test <FILEPATH>
 - **Notes:** Displays test results (passed/failed testcases, output, errors, etc.) according to your formatting config.
 
 
-https://github.com/user-attachments/assets/e6cac1e1-fa41-4163-8342-e47203abb225
+
+
+https://github.com/user-attachments/assets/fb1a0886-a697-4178-97db-dc651270d6eb
+
+
 
 
 ### `submit`
@@ -311,7 +336,11 @@ leetcode submit <FILEPATH>
   - `<FILEPATH>`: Must follow the format `id.title_slug.file_extension`, for example `15.3sum.cpp`.
 
 
-https://github.com/user-attachments/assets/94a0070d-e05c-4c94-95c1-1acce4506367
+
+
+https://github.com/user-attachments/assets/5406ceed-a59f-46a4-936f-99ba48734f4f
+
+
 
 
 ### `stats`
@@ -325,7 +354,11 @@ leetcode stats [USERNAME] [--include SECTIONS...]
   - `--include` (optional, repeatable): Choose sections to display (e.g., `stats`, `calendar`).
 
 
-https://github.com/user-attachments/assets/32eae960-785f-41cc-b593-242fd5f649fe
+
+https://github.com/user-attachments/assets/f8a712e8-6418-4913-8841-e19338386746
+
+
+
 
 
 ### `config`
@@ -340,7 +373,11 @@ leetcode config [KEY] [VALUE]
   - `leetcode config language python`
 
 
-https://github.com/user-attachments/assets/0b949cfe-83d4-47cb-8a55-dbb6c012ffea
+
+
+https://github.com/user-attachments/assets/57dc61f0-ad99-485e-9213-dbe32c2b1e07
+
+
 
 
 ### `theme`
@@ -352,7 +389,11 @@ leetcode theme [THEME_NAME]
   - `[THEME_NAME]`: Name of the theme folder under `~/.leetcode/themes`.
 
 
-https://github.com/user-attachments/assets/636217f8-4431-48a3-a409-2d8de444dc6e
+
+
+
+https://github.com/user-attachments/assets/55ad8782-6f23-4b00-babf-b7672791c6c9
+
 
 
 ### `download-problems`
@@ -363,7 +404,11 @@ leetcode download-problems
 - **Notes:** The metadata is stored in `~/.leetcode/problems_metadata.json`.
 
 
-https://github.com/user-attachments/assets/bc2b4e8e-921b-415a-9baa-e99079e71cd6
+
+
+https://github.com/user-attachments/assets/c869c161-eb67-4b73-bf34-7db8ee027920
+
+
 
 
 ## Contributing 🤝
