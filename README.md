@@ -1,9 +1,20 @@
+
 # LeetCode CLI 🚀
 
 [![Python Version](https://img.shields.io/badge/python-3.7%2B-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A highly customizable command-line interface for seamless interaction with LeetCode. Manage problems, test solutions, and track progress - all from your terminal.
+A highly customizable command-line interface for seamless interaction with Leetcode. Manage problems, test solutions, and track progress - all from your terminal!
+
+
+## Table of Contents 📖
+- [Features](#features)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Configuration](#configuration)
+- [Command Reference](#command-reference)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Features ✨
 
@@ -25,14 +36,6 @@ A highly customizable command-line interface for seamless interaction with LeetC
   - Theme support for output styling
   - Configurable default language and user preferences
 
-## Table of Contents 📖
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Configuration](#configuration)
-- [Command Reference](#command-reference)
-- [Contributing](#contributing)
-- [License](#license)
-
 ## Installation ⚙️
 
 ### Prerequisites
@@ -44,11 +47,6 @@ A highly customizable command-line interface for seamless interaction with LeetC
 # Clone repository
 git clone https://github.com/michal-pielka/leetcode_cli
 cd leetcode-cli
-
-# Create and activate virtual environment (recommended)
-python -m venv venv
-source venv/bin/activate  # Linux/macOS
-# venv\Scripts\activate  # Windows
 
 # Install dependencies
 pip install -r requirements.txt
@@ -82,10 +80,10 @@ leetcode create two-sum    # Creates two-sum [1] problem solution file for defau
 leetcode create .cpp    # Creates last seen problem solution file for C++
 
 # Test solution
-leetcode test 15_3sum.py
+leetcode test 1.two-sum.py
 
 # Submit solution
-leetcode submit 15_3sum.py
+leetcode submit 1.two-sum.py
 ```
 
 ## Configuration ⚙️
@@ -100,7 +98,24 @@ Configuration files are stored in `~/.leetcode/` (Linux/macOS) or `%APPDATA%/.le
 | language  | Default programming language                 | python                     |
 | theme     | Output color theme                           | gruvbox                       |
 
-**Security Note:** Never share your LeetCode session cookie. [Learn how to retrieve your cookie securely](https://leetcode.com/discuss/general-discussion/1604748/using-leetcode-api-authentication-cookies).
+**Security Note:** Never share your Leetcode session cookie. [Learn how to retrieve your cookie securely](https://leetcode.com/discuss/general-discussion/1604748/using-leetcode-api-authentication-cookies).
+
+### Formatting config
+(add short description here)
+| **Category**       | **Option**                     | **Value** |
+|---------------------|--------------------------------|-----------|
+| Interpretation      | show_language                 | true      |
+|                     | show_testcases                | true      |
+|                     | ...          | true      |
+| Submission          | show_language                 | true      |
+|                     | show_testcases                | true      |
+|                     | ...           | true      |
+| Problem Show        | show_title                    | true      |
+|                     | show_tags                     | true      |
+|                     | ...                    | true      |
+
+## Theming
+(add short description here and explain how to create custom theme: explain that a user needs to create his own ANSI escape sequence codes and symbols in respective files: ansi_codes.yaml and symbols.yaml and then map them to values from mappings.yaml)
 
 ## Command Reference 📚
 
@@ -171,4 +186,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 **Note:** This is an unofficial tool not affiliated with LeetCode. Use at your own discretion.
-```
