@@ -10,6 +10,7 @@ from leetcode_cli.exceptions.exceptions import ThemeError
 logger = logging.getLogger(__name__)
 DIFFICULTIES = ["EASY", "MEDIUM", "HARD"]
 
+
 class StatsFormatter:
     """
     1) Difficulty-based stats (accepted, failed, untouched) with theming.
@@ -45,8 +46,8 @@ class StatsFormatter:
                 )
 
                 style_key = f"correct_problems_{diff.lower()}"
-                correct_ansi, correct_prefix, correct_suffix = self.theme_manager.get_styling(
-                    "STATS_FORMATTER", style_key
+                correct_ansi, correct_prefix, correct_suffix = (
+                    self.theme_manager.get_styling("STATS_FORMATTER", style_key)
                 )
 
                 style_key = f"total_problems_{diff.lower()}"
@@ -55,8 +56,8 @@ class StatsFormatter:
                 )
 
                 style_key = f"beats_number_{diff.lower()}"
-                beats_number_ansi, beats_number_prefix, beats_number_suffix = self.theme_manager.get_styling(
-                    "STATS_FORMATTER", style_key
+                beats_number_ansi, beats_number_prefix, beats_number_suffix = (
+                    self.theme_manager.get_styling("STATS_FORMATTER", style_key)
                 )
             except ThemeError as te:
                 logger.warning(f"Theme for {style_key} is missing: {te}")
@@ -68,7 +69,6 @@ class StatsFormatter:
             line += f"{beats_number_ansi.ljust(4)}{str(beats_number_prefix)}{beats_percentage:.2f}{beats_number_suffix}"
 
             lines.append(line)
-
 
         return "\n".join(lines)
 
@@ -100,12 +100,10 @@ class StatsFormatter:
         if max(all_counts) == 0:
             min_d = min(date_counts.keys())
             max_d = max(date_counts.keys())
-            return (
-                f"All days from {min_d} to {max_d} have 0 submissions."
-            )
+            return f"All days from {min_d} to {max_d} have 0 submissions."
 
         lines = []
-        
+
         try:
             least_ansi, least_prefix, least_suffix = self.theme_manager.get_styling(
                 "STATS_FORMATTER", "calendar_least_submissions"
@@ -139,12 +137,14 @@ class StatsFormatter:
         while True:
             # Build sub-grid for that month
             grid = self._build_month_subgrid(
-                year, month,
+                year,
+                month,
                 date_counts,
                 gradient,
                 day_prefix,
                 day_suffix,
-                min_sub, max_sub
+                min_sub,
+                max_sub,
             )
             subgrids.append(grid)
 
@@ -190,7 +190,7 @@ class StatsFormatter:
           - 'calendar_least_submissions' => e.g. style = "dark_green"
           - 'calendar_most_submissions' => e.g. style = "bright_green"
           - 'calendar_shade_steps' => e.g. 5
-        We parse the min & max ANSI colors from the theme, extract (R,G,B), 
+        We parse the min & max ANSI colors from the theme, extract (R,G,B),
         then interpolate for N=CALENDAR_SHADE_STEPS steps.
         """
         min_rgb = self._extract_rgb(ansi_min)
@@ -218,13 +218,15 @@ class StatsFormatter:
         return gradient
 
     def _extract_rgb(self, ansi_code: str):
-        """ Parse something like '\\u001b[38;2;0;90;0m' => (0,90,0). """
+        """Parse something like '\\u001b[38;2;0;90;0m' => (0,90,0)."""
         match = re.search(r"38;2;(\d+);(\d+);(\d+)m", ansi_code)
         if match:
             return (int(match.group(1)), int(match.group(2)), int(match.group(3)))
         return None
 
-    def _get_gradient_color(self, c: int, min_c: int, max_c: int, gradient: List[str]) -> str:
+    def _get_gradient_color(
+        self, c: int, min_c: int, max_c: int, gradient: List[str]
+    ) -> str:
         """
         Map submission count c => an ANSI color from our gradient array.
         """
