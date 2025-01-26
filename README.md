@@ -96,7 +96,7 @@ Configuration files are stored in `~/.leetcode/` (Linux/macOS) or `%APPDATA%/.le
 | language  | Default programming language                 | python                     |
 | theme     | Output color theme                           | gruvbox                       |
 
-**Security Note:** Never share your Leetcode session cookie. [Learn how to retrieve your cookie securely](https://leetcode.com/discuss/general-discussion/1604748/using-leetcode-api-authentication-cookies).
+**Security Note:** Never share your Leetcode session cookie.
 
 ### Formatting config
 
