@@ -8,14 +8,14 @@ A highly customizable command-line interface for seamless interaction with Leetc
 
 
 ## Table of Contents 📖
-- [Features](#features-✨)
-- [Installation](#installation-⚙️)
-- [Quick Start](#quick-start-🚦)
-- [Configuration](#configuration-⚙️)
-- [Theming](#theming-🎨)
-- [Command Reference](#command-reference-📚)
-- [Contributing](#contributing-🤝)
-- [License](#license-📄)
+- [Features](#features)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Configuration](#configuration)
+- [Theming](#theming)
+- [Command Reference](#command-reference)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Features ✨
 
