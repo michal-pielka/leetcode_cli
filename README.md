@@ -1,5 +1,5 @@
 
-# LeetCode CLI 🚀
+# Leetcode CLI 🚀
 
 [![Python Version](https://img.shields.io/badge/python-3.7%2B-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -91,8 +91,8 @@ Configuration files are stored in `~/.leetcode/` (Linux/macOS) or `%APPDATA%/.le
 ### Key Configuration Options
 | Key       | Description                                  | Example Value              |
 |-----------|----------------------------------------------|----------------------------|
-| cookie    | LeetCode session cookie (required)           | abc123def456ghi789jkl0     |
-| username  | LeetCode username for stats                  | sample_username            |
+| cookie    | Leetcode session cookie (required)           | abc123def456ghi789jkl0     |
+| username  | Leetcode username for stats                  | sample_username            |
 | language  | Default programming language                 | python                     |
 | theme     | Output color theme                           | gruvbox                       |
 
@@ -234,7 +234,7 @@ Use `leetcode <COMMAND> --help` for more details or additional flags on each com
 ```bash
 leetcode list [--difficulty DIFFICULTY] [--tag TAG] [--limit LIMIT] [--page PAGE]
 ```
-- **Description:** Lists problems from the LeetCode problemset.
+- **Description:** Lists problems from the Leetcode problemset.
 - **Options:**
   - `--difficulty` (optional): Filter by `EASY`, `MEDIUM`, or `HARD`.
   - `--tag` (optional, repeatable): Filter by specific tag(s) like `array`, `binary-search`.
