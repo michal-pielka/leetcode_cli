@@ -1,6 +1,5 @@
 
-
-# LeetCode CLI 🚀
+# Leetcode CLI 🚀
 
 [![Python Version](https://img.shields.io/badge/python-3.7%2B-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -9,14 +8,14 @@ A highly customizable command-line interface for seamless interaction with Leetc
 
 
 ## Table of Contents 📖
-- [Features](#features-✨)
-- [Installation](#installation-⚙️)
-- [Quick Start](#quick-start-🚦)
-- [Configuration](#configuration-⚙️)
-- [Theming](#theming-🎨)
-- [Command Reference](#command-reference-📚)
-- [Contributing](#contributing-🤝)
-- [License](#license-📄)
+- [Features](#features)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Configuration](#configuration)
+- [Theming](#theming)
+- [Command Reference](#command-reference)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Features ✨
 
@@ -92,12 +91,12 @@ Configuration files are stored in `~/.leetcode/` (Linux/macOS) or `%APPDATA%/.le
 ### Key Configuration Options
 | Key       | Description                                  | Example Value              |
 |-----------|----------------------------------------------|----------------------------|
-| cookie    | LeetCode session cookie (required)           | abc123def456ghi789jkl0     |
-| username  | LeetCode username for stats                  | sample_username            |
+| cookie    | Leetcode session cookie (required)           | abc123def456ghi789jkl0     |
+| username  | Leetcode username for stats                  | sample_username            |
 | language  | Default programming language                 | python                     |
 | theme     | Output color theme                           | gruvbox                       |
 
-**Security Note:** Never share your Leetcode session cookie. [Learn how to retrieve your cookie securely](https://leetcode.com/discuss/general-discussion/1604748/using-leetcode-api-authentication-cookies).
+**Security Note:** Never share your Leetcode session cookie.
 
 ### Formatting config
 
@@ -120,6 +119,13 @@ Here’s a simplified preview of some of the available options:
 |                     | `...`                    | ...             | ...                        |
 
 You can edit these defaults to tailor your experience. For example, if you find the error messages too verbose, set `show_detailed_error_messages: false` in the `interpretation` or `submission` sections.
+
+
+
+https://github.com/user-attachments/assets/081c2c82-4a40-4217-8aa5-3510e0dd8c7c
+
+
+
 
 
 ## Theming 🎨
@@ -196,60 +202,214 @@ To create your own theme:
   leetcode theme default
   ```
 
-By combining the **formatting config** and the **theming** system, you can customize how and what the CLI displays to perfectly suit your workflow.
+
+
+https://github.com/user-attachments/assets/c3395e70-38ae-4eb6-8999-8e281625fb4b
+
+
+
 
 
 ## Command Reference 📚
+### Full Command List
+
+| Command               | Description                                                         |
+|-----------------------|---------------------------------------------------------------------|
+| **`list`**            | Display a paginated list of problems, optionally filtered.          |
+| **`show`**            | Show details for a specific problem by ID or slug.                  |
+| **`random`**          | Show a random problem, optionally filtered by difficulty and tags.  |
+| **`create`**          | Create a new solution file from a given ID/slug with starter code.  |
+| **`test`**            | Test your local solution file against example testcases.            |
+| **`submit`**          | Submit your local solution file to LeetCode.                        |
+| **`stats`**           | View your LeetCode stats and calendar.                              |
+| **`config`**          | Set or display configuration options (cookie, username, language).  |
+| **`theme`**           | Switch or list available color-symbol themes.                       |
+| **`download-problems`** | Cache entire problem metadata locally.                          
+|
+Use `leetcode <COMMAND> --help` for more details or additional flags on each command.
+
+### Individual commands
 
 ### `list`
 ```bash
 leetcode list [--difficulty DIFFICULTY] [--tag TAG] [--limit LIMIT] [--page PAGE]
 ```
-- **Filters:**
-  - `--difficulty`: Easy/Medium/Hard
-  - `--tag`: Problem category (e.g., array, binary-search)
-  - `--limit`: Results per page (default: 50)
-  - `--page`: Page number (default: 1)
+- **Description:** Lists problems from the Leetcode problemset.
+- **Options:**
+  - `--difficulty` (optional): Filter by `EASY`, `MEDIUM`, or `HARD`.
+  - `--tag` (optional, repeatable): Filter by specific tag(s) like `array`, `binary-search`.
+  - `--limit` (default: 50): Number of problems per page.
+  - `--page` (default: 1): Page number to display.
+
+
+
+
+https://github.com/user-attachments/assets/b7f709e9-44d9-4482-9a17-2cc856e226c3
+
+
+
 
 ### `show`
 ```bash
-leetcode show <IDENTIFIER> [--include CONTENT_SECTIONS]
+leetcode show <IDENTIFIER> [--include SECTIONS...]
 ```
-- **Identifier:** Question ID or title slug
-- **Sections:** description, examples, constraints, tags
+- **Description:** Displays detailed information for a specific problem.
+- **Parameters:**
+  - `<IDENTIFIER>`: Either a **numeric ID** (frontend ID) or a **title slug**.
+- **Options:**
+  - `--include` (optional, repeatable): Override default display sections (e.g., `title`, `tags`, `langs`, `description`, `examples`, `constraints`).
+
+
+
+
+https://github.com/user-attachments/assets/28112411-0ab3-4f48-a23e-ecdbacb065de
+
+
+
+
+### `random`
+```bash
+leetcode random [--difficulty DIFFICULTY] [--tag TAG] [--include SECTIONS...]
+```
+- **Description:** Shows a random problem, optionally filtered by difficulty and/or tag(s).
+- **Options:**
+  - `--difficulty` (optional): Filter by `EASY`, `MEDIUM`, or `HARD`.
+  - `--tag` (optional, repeatable): Filter by specific tag(s).
+  - `--include` (optional, repeatable): Override default display sections (as in `show`).
+
+
+
+
+https://github.com/user-attachments/assets/d2e99784-3b3e-4585-9c0b-c046d41cfe15
+
+
+
 
 ### `create`
 ```bash
-leetcode create [IDENTIFIER]
+leetcode create <IDENTIFIER>
 ```
-- Generates solution file with official code template
-- Uses configured language if not specified
+- **Description:** Creates a local solution file with a starter code snippet for a given problem.
+- **Parameters:**
+  - `<IDENTIFIER>` can be:
+    - **Omitted** (uses last shown problem + default language).
+    - A numeric **ID** (e.g., `1`).
+    - A **slug** (e.g., `two-sum`).
+    - Any of the above **plus** a file extension (e.g., `two-sum.cpp`).
+- **Usage Examples:**
+  - `leetcode create`
+  - `leetcode create 1`
+  - `leetcode create two-sum.cpp`
+  - `leetcode create 1.two-sum.py`
+
+
+
+
+https://github.com/user-attachments/assets/b15e8b74-f6e0-4393-bf58-617419c00b60
+
+
+
 
 ### `test`
 ```bash
 leetcode test <FILEPATH>
 ```
-- Validates solution against LeetCode's test cases
+- **Description:** Tests a local solution file against the problem’s built-in example testcases.
+- **Parameters:**
+  - `<FILEPATH>`: Must follow the format `id.title_slug.file_extension`, for example `1.two-sum.py`.
+- **Notes:** Displays test results (passed/failed testcases, output, errors, etc.) according to your formatting config.
+
+
+
+
+https://github.com/user-attachments/assets/fb1a0886-a697-4178-97db-dc651270d6eb
+
+
+
 
 ### `submit`
 ```bash
 leetcode submit <FILEPATH>
 ```
-- Submits solution and displays real-time status
+- **Description:** Submits a local solution file to LeetCode and shows the real-time result.
+- **Parameters:**
+  - `<FILEPATH>`: Must follow the format `id.title_slug.file_extension`, for example `15.3sum.cpp`.
 
-### Full Command List
-| Command               | Description                                   |
-|-----------------------|-----------------------------------------------|
-| `list`                | Display problemset                            |
-| `show [IDENTIFIER]`   | Display specified problem's description       |
-| `random`              | Display random problem's description          |
-| `create [IDENTIFIER]` | Create specified problem's solution file      |
-| `test [FILEPATH]`     | Test solution file against leetcode testcases |
-| `submit [FILEPATH]`   | Submit solution file to leetcode              |
-| `stats [USERNAME]`    | Display user statistics and calendar          |
-| `config [KEY] [VALUE]`| Manage configuration settings                 |
-| `theme [THEME_NAME]`  | Select a color-symbol theme                   |
-| `download-problems`   | Cache problem metadata                        |
+
+
+
+https://github.com/user-attachments/assets/5406ceed-a59f-46a4-936f-99ba48734f4f
+
+
+
+
+### `stats`
+```bash
+leetcode stats [USERNAME] [--include SECTIONS...]
+```
+- **Description:** Fetches and displays your LeetCode profile statistics (e.g., number of solved problems) and optional submission calendar.
+- **Parameters:**
+  - `[USERNAME]`: If omitted, uses the username from config.
+- **Options:**
+  - `--include` (optional, repeatable): Choose sections to display (e.g., `stats`, `calendar`).
+
+
+
+https://github.com/user-attachments/assets/f8a712e8-6418-4913-8841-e19338386746
+
+
+
+
+
+### `config`
+```bash
+leetcode config [KEY] [VALUE]
+```
+- **Description:** Manages global CLI settings such as your LeetCode session cookie, default username, or default language.
+- **Usage Examples:**
+  - `leetcode config` — lists all current config values.
+  - `leetcode config cookie <SESSION_COOKIE>`
+  - `leetcode config username <USERNAME>`
+  - `leetcode config language python`
+
+
+
+
+https://github.com/user-attachments/assets/57dc61f0-ad99-485e-9213-dbe32c2b1e07
+
+
+
+
+### `theme`
+```bash
+leetcode theme [THEME_NAME]
+```
+- **Description:** Lists available themes or sets a new theme for colored output and symbols.
+- **Parameters:**
+  - `[THEME_NAME]`: Name of the theme folder under `~/.leetcode/themes`.
+
+
+
+
+
+https://github.com/user-attachments/assets/55ad8782-6f23-4b00-babf-b7672791c6c9
+
+
+
+### `download-problems`
+```bash
+leetcode download-problems
+```
+- **Description:** Caches problem metadata locally (IDs, slugs, etc.) so that commands like `show` or `create` work offline or faster.
+- **Notes:** The metadata is stored in `~/.leetcode/problems_metadata.json`.
+
+
+
+
+https://github.com/user-attachments/assets/c869c161-eb67-4b73-bf34-7db8ee027920
+
+
+
 
 ## Contributing 🤝
 
