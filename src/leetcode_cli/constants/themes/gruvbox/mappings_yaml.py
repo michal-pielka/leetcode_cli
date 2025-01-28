@@ -144,10 +144,20 @@ PROBLEMSET:
 
   status_notac:
     style: "orange"
-    prefix: "snowflake"
+    prefix: "bullseye"
     suffix: ""
 
   status_not_started:
+    style: ""
+    prefix: "space"
+    suffix: ""
+
+  paid_only:
+    style: "red"
+    prefix: "star"
+    suffix: ""
+
+  not_paid_only:
     style: ""
     prefix: "space"
     suffix: ""

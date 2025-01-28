@@ -90,8 +90,22 @@ class ProblemSetFormatter:
             f"{status_ansi}{status_left}{status_right}{self.ANSI_RESET}"
         )
 
+        is_paid_key = "paid_only" if q.paid_only else "not_paid_only"
+        try:
+            paid_ansi, paid_left, paid_right = self.theme_manager.get_styling(
+                "PROBLEMSET", is_paid_key
+            )
+
+        except ThemeError as te:
+            raise te
+
+        formatted_paid_symbol = (
+            f"{paid_ansi}{paid_left}{paid_right}{self.ANSI_RESET}"
+        )
+
         line = (
-            f"\t{formatted_status_symbol}"  # e.g. "\t✔"
+            f"\t{formatted_paid_symbol}"
+            f"{formatted_status_symbol}"  # e.g. "\t✔"
             f"{formatted_question_id} "  # e.g. "[ 299]" (4 digits right-justified)
             f"{formatted_title} "  # 79-char-ljust title
             f" {formatted_difficulty} "  # e.g. "Easy    " with theming
