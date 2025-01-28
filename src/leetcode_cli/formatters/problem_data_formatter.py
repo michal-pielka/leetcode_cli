@@ -181,18 +181,27 @@ class ProblemFormatter:
             return ""
 
         soup = BeautifulSoup(html_content, "html.parser")
-        ansi_str = ""
-        style_stack = []
+
+        try:
+            # Get the global description style
+            description_ansi, description_left, description_right = self.theme_manager.get_styling(
+                "PROBLEM_DESCRIPTION", "value_description"
+            )
+        except ThemeError as te:
+            raise te
+
+        ansi_str = f"{description_left}{description_ansi}"
+        # Initialize stack with base description style that should persist
+        style_stack = [("__base__", description_ansi)]
 
         def traverse(el):
             nonlocal ansi_str, style_stack
             if isinstance(el, NavigableString):
-                ansi_str += el
+                ansi_str += str(el)
             elif isinstance(el, Tag):
                 # Handle <sup> tags by prefixing with caret (^)
                 if el.name == "sup":
                     ansi_str += "^"
-                    # Traverse the children without any additional styling
                     for child in el.children:
                         traverse(child)
                     return  # Skip further processing
@@ -200,62 +209,54 @@ class ProblemFormatter:
                 # Handle <sub> tags by prefixing with underscore (_)
                 elif el.name == "sub":
                     ansi_str += "_"
-                    # Traverse the children without any additional styling
                     for child in el.children:
                         traverse(child)
                     return  # Skip further processing
 
-                # Handle empty <p> tags containing only non-breaking spaces
+                # Skip empty <p> tags with non-breaking spaces
                 if el.name == "p" and el.get_text(strip=True) == "\xa0":
-                    return  # Skip adding anything for this tag
+                    return
 
-                # Get the styling for the current tag
+                # Get styling for current HTML tag
                 try:
-                    ansi_code, symbol_left, symbol_right = (
-                        self.theme_manager.get_styling(
-                            "PROBLEM_DESCRIPTION", "html_" + el.name.lower()
-                        )
+                    tag_style = f"html_{el.name.lower()}"
+                    ansi_code, symbol_left, symbol_right = self.theme_manager.get_styling(
+                        "PROBLEM_DESCRIPTION", tag_style
                     )
+                except ThemeError:
+                    # If no specific style found, use empty styling
+                    ansi_code, symbol_left, symbol_right = "", "", ""
 
-                except ThemeError as te:
-                    raise te
-
-                # Apply the current tag's ANSI code and symbols
+                # Apply opening symbols and ANSI code
                 if ansi_code:
                     ansi_str += f"{ansi_code}{symbol_left}"
                     style_stack.append((el.name, ansi_code))
-
                 else:
-                    style_stack.append((el.name, ""))
+                    style_stack.append((el.name, ""))  # Placeholder for proper stack tracking
 
-                # Traverse child elements
+                # Process children
                 for child in el.children:
                     traverse(child)
 
-                # Close the current tag's styling
+                # Apply closing symbols
                 if symbol_right:
-                    ansi_str += f"{symbol_right}"
+                    ansi_str += symbol_right
 
-                # Pop the current tag from the stack
+                # Remove current tag from stack
                 popped_tag, popped_ansi = style_stack.pop()
 
-                # Determine if an ANSI reset is needed
-                if popped_tag in ["code", "pre"]:
-                    ansi_str += self.ANSI_RESET
-                    # Re-apply remaining styles
-                    for tag, ansi in style_stack:
-                        if ansi:
-                            ansi_str += ansi
-                else:
-                    # Re-apply remaining styles by resetting and re-applying
-                    if popped_ansi:
-                        ansi_str += self.ANSI_RESET
-                        for tag, ansi in style_stack:
-                            if ansi:
-                                ansi_str += ansi
+                # After closing tag: Reset and reapply remaining styles
+                ansi_str += self.ANSI_RESET
+                for _, ansi in style_stack:
+                    if ansi:
+                        ansi_str += ansi
 
+        # Process all HTML elements
         for child in soup.children:
             traverse(child)
+
+        # Close description styling and add final reset
+        ansi_str += f"{description_right}{self.ANSI_RESET}"
 
         return ansi_str
 

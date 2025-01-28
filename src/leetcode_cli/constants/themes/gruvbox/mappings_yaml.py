@@ -164,13 +164,100 @@ PROBLEMSET:
 
 
 PROBLEM_DESCRIPTION:
+  label_title:
+    style: "white,bold"
+    prefix: ""
+    suffix: ""
+
+  difficulty_easy:
+    style: "green,bold"
+    prefix: "bracket_left"
+    suffix: "bracket_right"
+
+  difficulty_medium:
+    style: "orange,bold"
+    prefix: "bracket_left"
+    suffix: "bracket_right"
+
+  difficulty_hard:
+    style: "red,bold"
+    prefix: "bracket_left"
+    suffix: "bracket_right"
+
+  label_tags:
+    style: "white,bold"
+    prefix: ""
+    suffix: ""
+
+  value_tags:
+    style: "orange_bg,black,bold"
+    prefix: "space"
+    suffix: "space"
+
+  label_languages:
+    style: "white,bold"
+    prefix: ""
+    suffix: ""
+
+  value_languages:
+    style: "red_bg,white,bold"
+    prefix: "space"
+    suffix: "space"
+
+  value_description:
+    style: "white"
+    prefix: ""
+    suffix: ""
+
+  label_example_title:
+    style: "white,bold"
+    prefix: ""
+    suffix: ""
+
+  label_example_input:
+    style: "white,bold"
+    prefix: "pipe,space"
+    suffix: "colon,space"
+
+  label_example_output:
+    style: "white,bold"
+    prefix: "pipe,space"
+    suffix: "colon,space"
+
+  label_example_explanation:
+    style: "white,bold"
+    prefix: "pipe,space"
+    suffix: "colon,space"
+
+  value_example_input:
+    style: "gray"
+    prefix: ""
+    suffix: ""
+
+  value_example_output:
+    style: "gray"
+    prefix: ""
+    suffix: ""
+
+  value_example_explanation:
+    style: "gray"
+    prefix: ""
+    suffix: ""
+
+  label_constraints:
+    style: "white,bold"
+    prefix: ""
+    suffix: ""
+
+
+  # HTML TAGS
   html_strong:
     style: "bold"
     prefix: ""
     suffix: ""
 
   html_p:
-    style: "white"
+    style: ""
     prefix: ""
     suffix: ""
 
@@ -286,86 +373,6 @@ PROBLEM_DESCRIPTION:
 
   html_pre:
     style: "red"
-    prefix: ""
-    suffix: ""
-
-  label_tags:
-    style: "white,bold"
-    prefix: ""
-    suffix: ""
-
-  value_tags:
-    style: "orange_bg,black,bold"
-    prefix: "space"
-    suffix: "space"
-
-  label_languages:
-    style: "white,bold"
-    prefix: ""
-    suffix: ""
-
-  value_languages:
-    style: "red_bg,white,bold"
-    prefix: "space"
-    suffix: "space"
-
-  label_title:
-    style: "white,bold"
-    prefix: ""
-    suffix: ""
-
-  difficulty_easy:
-    style: "green,bold"
-    prefix: "bracket_left"
-    suffix: "bracket_right"
-
-  difficulty_medium:
-    style: "orange,bold"
-    prefix: "bracket_left"
-    suffix: "bracket_right"
-
-  difficulty_hard:
-    style: "red,bold"
-    prefix: "bracket_left"
-    suffix: "bracket_right"
-
-  label_example_title:
-    style: "white,bold"
-    prefix: ""
-    suffix: ""
-
-  label_example_input:
-    style: "white,bold"
-    prefix: "pipe,space"
-    suffix: "colon,space"
-
-  label_example_output:
-    style: "white,bold"
-    prefix: "pipe,space"
-    suffix: "colon,space"
-
-  label_example_explanation:
-    style: "white,bold"
-    prefix: "pipe,space"
-    suffix: "colon,space"
-
-  value_example_input:
-    style: "gray"
-    prefix: ""
-    suffix: ""
-
-  value_example_output:
-    style: "gray"
-    prefix: ""
-    suffix: ""
-
-  value_example_explanation:
-    style: "gray"
-    prefix: ""
-    suffix: ""
-
-  label_constraints:
-    style: "white,bold"
     prefix: ""
     suffix: ""
 
