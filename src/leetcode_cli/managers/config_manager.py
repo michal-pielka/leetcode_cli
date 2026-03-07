@@ -1,9 +1,8 @@
 import json
+import logging
 import os
 import platform
-import logging
 import re
-from typing import Dict
 
 from leetcode_cli.exceptions.exceptions import ConfigError
 
@@ -94,7 +93,7 @@ class ConfigManager:
 
         except OSError as e:
             logger.error(f"Failed to save configuration: {e}")
-            raise ConfigError("Failed to save configuration.")
+            raise ConfigError("Failed to save configuration.") from e
 
     #
     # ──────────────────────────────────────────────────────
@@ -120,13 +119,13 @@ class ConfigManager:
         os.makedirs(config_dir, exist_ok=True)
         return os.path.join(config_dir, "config.json")
 
-    def _load_config(self) -> Dict:
+    def _load_config(self) -> dict:
         """
         Loads the configuration from the config file.
         """
         if os.path.exists(self.config_path):
             try:
-                with open(self.config_path, "r", encoding="utf-8") as f:
+                with open(self.config_path, encoding="utf-8") as f:
                     return json.load(f)
 
             except json.JSONDecodeError:
@@ -135,7 +134,7 @@ class ConfigManager:
 
             except OSError as e:
                 logger.error(f"Failed to read config file: {e}")
-                raise ConfigError("Failed to read config file.")
+                raise ConfigError("Failed to read config file.") from e
         else:
             logger.info("config.json not found. Returning empty config.")
             return {}

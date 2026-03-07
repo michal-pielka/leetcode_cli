@@ -1,11 +1,12 @@
-import click
 import logging
 
-from leetcode_cli.managers.config_manager import ConfigManager
-from leetcode_cli.managers.auth_service import AuthService
-from leetcode_cli.managers.problemset_manager import ProblemSetManager
+import click
+
 from leetcode_cli.data_fetchers.problemset_data_fetcher import fetch_problemset_metadata
-from leetcode_cli.exceptions.exceptions import ProblemSetError, ConfigError
+from leetcode_cli.exceptions.exceptions import ConfigError, ProblemSetError
+from leetcode_cli.managers.auth_service import AuthService
+from leetcode_cli.managers.config_manager import ConfigManager
+from leetcode_cli.managers.problemset_manager import ProblemSetManager
 
 logger = logging.getLogger(__name__)
 
@@ -47,8 +48,6 @@ def download_problems_cmd():
         logger.error(e)
         click.echo(f"Configuration Error: {e}", err=True)
 
-    except Exception as e:
-        logger.exception(
-            "An unexpected error occurred during problems metadata download."
-        )
+    except Exception:
+        logger.exception("An unexpected error occurred during problems metadata download.")
         click.echo("An unexpected error occurred. Please try again.", err=True)

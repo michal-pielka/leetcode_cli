@@ -1,11 +1,11 @@
+import calendar
 import logging
 import re
-import calendar
-from datetime import datetime, timezone
-from typing import Dict, List
-from leetcode_cli.models.stats import UserStatsModel, UserActivityModel
-from leetcode_cli.managers.theme_manager import ThemeManager
+from datetime import UTC, datetime
+
 from leetcode_cli.exceptions.exceptions import ThemeError
+from leetcode_cli.managers.theme_manager import ThemeManager
+from leetcode_cli.models.stats import UserActivityModel, UserStatsModel
 
 logger = logging.getLogger(__name__)
 DIFFICULTIES = ["EASY", "MEDIUM", "HARD"]
@@ -41,23 +41,19 @@ class StatsFormatter:
             style_key = ""
             try:
                 style_key = f"difficulty_{diff.lower()}"
-                diff_ansi, diff_prefix, diff_suffix = self.theme_manager.get_styling(
-                    "STATS_FORMATTER", style_key
-                )
+                diff_ansi, diff_prefix, diff_suffix = self.theme_manager.get_styling("STATS_FORMATTER", style_key)
 
                 style_key = f"correct_problems_{diff.lower()}"
-                correct_ansi, correct_prefix, correct_suffix = (
-                    self.theme_manager.get_styling("STATS_FORMATTER", style_key)
+                correct_ansi, correct_prefix, correct_suffix = self.theme_manager.get_styling(
+                    "STATS_FORMATTER", style_key
                 )
 
                 style_key = f"total_problems_{diff.lower()}"
-                total_ansi, total_prefix, total_suffix = self.theme_manager.get_styling(
-                    "STATS_FORMATTER", style_key
-                )
+                total_ansi, total_prefix, total_suffix = self.theme_manager.get_styling("STATS_FORMATTER", style_key)
 
                 style_key = f"beats_number_{diff.lower()}"
-                beats_number_ansi, beats_number_prefix, beats_number_suffix = (
-                    self.theme_manager.get_styling("STATS_FORMATTER", style_key)
+                beats_number_ansi, beats_number_prefix, beats_number_suffix = self.theme_manager.get_styling(
+                    "STATS_FORMATTER", style_key
                 )
             except ThemeError as te:
                 logger.warning(f"Theme for {style_key} is missing: {te}")
@@ -84,10 +80,10 @@ class StatsFormatter:
             return "No activity data."
 
         # Convert {timestamp->count} => {date->count}
-        date_counts: Dict[datetime.date, int] = {}
+        date_counts: dict[datetime.date, int] = {}
         for ts, count in daily_activity.items():
             try:
-                dt = datetime.fromtimestamp(int(ts), tz=timezone.utc).date()
+                dt = datetime.fromtimestamp(int(ts), tz=UTC).date()
                 date_counts[dt] = count
             except (ValueError, OverflowError) as e:
                 raise e
@@ -112,9 +108,7 @@ class StatsFormatter:
             raise te
 
         try:
-            most_ansi, _, _ = self.theme_manager.get_styling(
-                "STATS_FORMATTER", "calendar_most_submissions"
-            )
+            most_ansi, _, _ = self.theme_manager.get_styling("STATS_FORMATTER", "calendar_most_submissions")
         except ThemeError as te:
             raise te
 
@@ -184,7 +178,7 @@ class StatsFormatter:
     # ──────────────────────────────────────────────────────
     #
 
-    def _build_color_gradient(self, ansi_min, ansi_max) -> List[str]:
+    def _build_color_gradient(self, ansi_min, ansi_max) -> list[str]:
         """
         Build a color gradient using:
           - 'calendar_least_submissions' => e.g. style = "dark_green"
@@ -205,11 +199,7 @@ class StatsFormatter:
 
         gradient = []
         for i in range(self.CALENDAR_SHADE_STEPS):
-            fraction = (
-                (i / (self.CALENDAR_SHADE_STEPS - 1))
-                if self.CALENDAR_SHADE_STEPS > 1
-                else 0.0
-            )
+            fraction = (i / (self.CALENDAR_SHADE_STEPS - 1)) if self.CALENDAR_SHADE_STEPS > 1 else 0.0
             rr = int(r1 + (r2 - r1) * fraction)
             gg = int(g1 + (g2 - g1) * fraction)
             bb = int(b1 + (b2 - b1) * fraction)
@@ -224,9 +214,7 @@ class StatsFormatter:
             return (int(match.group(1)), int(match.group(2)), int(match.group(3)))
         return None
 
-    def _get_gradient_color(
-        self, c: int, min_c: int, max_c: int, gradient: List[str]
-    ) -> str:
+    def _get_gradient_color(self, c: int, min_c: int, max_c: int, gradient: list[str]) -> str:
         """
         Map submission count c => an ANSI color from our gradient array.
         """
@@ -240,13 +228,13 @@ class StatsFormatter:
         self,
         year: int,
         month: int,
-        date_counts: Dict[datetime.date, int],
-        gradient: List[str],
+        date_counts: dict[datetime.date, int],
+        gradient: list[str],
         day_prefix: str,
         day_suffix: str,
         min_sub: int,
         max_sub: int,
-    ) -> List[List[str]]:
+    ) -> list[list[str]]:
         """
         Return an 8-row 2D array for a single month:
           - row0 => short month label (e.g. "Jan")

@@ -1,11 +1,11 @@
 import json
-from typing import Dict
-from bs4 import BeautifulSoup, Tag, NavigableString
+
+from bs4 import BeautifulSoup, NavigableString, Tag
 
 from leetcode_cli.models.problem import Problem
 
 
-def parse_problem_data(json_data: Dict) -> Problem:
+def parse_problem_data(json_data: dict) -> Problem:
     """
     Parses raw JSON data of a LeetCode problem and returns a Problem instance.
 
@@ -70,9 +70,7 @@ def parse_problem_data(json_data: Dict) -> Problem:
                 while sibling:
                     if isinstance(sibling, Tag):
                         # Check if it's a <div class="example-block">
-                        if sibling.name == "div" and "example-block" in sibling.get(
-                            "class", []
-                        ):
+                        if sibling.name == "div" and "example-block" in sibling.get("class", []):
                             example_div = sibling
                             break
                         # Or if it's <pre> (old style approach)

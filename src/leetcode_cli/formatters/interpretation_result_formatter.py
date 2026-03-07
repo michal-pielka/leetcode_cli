@@ -1,8 +1,8 @@
 import logging
 
-from leetcode_cli.models.interpretation import InterpretationResult
-from leetcode_cli.managers.theme_manager import ThemeManager
 from leetcode_cli.exceptions.exceptions import ThemeError
+from leetcode_cli.managers.theme_manager import ThemeManager
+from leetcode_cli.models.interpretation import InterpretationResult
 
 logger = logging.getLogger(__name__)
 
@@ -46,9 +46,7 @@ class InterpretationFormatter:
 
         # Split testcases; each group of lines is one testcase's inputs
         testcases_split = self.testcases_str.split("\n") if self.testcases_str else []
-        parameters_in_testcase = (
-            len(testcases_split) // total_testcases if total_testcases > 0 else 1
-        )
+        parameters_in_testcase = len(testcases_split) // total_testcases if total_testcases > 0 else 1
 
         expected_outputs = self.result.expected_code_answer or []
         code_outputs = self.result.code_answer or []
@@ -91,23 +89,17 @@ class InterpretationFormatter:
                 raise te
 
             # Print the status line, e.g. "  ✘ Wrong Answer"
-            parsed_result += (
-                f"\n  {s_ansi}{s_left}{status_key}{s_right}{self.ANSI_RESET}\n"
-            )
+            parsed_result += f"\n  {s_ansi}{s_left}{status_key}{s_right}{self.ANSI_RESET}\n"
 
             # Show fields
             if show_language:
                 parsed_result += self._format_label_value("Language", lang)
 
             if show_testcases and testcase_lines:
-                parsed_result += self._format_label_value(
-                    "Testcase", ", ".join(testcase_lines)
-                )
+                parsed_result += self._format_label_value("Testcase", ", ".join(testcase_lines))
 
             if show_expected_output:
-                parsed_result += self._format_label_value(
-                    "Expected Output", expected_out
-                )
+                parsed_result += self._format_label_value("Expected Output", expected_out)
 
             if show_code_output and code_out:
                 parsed_result += self._format_label_value("Your Output", code_out)
@@ -117,23 +109,15 @@ class InterpretationFormatter:
 
             if show_errors:
                 if runtime_error:
-                    parsed_result += self._format_label_value(
-                        "Error Message", runtime_error
-                    )
+                    parsed_result += self._format_label_value("Error Message", runtime_error)
                 if compile_error:
-                    parsed_result += self._format_label_value(
-                        "Error Message", compile_error
-                    )
+                    parsed_result += self._format_label_value("Error Message", compile_error)
 
             if detailed_errors:
                 if full_runtime_error:
-                    parsed_result += self._format_label_value(
-                        "Detailed Error", full_runtime_error
-                    )
+                    parsed_result += self._format_label_value("Detailed Error", full_runtime_error)
                 if full_compile_error:
-                    parsed_result += self._format_label_value(
-                        "Detailed Error", full_compile_error
-                    )
+                    parsed_result += self._format_label_value("Detailed Error", full_compile_error)
 
         return parsed_result
 
@@ -159,9 +143,9 @@ class InterpretationFormatter:
             # Each subsequent line is padded so that it lines up after the label
             padding = " " * (2 + 25 + 1)  # "  " + label_width(25) + 1 space
             subsequent = ""
-            for l in lines[1:]:
-                if l.strip():
-                    subsequent += f"{padding}{l}\n"
+            for line in lines[1:]:
+                if line.strip():
+                    subsequent += f"{padding}{line}\n"
             return first_line + subsequent
 
     def _format_field_label(self, label: str, width: int = 25) -> str:
@@ -170,9 +154,7 @@ class InterpretationFormatter:
         We left-justify label in a fixed-width area so columns align nicely.
         """
         try:
-            ansi_code, sym_left, sym_right = self.theme_manager.get_styling(
-                "INTERPRETATION", "label_field"
-            )
+            ansi_code, sym_left, sym_right = self.theme_manager.get_styling("INTERPRETATION", "label_field")
         except ThemeError as te:
             logger.error(f"Theming Error: {te}")
             raise te
@@ -188,9 +170,7 @@ class InterpretationFormatter:
         Formats the field value using 'field_value' from INTERPRETATION.
         """
         try:
-            ansi_code, sym_left, sym_right = self.theme_manager.get_styling(
-                "INTERPRETATION", "value_field"
-            )
+            ansi_code, sym_left, sym_right = self.theme_manager.get_styling("INTERPRETATION", "value_field")
         except ThemeError as te:
             logger.error(f"Theming Error: {te}")
             raise te
@@ -198,7 +178,7 @@ class InterpretationFormatter:
         lines = value.split("\n")
         # Format each line separately so multi-line values work properly
         out_lines = []
-        for idx, line in enumerate(lines):
+        for _idx, line in enumerate(lines):
             if not line.strip():
                 # If the line is blank, we can skip or just preserve blank line
                 out_lines.append("")

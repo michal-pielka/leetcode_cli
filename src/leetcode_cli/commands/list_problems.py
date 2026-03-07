@@ -1,13 +1,14 @@
-import click
 import logging
 
+import click
+
 from leetcode_cli.constants.problem_constants import POSSIBLE_TAGS
-from leetcode_cli.managers.config_manager import ConfigManager
-from leetcode_cli.managers.theme_manager import ThemeManager
-from leetcode_cli.managers.problemset_manager import ProblemSetManager
-from leetcode_cli.managers.auth_service import AuthService
+from leetcode_cli.exceptions.exceptions import ConfigError, ProblemSetError, ThemeError
 from leetcode_cli.formatters.problemset_data_formatter import ProblemSetFormatter
-from leetcode_cli.exceptions.exceptions import ProblemSetError, ThemeError, ConfigError
+from leetcode_cli.managers.auth_service import AuthService
+from leetcode_cli.managers.config_manager import ConfigManager
+from leetcode_cli.managers.problemset_manager import ProblemSetManager
+from leetcode_cli.managers.theme_manager import ThemeManager
 
 logger = logging.getLogger(__name__)
 
@@ -33,9 +34,7 @@ logger = logging.getLogger(__name__)
     "-l",
     type=int,
     default=50,
-    callback=lambda ctx, param, value: (
-        value if value > 0 else click.BadParameter("Must be greater than 0.")
-    ),
+    callback=lambda ctx, param, value: (value if value > 0 else click.BadParameter("Must be greater than 0.")),
     metavar="LIMIT",
     help="Number of results per page (default: 50).",
 )
@@ -44,9 +43,7 @@ logger = logging.getLogger(__name__)
     "-p",
     type=int,
     default=1,
-    callback=lambda ctx, param, value: (
-        value if value > 0 else click.BadParameter("Must be greater than 0.")
-    ),
+    callback=lambda ctx, param, value: (value if value > 0 else click.BadParameter("Must be greater than 0.")),
     metavar="PAGE",
     help="Page number to display (default: 1).",
 )
@@ -63,9 +60,7 @@ def list_cmd(difficulty, tag, limit, page):
 
         # Get problemset data
         try:
-            problemset = problemset_manager.get_problemset(
-                tags=tag, difficulty=difficulty, limit=limit, page=page
-            )
+            problemset = problemset_manager.get_problemset(tags=tag, difficulty=difficulty, limit=limit, page=page)
 
         except Exception as e:
             click.echo(f"Error: {e}")
@@ -87,6 +82,6 @@ def list_cmd(difficulty, tag, limit, page):
         logger.error(e)
         click.echo(f"Error: {e}", err=True)
 
-    except Exception as e:
+    except Exception:
         logger.exception("An unexpected error occurred while listing problems.")
         click.echo("An unexpected error occurred. Please try again.", err=True)

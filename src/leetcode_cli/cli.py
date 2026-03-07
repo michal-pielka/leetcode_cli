@@ -1,17 +1,17 @@
 import logging
+
 import click
 
 from leetcode_cli.commands.config import config_cmd
+from leetcode_cli.commands.create_solution import create_cmd
+from leetcode_cli.commands.download_problems import download_problems_cmd
 from leetcode_cli.commands.list_problems import list_cmd
 from leetcode_cli.commands.show_problem import show_cmd
 from leetcode_cli.commands.show_random import random_cmd
+from leetcode_cli.commands.stats import stats_cmd
 from leetcode_cli.commands.submit import submit_cmd
 from leetcode_cli.commands.test_solution import test_cmd
-from leetcode_cli.commands.download_problems import download_problems_cmd
-from leetcode_cli.commands.stats import stats_cmd
-from leetcode_cli.commands.create_solution import create_cmd
 from leetcode_cli.commands.theme import theme_cmd
-
 from leetcode_cli.init_app_files import initialize_leetcode_cli
 
 

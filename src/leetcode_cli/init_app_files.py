@@ -1,15 +1,16 @@
-import os
-import logging
 import json
-import yaml
-from typing import List, Dict, Any
+import logging
+import os
+from typing import Any
 
-from leetcode_cli.managers.config_manager import ConfigManager
-from leetcode_cli.managers.theme_manager import ThemeManager
+import yaml
+
 from leetcode_cli.constants.default_config import DEFAULT_CONFIG_VALUES
 from leetcode_cli.constants.default_formatting_config import (
     DEFAULT_FORMATTING_CONFIG_YAML,
 )
+from leetcode_cli.managers.config_manager import ConfigManager
+from leetcode_cli.managers.theme_manager import ThemeManager
 
 logger = logging.getLogger(__name__)
 
@@ -109,21 +110,17 @@ def _ensure_formatting_config_file_exists(config_dir: str):
             with open(formatting_path, "w", encoding="utf-8") as f:
                 f.write(DEFAULT_FORMATTING_CONFIG_YAML)
 
-            logger.info(
-                f"Created default formatting_config.yaml at '{formatting_path}'."
-            )
+            logger.info(f"Created default formatting_config.yaml at '{formatting_path}'.")
 
         except Exception as e:
-            logger.error(
-                f"Error creating formatting_config.yaml at '{formatting_path}': {e}"
-            )
+            logger.error(f"Error creating formatting_config.yaml at '{formatting_path}': {e}")
             raise e
 
         return
 
     # If it already exists, verify it's valid YAML
     try:
-        with open(formatting_path, "r", encoding="utf-8") as f:
+        with open(formatting_path, encoding="utf-8") as f:
             data = yaml.safe_load(f)
             if not isinstance(data, dict):
                 raise ValueError("formatting_config.yaml is not a valid dictionary.")
@@ -131,9 +128,7 @@ def _ensure_formatting_config_file_exists(config_dir: str):
         logger.debug("formatting_config.yaml is valid.")
 
     except (yaml.YAMLError, ValueError) as e:
-        logger.warning(
-            f"formatting_config.yaml is corrupted or invalid: {e}. Recreating from defaults."
-        )
+        logger.warning(f"formatting_config.yaml is corrupted or invalid: {e}. Recreating from defaults.")
 
         try:
             with open(formatting_path, "w", encoding="utf-8") as f:
@@ -142,9 +137,7 @@ def _ensure_formatting_config_file_exists(config_dir: str):
             logger.info(f"Recreated formatting_config.yaml at '{formatting_path}'.")
 
         except Exception as ex:
-            logger.error(
-                f"Error recreating formatting_config.yaml at '{formatting_path}': {ex}"
-            )
+            logger.error(f"Error recreating formatting_config.yaml at '{formatting_path}': {ex}")
             raise ex
 
 
@@ -156,7 +149,7 @@ def _ensure_minimum_formatting_config_fields(config_dir: str):
     formatting_path = os.path.join(config_dir, "formatting_config.yaml")
 
     try:
-        with open(formatting_path, "r", encoding="utf-8") as f:
+        with open(formatting_path, encoding="utf-8") as f:
             user_data = yaml.safe_load(f) or {}
 
         default_data = yaml.safe_load(DEFAULT_FORMATTING_CONFIG_YAML)
@@ -165,9 +158,7 @@ def _ensure_minimum_formatting_config_fields(config_dir: str):
         for key, default_section in default_data.items():
             if key not in user_data:
                 user_data[key] = default_section
-                logger.warning(
-                    f"formatting_config.yaml missing '{key}', adding defaults."
-                )
+                logger.warning(f"formatting_config.yaml missing '{key}', adding defaults.")
                 updated = True
 
         if updated:
@@ -175,9 +166,7 @@ def _ensure_minimum_formatting_config_fields(config_dir: str):
                 yaml.dump(user_data, f, sort_keys=False)
             logger.info("Updated formatting_config.yaml with missing sections.")
         else:
-            logger.debug(
-                "No missing sections in formatting_config.yaml; no updates needed."
-            )
+            logger.debug("No missing sections in formatting_config.yaml; no updates needed.")
 
     except Exception as e:
         logger.error(f"Error ensuring minimum formatting config fields: {e}")
@@ -197,20 +186,17 @@ def _ensure_themes_directory(themes_dir: str):
         raise e
 
 
-def _discover_available_themes() -> List[str]:
+def _discover_available_themes() -> list[str]:
     """
     Discovers available themes by listing subdirectories in the constants/themes directory.
     Returns a list of theme names.
     """
-    themes_constants_dir = os.path.join(
-        os.path.dirname(__file__), "constants", "themes"
-    )
+    themes_constants_dir = os.path.join(os.path.dirname(__file__), "constants", "themes")
     try:
         themes = [
             name
             for name in os.listdir(themes_constants_dir)
-            if os.path.isdir(os.path.join(themes_constants_dir, name))
-            and not name.startswith("__")
+            if os.path.isdir(os.path.join(themes_constants_dir, name)) and not name.startswith("__")
         ]
 
         logger.info(f"Discovered themes: {themes}")
@@ -218,9 +204,7 @@ def _discover_available_themes() -> List[str]:
         return themes
 
     except Exception as e:
-        logger.error(
-            f"Error discovering available themes in '{themes_constants_dir}': {e}"
-        )
+        logger.error(f"Error discovering available themes in '{themes_constants_dir}': {e}")
         raise e
 
 
@@ -230,9 +214,7 @@ def _ensure_theme_folder(theme_name: str, theme_manager: ThemeManager):
     and that it contains the necessary YAML files (ansi_codes.yaml, symbols.yaml, mappings.yaml).
     """
     themes_dir = theme_manager.get_themes_dir()
-    theme_constants_dir = os.path.join(
-        os.path.dirname(__file__), "constants", "themes", theme_name
-    )
+    theme_constants_dir = os.path.join(os.path.dirname(__file__), "constants", "themes", theme_name)
     theme_user_dir = os.path.join(themes_dir, theme_name)
 
     try:
@@ -253,9 +235,7 @@ def _ensure_theme_folder(theme_name: str, theme_manager: ThemeManager):
         _write_yaml_if_missing(theme_constants_dir, theme_user_dir, filename, var_name)
 
 
-def _write_yaml_if_missing(
-    source_dir: str, target_dir: str, filename: str, variable_name: str
-):
+def _write_yaml_if_missing(source_dir: str, target_dir: str, filename: str, variable_name: str):
     """
     Helper to create the theme YAML file if it doesn't exist already by extracting
     the YAML content from the corresponding Python module variable.
@@ -272,9 +252,7 @@ def _write_yaml_if_missing(
                 logger.info(f"Created '{filename}' in '{target_dir}'.")
 
             else:
-                logger.error(
-                    f"YAML content for '{variable_name}' not found in '{source_file}'."
-                )
+                logger.error(f"YAML content for '{variable_name}' not found in '{source_file}'.")
 
         except Exception as e:
             logger.error(f"Error writing '{filename}' in '{target_dir}': {e}")
@@ -289,17 +267,15 @@ def _extract_yaml_from_py(file_path: str, variable_name: str) -> str:
     Safely extracts the YAML string from a Python file by executing it in a controlled namespace.
     Returns the YAML string if found, else an empty string.
     """
-    namespace: Dict[str, Any] = {}
+    namespace: dict[str, Any] = {}
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             exec(f.read(), namespace)
 
         yaml_content = namespace.get(variable_name, "")
 
         if not isinstance(yaml_content, str):
-            logger.error(
-                f"Variable '{variable_name}' in '{file_path}' is not a string."
-            )
+            logger.error(f"Variable '{variable_name}' in '{file_path}' is not a string.")
             return ""
 
         return yaml_content

@@ -1,14 +1,13 @@
+import json
 import logging
 import os
-import json
-from typing import Dict, Any, Optional, List
 import random
-
-from leetcode_cli.managers.auth_service import AuthService
-from leetcode_cli.managers.config_manager import ConfigManager
-from leetcode_cli.exceptions.exceptions import ProblemSetError
+from typing import Any
 
 from leetcode_cli.data_fetchers.problemset_data_fetcher import fetch_problemset
+from leetcode_cli.exceptions.exceptions import ProblemSetError
+from leetcode_cli.managers.auth_service import AuthService
+from leetcode_cli.managers.config_manager import ConfigManager
 from leetcode_cli.parsers.problemset_data_parser import parse_problemset_data
 
 logger = logging.getLogger(__name__)
@@ -57,7 +56,7 @@ class ProblemSetManager:
             logger.error(e)
             raise e
 
-    def load_problemset_metadata(self) -> Dict[str, Any]:
+    def load_problemset_metadata(self) -> dict[str, Any]:
         """
         Loads the local JSON file that caches problem set data.
 
@@ -69,26 +68,24 @@ class ProblemSetManager:
         """
         if os.path.exists(self.problems_data_path):
             try:
-                with open(self.problems_data_path, "r", encoding="utf-8") as f:
+                with open(self.problems_data_path, encoding="utf-8") as f:
                     data = json.load(f)
                     logger.debug("Loaded problem set metadata successfully.")
                     return data
 
             except json.JSONDecodeError as e:
                 logger.error(f"problems_metadata.json is corrupted: {e}")
-                raise ProblemSetError("problems_metadata.json is corrupted.")
+                raise ProblemSetError("problems_metadata.json is corrupted.") from e
 
             except OSError as e:
                 logger.error(f"Failed to read problems_metadata.json: {e}")
-                raise ProblemSetError("Failed to read problems_metadata.json.")
+                raise ProblemSetError("Failed to read problems_metadata.json.") from e
 
         else:
-            logger.warning(
-                f"problems_metadata.json not found at '{self.problems_data_path}'."
-            )
+            logger.warning(f"problems_metadata.json not found at '{self.problems_data_path}'.")
             return {}
 
-    def save_problemset_metadata(self, data: Dict[str, Any]) -> None:
+    def save_problemset_metadata(self, data: dict[str, Any]) -> None:
         """
         Saves the problem set metadata to the local JSON file.
 
@@ -108,9 +105,9 @@ class ProblemSetManager:
 
         except OSError as e:
             logger.error(f"Failed to save problems_metadata.json: {e}")
-            raise ProblemSetError("Failed to save problems_metadata.json.")
+            raise ProblemSetError("Failed to save problems_metadata.json.") from e
 
-    def get_problem_by_key_value(self, key: str, value: str) -> Dict[str, Any]:
+    def get_problem_by_key_value(self, key: str, value: str) -> dict[str, Any]:
         """
         Retrieves a problem from the problem set based on a key-value pair.
 
@@ -125,11 +122,7 @@ class ProblemSetManager:
             ProblemSetError: If the problem cannot be found.
         """
         problems_data = self.load_problemset_metadata()
-        questions = (
-            problems_data.get("data", {})
-            .get("problemsetQuestionList", {})
-            .get("questions", [])
-        )
+        questions = problems_data.get("data", {}).get("problemsetQuestionList", {}).get("questions", [])
 
         for problem in questions:
             if str(problem.get(key, "")).lower() == str(value).lower():
@@ -139,17 +132,13 @@ class ProblemSetManager:
         logger.warning(f"Problem with {key}='{value}' not found in cached data.")
         return {}
 
-    def get_random_local_problem_slug(
-        self, difficulty: Optional[str], tags: Optional[List[str]]
-    ) -> Optional[str]:
+    def get_random_local_problem_slug(self, difficulty: str | None, tags: list[str] | None) -> str | None:
         """
         Randomly select a local problem that matches the given difficulty and tag filters.
         Returns its 'titleSlug', or None if no match found.
         """
         data = self.load_problemset_metadata()
-        questions = (
-            data.get("data", {}).get("problemsetQuestionList", {}).get("questions", [])
-        )
+        questions = data.get("data", {}).get("problemsetQuestionList", {}).get("questions", [])
 
         # Filter by difficulty & tags if provided
         filtered = []
@@ -182,17 +171,11 @@ class ProblemSetManager:
     # ──────────────────────────────────────────────────────
     #
 
-    def _matches_tags(self, question: dict, required_tags: List[str]) -> bool:
+    def _matches_tags(self, question: dict, required_tags: list[str]) -> bool:
         """
         Helper to check if the question has all the required tags.
         'topicTags' is typically a list of dicts with 'slug' keys.
         """
-        question_tags = [
-            t.get("slug", "").lower() for t in question.get("topicTags", [])
-        ]
+        question_tags = [t.get("slug", "").lower() for t in question.get("topicTags", [])]
 
-        for required_tag in required_tags:
-            if required_tag.lower() not in question_tags:
-                return False
-
-        return True
+        return all(required_tag.lower() in question_tags for required_tag in required_tags)

@@ -1,7 +1,8 @@
-import requests
-import time
 import logging
-from typing import Dict
+import time
+
+import requests
+
 from leetcode_cli.exceptions.exceptions import FetchingError
 
 logger = logging.getLogger(__name__)
@@ -15,7 +16,7 @@ def fetch_interpretation_result(
     language: str,
     testcases: str,
     question_id: int,
-) -> Dict:
+) -> dict:
     """
     Fetch the 'Run Code' / interpretation result from LeetCode for a given problem.
 
@@ -72,9 +73,7 @@ def fetch_interpretation_result(
 
     logger.debug("Got interpret_id=%s, polling for result.", interpret_id)
 
-    check_submission_url = (
-        f"https://leetcode.com/submissions/detail/{interpret_id}/check/"
-    )
+    check_submission_url = f"https://leetcode.com/submissions/detail/{interpret_id}/check/"
     while True:
         try:
             r = requests.get(check_submission_url, headers=headers)
@@ -87,7 +86,7 @@ def fetch_interpretation_result(
 
         except ValueError:
             logger.error("Invalid JSON while polling interpretation result.")
-            raise FetchingError("Invalid response format.")
+            raise FetchingError("Invalid response format.") from None
 
         state = result.get("state")
         logger.debug("Interpretation poll state: %s", state)

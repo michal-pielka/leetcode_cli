@@ -1,21 +1,20 @@
-import click
 import logging
 
+import click
+
 from leetcode_cli.constants.problem_constants import POSSIBLE_TAGS
-from leetcode_cli.managers.config_manager import ConfigManager
-from leetcode_cli.managers.problemset_manager import ProblemSetManager
-from leetcode_cli.managers.formatting_config_manager import FormattingConfigManager
-from leetcode_cli.managers.theme_manager import ThemeManager
-from leetcode_cli.managers.problem_manager import ProblemManager
-from leetcode_cli.managers.auth_service import AuthService
-from leetcode_cli.formatters.problem_data_formatter import ProblemFormatter
 from leetcode_cli.exceptions.exceptions import (
     ConfigError,
-    FormattingError,
     ProblemError,
     ThemeError,
-    ParsingError,
 )
+from leetcode_cli.formatters.problem_data_formatter import ProblemFormatter
+from leetcode_cli.managers.auth_service import AuthService
+from leetcode_cli.managers.config_manager import ConfigManager
+from leetcode_cli.managers.formatting_config_manager import FormattingConfigManager
+from leetcode_cli.managers.problem_manager import ProblemManager
+from leetcode_cli.managers.problemset_manager import ProblemSetManager
+from leetcode_cli.managers.theme_manager import ThemeManager
 
 logger = logging.getLogger(__name__)
 
@@ -60,9 +59,7 @@ def random_cmd(difficulty, tag, include):
         formatting_config_manager = FormattingConfigManager(config_manager)
         theme_manager = ThemeManager(config_manager)
         problemset_manager = ProblemSetManager(config_manager, auth_service)
-        problem_manager = ProblemManager(
-            config_manager, auth_service, problemset_manager
-        )
+        problem_manager = ProblemManager(config_manager, auth_service, problemset_manager)
 
         # Load format config
         formatting_config = formatting_config_manager.load_formatting_config()

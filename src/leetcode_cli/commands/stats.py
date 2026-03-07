@@ -1,15 +1,14 @@
-import click
 import logging
 from datetime import datetime
 
-from leetcode_cli.managers.config_manager import ConfigManager
+import click
+
+from leetcode_cli.exceptions.exceptions import ConfigError, StatsError, ThemeError
+from leetcode_cli.formatters.stats_data_formatter import StatsFormatter
 from leetcode_cli.managers.auth_service import AuthService
+from leetcode_cli.managers.config_manager import ConfigManager
 from leetcode_cli.managers.stats_manager import StatsManager
 from leetcode_cli.managers.theme_manager import ThemeManager
-from leetcode_cli.managers.formatting_config_manager import FormattingConfigManager
-
-from leetcode_cli.formatters.stats_data_formatter import StatsFormatter
-from leetcode_cli.exceptions.exceptions import ConfigError, StatsError, ThemeError
 
 logger = logging.getLogger(__name__)
 
@@ -57,9 +56,7 @@ def stats_cmd(username, include):
             try:
                 current_year = datetime.now().year
                 prev_year = current_year - 1
-                user_activity = stats_manager.get_joined_activity(
-                    username, prev_year, current_year
-                )
+                user_activity = stats_manager.get_joined_activity(username, prev_year, current_year)
             except StatsError as e:
                 click.echo(f"Failed to fetch user activity: {e}")
 

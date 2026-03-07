@@ -1,5 +1,6 @@
-import requests
 import logging
+
+import requests
 
 from leetcode_cli.data_fetchers.graphql_queries import GRAPHQL_QUERIES, GRAPHQL_URL
 from leetcode_cli.exceptions.exceptions import FetchingError
@@ -7,12 +8,13 @@ from leetcode_cli.exceptions.exceptions import FetchingError
 logger = logging.getLogger(__name__)
 
 
-def fetch_problemset(
-    cookie=None, csrf_token=None, tags=None, difficulty=None, limit=50, skip=0
-):
+def fetch_problemset(cookie=None, csrf_token=None, tags=None, difficulty=None, limit=50, skip=0):
     logger.info(
         "Fetching problemset (limit=%d, skip=%d, difficulty=%s, tags=%s).",
-        limit, skip, difficulty, tags,
+        limit,
+        skip,
+        difficulty,
+        tags,
     )
     query = GRAPHQL_QUERIES["problemset_data"]
     payload = {
@@ -50,13 +52,13 @@ def fetch_problemset(
 
     except requests.RequestException as e:
         logger.error("Network error fetching problemset: %s", e)
-        raise FetchingError(f"Network error while fetching problemset: {e}")
+        raise FetchingError(f"Network error while fetching problemset: {e}") from e
 
     except ValueError:
         logger.error("Invalid JSON response for problemset.")
         raise FetchingError(
             "Failed to parse JSON response while fetching problemset, there might be an issue with your cookie."
-        )
+        ) from None
 
     logger.debug("Fetched problemset successfully.")
     return result
@@ -83,11 +85,11 @@ def fetch_problemset_metadata():
 
     except requests.RequestException as e:
         logger.error("Network error fetching problemset metadata: %s", e)
-        raise FetchingError(f"Network error while fetching problemset: {e}")
+        raise FetchingError(f"Network error while fetching problemset: {e}") from e from e
 
     except ValueError:
         logger.error("Invalid JSON response for problemset metadata.")
-        raise FetchingError("Failed to parse JSON response while fetching problemset.")
+        raise FetchingError("Failed to parse JSON response while fetching problemset.") from None
 
     logger.debug("Fetched problemset metadata successfully.")
     return result

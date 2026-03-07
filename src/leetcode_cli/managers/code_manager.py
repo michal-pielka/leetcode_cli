@@ -1,15 +1,13 @@
-import os
 import logging
+import os
 
-from typing import Tuple
-
-from leetcode_cli.managers.config_manager import ConfigManager
 from leetcode_cli.constants.problem_constants import (
     EXTENSION_TO_LANG_SLUG,
     LANG_SLUG_TO_EXTENSION,
 )
-from leetcode_cli.exceptions.exceptions import CodeError
 from leetcode_cli.data_fetchers.code_snippet_fetcher import fetch_code_snippet
+from leetcode_cli.exceptions.exceptions import CodeError
+from leetcode_cli.managers.config_manager import ConfigManager
 
 logger = logging.getLogger(__name__)
 
@@ -50,14 +48,14 @@ class CodeManager:
             raise CodeError(f"File '{file_path}' does not exist.")
 
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 code = f.read()
                 logger.debug(f"Read code from file '{file_path}'.")
                 return code
 
         except OSError as e:
             logger.error(f"Failed to read file '{file_path}': {e}")
-            raise CodeError(f"Failed to read file '{file_path}': {e}")
+            raise CodeError(f"Failed to read file '{file_path}': {e}") from e
 
     def determine_language_from_extension(self, file_extension: str) -> str:
         """
@@ -80,7 +78,7 @@ class CodeManager:
         logger.debug(f"Determined language '{lang}' from extension '{file_extension}'.")
         return lang
 
-    def get_default_lang_and_ext(self) -> Tuple[str, str]:
+    def get_default_lang_and_ext(self) -> tuple[str, str]:
         """
         Attempts to retrieve the default language from the user's config,
         then derive the matching extension from LANG_SLUG_TO_EXTENSION.
@@ -102,7 +100,7 @@ class CodeManager:
         logger.debug(f"Default language '{config_lang}' => extension '{extension}'.")
         return config_lang.lower(), extension.lower()
 
-    def infer_lang_and_ext(self, user_ext: str = "") -> Tuple[str, str]:
+    def infer_lang_and_ext(self, user_ext: str = "") -> tuple[str, str]:
         """
         Infers the (lang_slug, file_extension) from either:
         1) user-provided extension (e.g. ".cpp" or "py"), or
@@ -141,9 +139,7 @@ class CodeManager:
         """
         try:
             code_data = fetch_code_snippet(title_slug, lang_slug)
-            snippet_list = (
-                code_data.get("data", {}).get("question", {}).get("codeSnippets", [])
-            )
+            snippet_list = code_data.get("data", {}).get("question", {}).get("codeSnippets", [])
             code_str = ""
             for sn in snippet_list:
                 if sn.get("langSlug") == lang_slug:
@@ -153,15 +149,13 @@ class CodeManager:
             if not code_str:
                 code_str = f"# That problem does not have a code snippet for {lang_slug} and is probably not submittable in that language.\n\n"
 
-            self._create_solution_file(
-                frontend_id, title_slug, file_extension, code_str
-            )
+            self._create_solution_file(frontend_id, title_slug, file_extension, code_str)
             file_name = f"{frontend_id}.{title_slug}.{file_extension}"
             logger.debug(f"Solution file '{file_name}' has been created successfully.")
 
         except Exception as e:
             logger.error(f"Failed to create solution file with snippet: {e}")
-            raise CodeError(f"Failed to create solution file with snippet: {e}")
+            raise CodeError(f"Failed to create solution file with snippet: {e}") from e
 
     #
     # ──────────────────────────────────────────────────────
@@ -169,9 +163,7 @@ class CodeManager:
     # ──────────────────────────────────────────────────────
     #
 
-    def _create_solution_file(
-        self, frontend_id: str, title_slug: str, file_extension: str, code_snippet: str
-    ) -> None:
+    def _create_solution_file(self, frontend_id: str, title_slug: str, file_extension: str, code_snippet: str) -> None:
         """
         Creates a new solution file with the provided code snippet.
 
@@ -187,9 +179,7 @@ class CodeManager:
         file_name = f"{frontend_id}.{title_slug}.{file_extension}"
 
         if os.path.exists(file_name):
-            logger.warning(
-                f"Solution file '{file_name}' already exists. Not overwriting."
-            )
+            logger.warning(f"Solution file '{file_name}' already exists. Not overwriting.")
             raise CodeError(f"Solution file '{file_name}' already exists.")
 
         try:
@@ -200,4 +190,4 @@ class CodeManager:
 
         except OSError as e:
             logger.error(f"Failed to create solution file '{file_name}': {e}")
-            raise CodeError(f"Failed to create solution file '{file_name}': {e}")
+            raise CodeError(f"Failed to create solution file '{file_name}': {e}") from e

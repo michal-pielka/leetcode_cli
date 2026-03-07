@@ -1,16 +1,15 @@
-from typing import Dict, Any
+from typing import Any
+
 from leetcode_cli.exceptions.exceptions import ParsingError
 from leetcode_cli.models.problemset import ProblemSet, ProblemSummary
 
 
-def parse_problemset_data(json_data: Dict[str, Any]) -> ProblemSet:
+def parse_problemset_data(json_data: dict[str, Any]) -> ProblemSet:
     """
     Parses the JSON returned by fetch_problemset into a ProblemSet model.
     """
     if "data" not in json_data or "problemsetQuestionList" not in json_data["data"]:
-        raise ParsingError(
-            "Invalid problemset data structure: 'data.problemsetQuestionList' key not found."
-        )
+        raise ParsingError("Invalid problemset data structure: 'data.problemsetQuestionList' key not found.")
 
     plist = json_data["data"]["problemsetQuestionList"]
 

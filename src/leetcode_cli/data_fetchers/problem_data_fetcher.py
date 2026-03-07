@@ -1,6 +1,8 @@
-import requests
 import logging
-from leetcode_cli.data_fetchers.graphql_queries import GRAPHQL_URL, GRAPHQL_QUERIES
+
+import requests
+
+from leetcode_cli.data_fetchers.graphql_queries import GRAPHQL_QUERIES, GRAPHQL_URL
 from leetcode_cli.exceptions.exceptions import FetchingError
 
 logger = logging.getLogger(__name__)
@@ -22,15 +24,11 @@ def fetch_problem_testcases(title_slug):
 
     except requests.RequestException as e:
         logger.error("Network error fetching testcases for '%s': %s", title_slug, e)
-        raise FetchingError(
-            f"Network error while fetching testcases for {title_slug}: {e}"
-        )
+        raise FetchingError(f"Network error while fetching testcases for {title_slug}: {e}") from e
 
     except ValueError:
         logger.error("Invalid JSON response for testcases of '%s'.", title_slug)
-        raise FetchingError(
-            "Failed to parse JSON response while fetching problem testcases."
-        )
+        raise FetchingError("Failed to parse JSON response while fetching problem testcases.") from None
 
     logger.debug("Fetched testcases for '%s' successfully.", title_slug)
     return result
@@ -52,13 +50,11 @@ def fetch_problem_id(title_slug):
 
     except requests.RequestException as e:
         logger.error("Network error fetching problem ID for '%s': %s", title_slug, e)
-        raise FetchingError(
-            f"Network error while fetching problem ID for {title_slug}: {e}"
-        )
+        raise FetchingError(f"Network error while fetching problem ID for {title_slug}: {e}") from e
 
     except ValueError:
         logger.error("Invalid JSON response for problem ID of '%s'.", title_slug)
-        raise FetchingError("Failed to parse JSON response while fetching problem ID.")
+        raise FetchingError("Failed to parse JSON response while fetching problem ID.") from None
 
     logger.debug("Fetched problem ID for '%s' successfully.", title_slug)
     return result
@@ -80,13 +76,11 @@ def fetch_problem_frontend_id(title_slug):
 
     except requests.RequestException as e:
         logger.error("Network error fetching frontend ID for '%s': %s", title_slug, e)
-        raise FetchingError(
-            f"Network error while fetching problem ID for {title_slug}: {e}"
-        )
+        raise FetchingError(f"Network error while fetching problem ID for {title_slug}: {e}") from e
 
     except ValueError:
         logger.error("Invalid JSON response for frontend ID of '%s'.", title_slug)
-        raise FetchingError("Failed to parse JSON response while fetching problem ID.")
+        raise FetchingError("Failed to parse JSON response while fetching problem ID.") from None
 
     logger.debug("Fetched frontend ID for '%s' successfully.", title_slug)
     return result
@@ -114,13 +108,11 @@ def fetch_random_title_slug(difficulty, tags):
 
     except requests.RequestException as e:
         logger.error("Network error fetching random title slug: %s", e)
-        raise FetchingError(f"Network error while fetching random title slug: {e}")
+        raise FetchingError(f"Network error while fetching random title slug: {e}") from e
 
     except ValueError:
         logger.error("Invalid JSON response for random title slug.")
-        raise FetchingError(
-            "Failed to parse JSON response while fetching random title slug."
-        )
+        raise FetchingError("Failed to parse JSON response while fetching random title slug.") from None
 
     logger.debug("Fetched random title slug successfully.")
     return result
@@ -142,15 +134,11 @@ def fetch_problem_data(title_slug):
 
     except requests.RequestException as e:
         logger.error("Network error fetching problem data for '%s': %s", title_slug, e)
-        raise FetchingError(
-            f"Network error while fetching problem data for {title_slug}: {e}"
-        )
+        raise FetchingError(f"Network error while fetching problem data for {title_slug}: {e}") from e
 
     except ValueError:
         logger.error("Invalid JSON response for problem data of '%s'.", title_slug)
-        raise FetchingError(
-            "Failed to parse JSON response while fetching problem data."
-        )
+        raise FetchingError("Failed to parse JSON response while fetching problem data.") from None
 
     logger.debug("Fetched problem data for '%s' successfully.", title_slug)
     return result

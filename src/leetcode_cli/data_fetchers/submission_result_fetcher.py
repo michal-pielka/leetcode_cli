@@ -1,7 +1,8 @@
-import requests
-import time
 import logging
-from typing import Dict
+import time
+
+import requests
+
 from leetcode_cli.exceptions.exceptions import FetchingError
 
 logger = logging.getLogger(__name__)
@@ -14,7 +15,7 @@ def fetch_submission_result(
     code: str,
     language: str,
     question_id: int,
-) -> Dict:
+) -> dict:
     """
     Fetches the final submission result from LeetCode (i.e., the "Submit" action).
 
@@ -56,11 +57,11 @@ def fetch_submission_result(
 
     except requests.RequestException as e:
         logger.error("Submission failed for '%s': %s", title_slug, e)
-        raise FetchingError(f"Submission failed: {e}")
+        raise FetchingError(f"Submission failed: {e}") from e
 
     except ValueError:
         logger.error("Invalid JSON response for submission of '%s'.", title_slug)
-        raise FetchingError("Invalid response format from LeetCode.")
+        raise FetchingError("Invalid response format from LeetCode.") from None
 
     submission_id = submission.get("submission_id")
     if not submission_id:
@@ -69,9 +70,7 @@ def fetch_submission_result(
 
     logger.debug("Got submission_id=%s, polling for result.", submission_id)
 
-    check_submission_url = (
-        f"https://leetcode.com/submissions/detail/{submission_id}/check/"
-    )
+    check_submission_url = f"https://leetcode.com/submissions/detail/{submission_id}/check/"
     while True:
         try:
             r = requests.get(check_submission_url, headers=headers)
@@ -80,11 +79,11 @@ def fetch_submission_result(
 
         except requests.RequestException as e:
             logger.error("Failed to poll submission result: %s", e)
-            raise FetchingError(f"Failed to check submission: {e}")
+            raise FetchingError(f"Failed to check submission: {e}") from e
 
         except ValueError:
             logger.error("Invalid JSON while polling submission result.")
-            raise FetchingError("Invalid response format.")
+            raise FetchingError("Invalid response format.") from None
 
         state = result.get("state")
         logger.debug("Submission poll state: %s", state)

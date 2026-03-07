@@ -1,19 +1,19 @@
-import click
 import logging
 
-from leetcode_cli.managers.auth_service import AuthService
-from leetcode_cli.managers.config_manager import ConfigManager
-from leetcode_cli.managers.problem_manager import ProblemManager
-from leetcode_cli.managers.problemset_manager import ProblemSetManager
-from leetcode_cli.managers.formatting_config_manager import FormattingConfigManager
-from leetcode_cli.managers.theme_manager import ThemeManager
-from leetcode_cli.formatters.problem_data_formatter import ProblemFormatter
+import click
+
 from leetcode_cli.exceptions.exceptions import (
     ConfigError,
     ProblemError,
     ThemeError,
-    ProblemError,
 )
+from leetcode_cli.formatters.problem_data_formatter import ProblemFormatter
+from leetcode_cli.managers.auth_service import AuthService
+from leetcode_cli.managers.config_manager import ConfigManager
+from leetcode_cli.managers.formatting_config_manager import FormattingConfigManager
+from leetcode_cli.managers.problem_manager import ProblemManager
+from leetcode_cli.managers.problemset_manager import ProblemSetManager
+from leetcode_cli.managers.theme_manager import ThemeManager
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +44,7 @@ def show_cmd(title_slug_or_frontend_id, include):
         auth_service = AuthService(config_manager)
         formatting_config_manager = FormattingConfigManager(config_manager)
         problemset_manager = ProblemSetManager(config_manager, auth_service)
-        problem_manager = ProblemManager(
-            config_manager, auth_service, problemset_manager
-        )
+        problem_manager = ProblemManager(config_manager, auth_service, problemset_manager)
         theme_manager = ThemeManager(config_manager)
 
         formatting_config = formatting_config_manager.load_formatting_config()
@@ -54,7 +52,7 @@ def show_cmd(title_slug_or_frontend_id, include):
         # Override formatting configuration if --include is used
         format_conf = formatting_config.problem_show
         if include:
-            for key in format_conf.keys():
+            for key in format_conf:
                 format_conf[key] = False
 
             mapping = {
@@ -80,9 +78,7 @@ def show_cmd(title_slug_or_frontend_id, include):
 
         if title_slug_or_frontend_id.isdigit():
             # we used that as frontend ID, so fetch the real slug
-            slug = problem_manager.get_title_slug_for_frontend_id(
-                title_slug_or_frontend_id
-            )
+            slug = problem_manager.get_title_slug_for_frontend_id(title_slug_or_frontend_id)
 
         else:
             # else it's a slug
@@ -106,6 +102,6 @@ def show_cmd(title_slug_or_frontend_id, include):
         logger.error(e)
         click.echo(f"Configuration/Theme Error: {e}", err=True)
 
-    except Exception as e:
+    except Exception:
         logger.exception("An unexpected error occurred while showing the problem.")
         click.echo("An unexpected error occurred. Please try again.", err=True)

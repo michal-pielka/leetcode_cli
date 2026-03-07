@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import List, Optional
 
 
 @dataclass
@@ -7,39 +6,39 @@ class InterpretationResult:
     status_code: int
     lang: str
     run_success: bool
-    runtime_error: Optional[str]
-    full_runtime_error: Optional[str]
-    compile_error: Optional[str]
-    full_compile_error: Optional[str]
+    runtime_error: str | None
+    full_runtime_error: str | None
+    compile_error: str | None
+    full_compile_error: str | None
     status_runtime: str
     memory: int
     display_runtime: str
-    code_answer: List[str]
-    code_output: List[str]
-    std_output_list: List[str]
-    elapsed_time: Optional[int]
-    task_finish_time: Optional[int]
-    task_name: Optional[str]
-    expected_status_code: Optional[int]
-    expected_lang: Optional[str]
-    expected_run_success: Optional[bool]
-    expected_status_runtime: Optional[str]
-    expected_memory: Optional[int]
-    expected_display_runtime: Optional[str]
-    expected_code_answer: Optional[List[str]]
-    expected_code_output: Optional[List[str]]
-    expected_std_output_list: Optional[List[str]]
-    expected_elapsed_time: Optional[int]
-    expected_task_finish_time: Optional[int]
-    expected_task_name: Optional[str]
-    correct_answer: Optional[bool]
-    compare_result: Optional[str]
-    total_correct: Optional[int]
-    total_testcases: Optional[int]
-    runtime_percentile: Optional[float]
-    status_memory: Optional[str]
-    memory_percentile: Optional[float]
-    pretty_lang: Optional[str]
-    submission_id: Optional[str]
+    code_answer: list[str]
+    code_output: list[str]
+    std_output_list: list[str]
+    elapsed_time: int | None
+    task_finish_time: int | None
+    task_name: str | None
+    expected_status_code: int | None
+    expected_lang: str | None
+    expected_run_success: bool | None
+    expected_status_runtime: str | None
+    expected_memory: int | None
+    expected_display_runtime: str | None
+    expected_code_answer: list[str] | None
+    expected_code_output: list[str] | None
+    expected_std_output_list: list[str] | None
+    expected_elapsed_time: int | None
+    expected_task_finish_time: int | None
+    expected_task_name: str | None
+    correct_answer: bool | None
+    compare_result: str | None
+    total_correct: int | None
+    total_testcases: int | None
+    runtime_percentile: float | None
+    status_memory: str | None
+    memory_percentile: float | None
+    pretty_lang: str | None
+    submission_id: str | None
     status_msg: str
     state: str

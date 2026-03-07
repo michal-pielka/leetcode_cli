@@ -1,8 +1,8 @@
 import logging
 
-from leetcode_cli.models.problemset import ProblemSet, ProblemSummary
-from leetcode_cli.exceptions.exceptions import FormattingError, ThemeError
+from leetcode_cli.exceptions.exceptions import ThemeError
 from leetcode_cli.managers.theme_manager import ThemeManager
+from leetcode_cli.models.problemset import ProblemSet, ProblemSummary
 
 logger = logging.getLogger(__name__)
 
@@ -41,25 +41,15 @@ class ProblemSetFormatter:
         """
         # Title padded to 79 characters
         title = q.title.ljust(79)
-        title_ansi, title_left, title_right = self.theme_manager.get_styling(
-            "PROBLEMSET", "text_title"
-        )
-        formatted_title = (
-            f"{title_ansi}{title_left}{title}{title_right}{self.ANSI_RESET}"
-        )
+        title_ansi, title_left, title_right = self.theme_manager.get_styling("PROBLEMSET", "text_title")
+        formatted_title = f"{title_ansi}{title_left}{title}{title_right}{self.ANSI_RESET}"
 
         question_id = q.frontend_question_id.rjust(4)
-        id_ansi, id_left, id_right = self.theme_manager.get_styling(
-            "PROBLEMSET", "text_question_id"
-        )
-        formatted_question_id = (
-            f"{id_ansi}{id_left}{question_id}{id_right}{self.ANSI_RESET}"
-        )
+        id_ansi, id_left, id_right = self.theme_manager.get_styling("PROBLEMSET", "text_question_id")
+        formatted_question_id = f"{id_ansi}{id_left}{question_id}{id_right}{self.ANSI_RESET}"
 
         ac_rate = f"{float(q.ac_rate):.2f}"
-        ac_ansi, ac_left, ac_right = self.theme_manager.get_styling(
-            "PROBLEMSET", "text_acceptance_rate"
-        )
+        ac_ansi, ac_left, ac_right = self.theme_manager.get_styling("PROBLEMSET", "text_acceptance_rate")
         formatted_ac_rate = f"{ac_ansi}{ac_left}{ac_rate}{ac_right}{self.ANSI_RESET}"
 
         difficulty_str = q.difficulty
@@ -73,9 +63,7 @@ class ProblemSetFormatter:
             raise te
 
         padded_diff = difficulty_str.ljust(8)
-        formatted_difficulty = (
-            f"{diff_ansi}{diff_left}{padded_diff}{diff_right}{self.ANSI_RESET}"
-        )
+        formatted_difficulty = f"{diff_ansi}{diff_left}{padded_diff}{diff_right}{self.ANSI_RESET}"
 
         status_key = q.status.lower() if q.status else "not_started"
         try:
@@ -86,22 +74,16 @@ class ProblemSetFormatter:
         except ThemeError as te:
             raise te
 
-        formatted_status_symbol = (
-            f"{status_ansi}{status_left}{status_right}{self.ANSI_RESET}"
-        )
+        formatted_status_symbol = f"{status_ansi}{status_left}{status_right}{self.ANSI_RESET}"
 
         is_paid_key = "paid_only" if q.paid_only else "not_paid_only"
         try:
-            paid_ansi, paid_left, paid_right = self.theme_manager.get_styling(
-                "PROBLEMSET", is_paid_key
-            )
+            paid_ansi, paid_left, paid_right = self.theme_manager.get_styling("PROBLEMSET", is_paid_key)
 
         except ThemeError as te:
             raise te
 
-        formatted_paid_symbol = (
-            f"{paid_ansi}{paid_left}{paid_right}{self.ANSI_RESET}"
-        )
+        formatted_paid_symbol = f"{paid_ansi}{paid_left}{paid_right}{self.ANSI_RESET}"
 
         line = (
             f"\t{formatted_paid_symbol}"

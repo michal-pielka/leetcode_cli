@@ -1,23 +1,23 @@
-import click
 import logging
 
-from leetcode_cli.managers.config_manager import ConfigManager
-from leetcode_cli.managers.auth_service import AuthService
-from leetcode_cli.managers.code_manager import CodeManager
-from leetcode_cli.managers.problem_manager import ProblemManager
-from leetcode_cli.managers.formatting_config_manager import FormattingConfigManager
-from leetcode_cli.managers.theme_manager import ThemeManager
-from leetcode_cli.managers.problemset_manager import ProblemSetManager
+import click
 
-from leetcode_cli.formatters.interpretation_result_formatter import (
-    InterpretationFormatter,
-)
 from leetcode_cli.exceptions.exceptions import (
-    ConfigError,
     CodeError,
+    ConfigError,
     ProblemError,
     ThemeError,
 )
+from leetcode_cli.formatters.interpretation_result_formatter import (
+    InterpretationFormatter,
+)
+from leetcode_cli.managers.auth_service import AuthService
+from leetcode_cli.managers.code_manager import CodeManager
+from leetcode_cli.managers.config_manager import ConfigManager
+from leetcode_cli.managers.formatting_config_manager import FormattingConfigManager
+from leetcode_cli.managers.problem_manager import ProblemManager
+from leetcode_cli.managers.problemset_manager import ProblemSetManager
+from leetcode_cli.managers.theme_manager import ThemeManager
 
 logger = logging.getLogger(__name__)
 
@@ -53,9 +53,7 @@ def test_cmd(file_path, include):
         auth_service = AuthService(config_manager)
         code_manager = CodeManager(config_manager)
         problemset_manager = ProblemSetManager(config_manager, auth_service)
-        problem_manager = ProblemManager(
-            config_manager, auth_service, problemset_manager
-        )
+        problem_manager = ProblemManager(config_manager, auth_service, problemset_manager)
         formatting_config_manager = FormattingConfigManager(config_manager)
         theme_manager = ThemeManager(config_manager)
 
@@ -65,7 +63,7 @@ def test_cmd(file_path, include):
 
         # 3) Override formatting sections if needed
         if include:
-            for key in format_conf.keys():
+            for key in format_conf:
                 format_conf[key] = False
             for item in include:
                 if item == "language":
@@ -84,9 +82,7 @@ def test_cmd(file_path, include):
                     format_conf["show_detailed_error_messages"] = True
 
         # 4) Parse local file => question_id, slug, extension
-        _, title_slug, file_extension = problem_manager.problem_data_from_path(
-            file_path
-        )
+        _, title_slug, file_extension = problem_manager.problem_data_from_path(file_path)
 
         # 5) Read code
         code = code_manager.read_code_from_file(file_path)

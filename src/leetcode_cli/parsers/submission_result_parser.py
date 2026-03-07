@@ -1,9 +1,10 @@
-from typing import Dict, Any
+from typing import Any
+
 from leetcode_cli.exceptions.exceptions import ParsingError
 from leetcode_cli.models.submission import SubmissionResult
 
 
-def parse_submission_result(json_data: Dict[str, Any]) -> SubmissionResult:
+def parse_submission_result(json_data: dict[str, Any]) -> SubmissionResult:
     # Define required fields
     required_fields = [
         "status_code",
@@ -18,9 +19,7 @@ def parse_submission_result(json_data: Dict[str, Any]) -> SubmissionResult:
     # Validate required fields
     for field in required_fields:
         if field not in json_data:
-            raise ParsingError(
-                f"Missing required field '{field}' in submission result data."
-            )
+            raise ParsingError(f"Missing required field '{field}' in submission result data.")
 
     """
     run_success = bool(json_data["run_success"])

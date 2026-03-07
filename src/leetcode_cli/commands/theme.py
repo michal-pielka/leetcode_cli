@@ -1,9 +1,10 @@
-import click
 import logging
 
+import click
+
+from leetcode_cli.exceptions.exceptions import ConfigError, ThemeError
 from leetcode_cli.managers.config_manager import ConfigManager
 from leetcode_cli.managers.theme_manager import ThemeManager
-from leetcode_cli.exceptions.exceptions import ThemeError, ConfigError
 
 logger = logging.getLogger(__name__)
 
@@ -36,14 +37,12 @@ def theme_cmd(theme_name):
         # Attempt to set the provided theme
         success = theme_manager.set_current_theme(theme_name)
         if not success:
-            click.echo(
-                f"Error: Theme '{theme_name}' not found. Use 'leetcode theme' to list available themes."
-            )
+            click.echo(f"Error: Theme '{theme_name}' not found. Use 'leetcode theme' to list available themes.")
             return
 
         # Load theme data to validate
         try:
-            theme_data = theme_manager.load_theme_data()
+            theme_manager.load_theme_data()
             click.echo(f"Theme set to '{theme_name}'.")
 
         except ThemeError as e:
@@ -56,6 +55,6 @@ def theme_cmd(theme_name):
         logger.error(e)
         click.echo(f"Configuration/Theme Error: {e}", err=True)
 
-    except Exception as e:
+    except Exception:
         logger.exception("An unexpected error occurred during theme configuration.")
         click.echo("An unexpected error occurred. Please try again.", err=True)

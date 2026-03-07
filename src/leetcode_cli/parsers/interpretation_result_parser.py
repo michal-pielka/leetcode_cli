@@ -1,10 +1,10 @@
-from typing import Dict, Any
+from typing import Any
 
-from leetcode_cli.models.interpretation import InterpretationResult
 from leetcode_cli.exceptions.exceptions import ParsingError
+from leetcode_cli.models.interpretation import InterpretationResult
 
 
-def parse_interpretation_result(json_data: Dict[str, Any]) -> InterpretationResult:
+def parse_interpretation_result(json_data: dict[str, Any]) -> InterpretationResult:
     # Define required fields
     required_fields = [
         "status_code",
@@ -22,9 +22,7 @@ def parse_interpretation_result(json_data: Dict[str, Any]) -> InterpretationResu
     # Validate required fields
     for field in required_fields:
         if field not in json_data:
-            raise ParsingError(
-                f"Missing required field '{field}' in interpretation result data."
-            )
+            raise ParsingError(f"Missing required field '{field}' in interpretation result data.")
 
     # Parse and assign each field, providing defaults where necessary
     return InterpretationResult(

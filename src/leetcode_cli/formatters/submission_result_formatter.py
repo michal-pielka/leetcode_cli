@@ -1,8 +1,8 @@
 import logging
 
-from leetcode_cli.models.submission import SubmissionResult
-from leetcode_cli.managers.theme_manager import ThemeManager
 from leetcode_cli.exceptions.exceptions import ThemeError
+from leetcode_cli.managers.theme_manager import ThemeManager
+from leetcode_cli.models.submission import SubmissionResult
 
 logger = logging.getLogger(__name__)
 
@@ -12,9 +12,7 @@ class SubmissionFormatter:
     Formats submission results using (ansi, symbol_left, symbol_right) theming.
     """
 
-    def __init__(
-        self, result: SubmissionResult, format_conf: dict, theme_manager: ThemeManager
-    ):
+    def __init__(self, result: SubmissionResult, format_conf: dict, theme_manager: ThemeManager):
         self.result = result
         self.format_conf = format_conf
         self.theme_manager = theme_manager
@@ -23,7 +21,6 @@ class SubmissionFormatter:
         self.ANSI_RESET = "\033[0m"  # Reset all styles
 
     def get_formatted_submission(self) -> str:
-        status_code = self.result.status_code
         status_msg = self.result.status_msg
         lang = self.result.pretty_lang or self.result.lang
         total_testcases = self.result.total_testcases
@@ -63,9 +60,7 @@ class SubmissionFormatter:
         except ThemeError as te:
             raise te
 
-        ansi_status = (
-            f"{ansi_code}{symbol_left}{status_msg}{symbol_right}{self.ANSI_RESET}"
-        )
+        ansi_status = f"{ansi_code}{symbol_left}{status_msg}{symbol_right}{self.ANSI_RESET}"
         parsed_result = f"\n  {ansi_status} \n"
 
         # Now we call _format_label_value for each item, instead of manually building strings
@@ -73,9 +68,7 @@ class SubmissionFormatter:
             parsed_result += self._format_label_value("Language", lang)
 
         if show_testcases and total_correct is not None and total_testcases is not None:
-            parsed_result += self._format_label_value(
-                "Passed Testcases", f"{total_correct} / {total_testcases}"
-            )
+            parsed_result += self._format_label_value("Passed Testcases", f"{total_correct} / {total_testcases}")
 
         if show_runtime_memory:
             # Runtime
@@ -89,46 +82,30 @@ class SubmissionFormatter:
                 parsed_result += self._format_label_value("Memory Usage", memory_str)
 
         if last_testcase and show_testcases:
-            parsed_result += self._format_label_value(
-                "Failed Testcase", last_testcase.replace("\n", ", ")
-            )
+            parsed_result += self._format_label_value("Failed Testcase", last_testcase.replace("\n", ", "))
 
         if show_expected_output and expected_output:
-            parsed_result += self._format_label_value(
-                "Expected Output", expected_output
-            )
+            parsed_result += self._format_label_value("Expected Output", expected_output)
 
         if show_code_output and code_output:
-            code_output_str = (
-                code_output if isinstance(code_output, str) else "\n".join(code_output)
-            )
+            code_output_str = code_output if isinstance(code_output, str) else "\n".join(code_output)
             parsed_result += self._format_label_value("Your Output", code_output_str)
 
         if show_stdout and std_output:
-            std_output_str = (
-                std_output if isinstance(std_output, str) else "\n".join(std_output)
-            )
+            std_output_str = std_output if isinstance(std_output, str) else "\n".join(std_output)
             parsed_result += self._format_label_value("Stdout", std_output_str)
 
         if show_errors:
             if runtime_error:
-                parsed_result += self._format_label_value(
-                    "Error Message", runtime_error
-                )
+                parsed_result += self._format_label_value("Error Message", runtime_error)
             if compile_error:
-                parsed_result += self._format_label_value(
-                    "Error Message", compile_error
-                )
+                parsed_result += self._format_label_value("Error Message", compile_error)
 
         if detailed_errors:
             if full_runtime_error:
-                parsed_result += self._format_label_value(
-                    "Detailed Error", full_runtime_error
-                )
+                parsed_result += self._format_label_value("Detailed Error", full_runtime_error)
             if full_compile_error:
-                parsed_result += self._format_label_value(
-                    "Detailed Error", full_compile_error
-                )
+                parsed_result += self._format_label_value("Detailed Error", full_compile_error)
 
         return parsed_result
 
@@ -167,9 +144,7 @@ class SubmissionFormatter:
         Formats the field label using the 'field_label' mapping from SUBMISSION.
         """
         try:
-            ansi_code, symbol_left, symbol_right = self.theme_manager.get_styling(
-                "SUBMISSION", "label_field"
-            )
+            ansi_code, symbol_left, symbol_right = self.theme_manager.get_styling("SUBMISSION", "label_field")
         except ThemeError as te:
             logger.error(f"Theming Error: {te}")
             raise te
@@ -184,9 +159,7 @@ class SubmissionFormatter:
         Handles multi-line values by splitting on newline.
         """
         try:
-            ansi_code, symbol_left, symbol_right = self.theme_manager.get_styling(
-                "SUBMISSION", "value_field"
-            )
+            ansi_code, symbol_left, symbol_right = self.theme_manager.get_styling("SUBMISSION", "value_field")
         except ThemeError as te:
             logger.error(f"Theming Error: {te}")
             raise te
@@ -195,8 +168,6 @@ class SubmissionFormatter:
         out_lines = []
         for line in lines:
             # Even if blank, we still produce a line
-            out_lines.append(
-                f"{ansi_code}{symbol_left}{line}{symbol_right}{self.ANSI_RESET}"
-            )
+            out_lines.append(f"{ansi_code}{symbol_left}{line}{symbol_right}{self.ANSI_RESET}")
 
         return "\n".join(out_lines)

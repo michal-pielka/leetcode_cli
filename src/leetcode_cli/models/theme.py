@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from typing import Dict
 
 
 @dataclass
@@ -9,10 +8,10 @@ class ThemeData:
     Each field corresponds to one key in the loaded theme data.
     """
 
-    ANSI_CODES: Dict[str, str] = field(default_factory=dict)
-    SYMBOLS: Dict[str, str] = field(default_factory=dict)
-    INTERPRETATION: Dict[str, Dict[str, str]] = field(default_factory=dict)
-    SUBMISSION: Dict[str, Dict[str, str]] = field(default_factory=dict)
-    PROBLEMSET: Dict[str, Dict[str, str]] = field(default_factory=dict)
-    PROBLEM_DESCRIPTION: Dict[str, Dict[str, str]] = field(default_factory=dict)
-    STATS_FORMATTER: Dict[str, Dict[str, str]] = field(default_factory=dict)
+    ANSI_CODES: dict[str, str] = field(default_factory=dict)
+    SYMBOLS: dict[str, str] = field(default_factory=dict)
+    INTERPRETATION: dict[str, dict[str, str]] = field(default_factory=dict)
+    SUBMISSION: dict[str, dict[str, str]] = field(default_factory=dict)
+    PROBLEMSET: dict[str, dict[str, str]] = field(default_factory=dict)
+    PROBLEM_DESCRIPTION: dict[str, dict[str, str]] = field(default_factory=dict)
+    STATS_FORMATTER: dict[str, dict[str, str]] = field(default_factory=dict)

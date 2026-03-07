@@ -1,10 +1,11 @@
-import os
 import logging
+import os
+
 import yaml
 
+from leetcode_cli.exceptions.exceptions import ConfigError
 from leetcode_cli.managers.config_manager import ConfigManager
 from leetcode_cli.models.formatting_config import FormattingConfig
-from leetcode_cli.exceptions.exceptions import ConfigError
 
 logger = logging.getLogger(__name__)
 
@@ -35,29 +36,23 @@ class FormattingConfigManager:
             ConfigError: If the formatting configuration cannot be loaded.
         """
         if not os.path.exists(self.formatting_config_path):
-            logger.error(
-                f"Formatting configuration file '{self.formatting_config_path}' not found."
-            )
-            raise ConfigError(
-                f"Formatting configuration file '{self.formatting_config_path}' not found."
-            )
+            logger.error(f"Formatting configuration file '{self.formatting_config_path}' not found.")
+            raise ConfigError(f"Formatting configuration file '{self.formatting_config_path}' not found.")
 
         try:
-            with open(self.formatting_config_path, "r", encoding="utf-8") as f:
+            with open(self.formatting_config_path, encoding="utf-8") as f:
                 data = yaml.safe_load(f)
                 if not isinstance(data, dict):
-                    logger.error(
-                        "Formatting configuration is not a valid YAML dictionary."
-                    )
+                    logger.error("Formatting configuration is not a valid YAML dictionary.")
                     raise ConfigError("Invalid formatting configuration format.")
 
         except yaml.YAMLError as e:
             logger.error(f"YAML parsing error in formatting_config.yaml: {e}")
-            raise ConfigError(f"YAML parsing error: {e}")
+            raise ConfigError(f"YAML parsing error: {e}") from e
 
         except OSError as e:
             logger.error(f"Failed to read formatting_config.yaml: {e}")
-            raise ConfigError(f"Failed to read formatting_config.yaml: {e}")
+            raise ConfigError(f"Failed to read formatting_config.yaml: {e}") from e
 
         return FormattingConfig(
             interpretation=data.get("interpretation", {}),

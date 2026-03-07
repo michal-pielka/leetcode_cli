@@ -438,7 +438,7 @@ STATS_FORMATTER:
     prefix: "parenthesis_left"
     suffix: "percentage,parenthesis_right"
 
-  calendar_least_submissions: 
+  calendar_least_submissions:
     style: "dark_green"
     prefix: "filled_square"
     suffix: ""

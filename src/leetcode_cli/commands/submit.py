@@ -1,21 +1,21 @@
-import click
 import logging
 
-from leetcode_cli.managers.config_manager import ConfigManager
-from leetcode_cli.managers.auth_service import AuthService
-from leetcode_cli.managers.formatting_config_manager import FormattingConfigManager
-from leetcode_cli.managers.code_manager import CodeManager
-from leetcode_cli.managers.theme_manager import ThemeManager
-from leetcode_cli.managers.problem_manager import ProblemManager
-from leetcode_cli.managers.problemset_manager import ProblemSetManager
+import click
 
-from leetcode_cli.formatters.submission_result_formatter import SubmissionFormatter
 from leetcode_cli.exceptions.exceptions import (
-    ConfigError,
     CodeError,
+    ConfigError,
     ProblemError,
     ThemeError,
 )
+from leetcode_cli.formatters.submission_result_formatter import SubmissionFormatter
+from leetcode_cli.managers.auth_service import AuthService
+from leetcode_cli.managers.code_manager import CodeManager
+from leetcode_cli.managers.config_manager import ConfigManager
+from leetcode_cli.managers.formatting_config_manager import FormattingConfigManager
+from leetcode_cli.managers.problem_manager import ProblemManager
+from leetcode_cli.managers.problemset_manager import ProblemSetManager
+from leetcode_cli.managers.theme_manager import ThemeManager
 
 logger = logging.getLogger(__name__)
 
@@ -53,9 +53,7 @@ def submit_cmd(file_path, include):
         code_manager = CodeManager(config_manager)
         theme_manager = ThemeManager(config_manager)
         problemset_manager = ProblemSetManager(config_manager, auth_service)
-        problem_manager = ProblemManager(
-            config_manager, auth_service, problemset_manager
-        )
+        problem_manager = ProblemManager(config_manager, auth_service, problemset_manager)
 
         # Load formatting config
         formatting_config = formatting_config_manager.load_formatting_config()
@@ -63,7 +61,7 @@ def submit_cmd(file_path, include):
 
         # override if user passed --include
         if include:
-            for key in format_conf.keys():
+            for key in format_conf:
                 format_conf[key] = False
             for item in include:
                 if item == "language":
@@ -84,9 +82,7 @@ def submit_cmd(file_path, include):
                     format_conf["show_expected_output"] = True
 
         # Parse path => (id, slug, ext)
-        _, title_slug, file_extension = problem_manager.problem_data_from_path(
-            file_path
-        )
+        _, title_slug, file_extension = problem_manager.problem_data_from_path(file_path)
 
         # read code
         code = code_manager.read_code_from_file(file_path)
@@ -95,9 +91,7 @@ def submit_cmd(file_path, include):
         lang_slug = code_manager.determine_language_from_extension(file_extension)
 
         # manager fetches + parses the submission result
-        submission_res = problem_manager.get_submission_result(
-            title_slug=title_slug, code=code, lang_slug=lang_slug
-        )
+        submission_res = problem_manager.get_submission_result(title_slug=title_slug, code=code, lang_slug=lang_slug)
 
         # format
         formatter = SubmissionFormatter(submission_res, format_conf, theme_manager)

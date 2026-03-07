@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, Any
+from typing import Any
 
 
 @dataclass
@@ -9,6 +9,6 @@ class FormattingConfig:
     including sub-sections: 'interpretation', 'submission', 'problem_show'.
     """
 
-    interpretation: Dict[str, Any] = field(default_factory=dict)
-    submission: Dict[str, Any] = field(default_factory=dict)
-    problem_show: Dict[str, Any] = field(default_factory=dict)
+    interpretation: dict[str, Any] = field(default_factory=dict)
+    submission: dict[str, Any] = field(default_factory=dict)
+    problem_show: dict[str, Any] = field(default_factory=dict)

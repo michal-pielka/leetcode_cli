@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from typing import Dict
 
 
 @dataclass
@@ -9,10 +8,10 @@ class UserStatsModel:
     plus how many users you beat per difficulty.
     """
 
-    accepted: Dict[str, int]
-    failed: Dict[str, int]
-    untouched: Dict[str, int]
-    beats: Dict[str, float] = field(default_factory=dict)  # e.g. {"EASY": 72.5, ...}
+    accepted: dict[str, int]
+    failed: dict[str, int]
+    untouched: dict[str, int]
+    beats: dict[str, float] = field(default_factory=dict)  # e.g. {"EASY": 72.5, ...}
     total_submissions: int = 0
 
 
@@ -23,4 +22,4 @@ class UserActivityModel:
     The activity is a dict with timestamps as keys and submission counts as values.
     """
 
-    daily_activity: Dict[int, int]
+    daily_activity: dict[int, int]
