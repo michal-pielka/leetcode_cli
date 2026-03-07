@@ -30,8 +30,9 @@ class ThemeManager:
 
     def __init__(self, config_manager: ConfigManager):
         self.config_manager = config_manager
-        self.themes_dir = self.get_themes_dir()  # moved the helper call to a private function
+        self.themes_dir = self.get_themes_dir()
         self.theme_data: ThemeData | None = None
+        self.raw_style: bool = False
 
     #
     # ──────────────────────────────────────────────────────
@@ -122,6 +123,9 @@ class ThemeManager:
         raw_mapping = section_data.get(key)
         if raw_mapping is None:
             raise ThemeError(f"Key '{key}' not found in section '{section}'.")
+
+        if self.raw_style:
+            return (f"[{section}.{key}]", "")
 
         combined_ansi = self._parse_ansi_codes(raw_mapping.get("style", ""))
         icon = self._parse_symbols(raw_mapping.get("icon", ""))

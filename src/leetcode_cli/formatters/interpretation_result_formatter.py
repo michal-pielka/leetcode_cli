@@ -24,7 +24,7 @@ class InterpretationFormatter:
         self.theme_manager = theme_manager
         self.theme_data = theme_manager.load_theme_data()
 
-        self.ANSI_RESET = "\033[0m"
+        self.ANSI_RESET = "" if theme_manager.raw_style else "\033[0m"
 
     def get_formatted_interpretation(self) -> str:
         status_code = self.result.status_code

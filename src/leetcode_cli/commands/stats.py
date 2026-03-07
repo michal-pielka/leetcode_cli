@@ -23,7 +23,8 @@ logger = logging.getLogger(__name__)
     metavar="SECTION",
     help="Sections to display. e.g. --include stats --include calendar",
 )
-def stats_cmd(username, include):
+@click.option("-r", "--raw-style", is_flag=True, default=False, help="Show theme style keys instead of colors.")
+def stats_cmd(username, include, raw_style):
     """
     Show user stats and/or calendar activity, with color gradients for daily squares.
     """
@@ -32,6 +33,7 @@ def stats_cmd(username, include):
         auth_service = AuthService(config_manager)
         stats_manager = StatsManager(config_manager, auth_service)
         theme_manager = ThemeManager(config_manager)
+        theme_manager.raw_style = raw_style
 
         if not username:
             username = config_manager.get_username()

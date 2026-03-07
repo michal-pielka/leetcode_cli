@@ -25,7 +25,7 @@ class ProblemSetFormatter:
         self.theme_manager = theme_manager
         self.theme_data = self.theme_manager.load_theme_data()
 
-        self.ANSI_RESET = "\033[0m"
+        self.ANSI_RESET = "" if theme_manager.raw_style else "\033[0m"
 
     def _format_question(self, q: ProblemSummary) -> str:
         title = q.title.ljust(79)

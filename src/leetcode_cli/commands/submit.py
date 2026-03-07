@@ -42,7 +42,8 @@ logger = logging.getLogger(__name__)
     metavar="SECTION",
     help="Sections to display. Overrides formatting_config.",
 )
-def submit_cmd(file_path, include):
+@click.option("-r", "--raw-style", is_flag=True, default=False, help="Show theme style keys instead of colors.")
+def submit_cmd(file_path, include, raw_style):
     """
     Submit a solution file to LeetCode.
     """
@@ -52,6 +53,7 @@ def submit_cmd(file_path, include):
         formatting_config_manager = FormattingConfigManager(config_manager)
         code_manager = CodeManager(config_manager)
         theme_manager = ThemeManager(config_manager)
+        theme_manager.raw_style = raw_style
         problemset_manager = ProblemSetManager(config_manager, auth_service)
         problem_manager = ProblemManager(config_manager, auth_service, problemset_manager)
 

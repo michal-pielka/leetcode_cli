@@ -47,7 +47,8 @@ logger = logging.getLogger(__name__)
     metavar="PAGE",
     help="Page number to display (default: 1).",
 )
-def list_cmd(difficulty, tag, limit, page):
+@click.option("-r", "--raw-style", is_flag=True, default=False, help="Show theme style keys instead of colors.")
+def list_cmd(difficulty, tag, limit, page, raw_style):
     """
     List LeetCode problems with optional filters.
     """
@@ -57,6 +58,7 @@ def list_cmd(difficulty, tag, limit, page):
         auth_service = AuthService(config_manager)
         problemset_manager = ProblemSetManager(config_manager, auth_service)
         theme_manager = ThemeManager(config_manager)
+        theme_manager.raw_style = raw_style
 
         # Get problemset data
         try:

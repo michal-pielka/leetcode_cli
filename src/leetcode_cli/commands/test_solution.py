@@ -43,7 +43,8 @@ logger = logging.getLogger(__name__)
     metavar="SECTION",
     help="Sections to display. Overrides formatting_config.",
 )
-def test_cmd(file_path, include):
+@click.option("-r", "--raw-style", is_flag=True, default=False, help="Show theme style keys instead of colors.")
+def test_cmd(file_path, include, raw_style):
     """
     Test a solution file with example testcases.
     """
@@ -56,6 +57,7 @@ def test_cmd(file_path, include):
         problem_manager = ProblemManager(config_manager, auth_service, problemset_manager)
         formatting_config_manager = FormattingConfigManager(config_manager)
         theme_manager = ThemeManager(config_manager)
+        theme_manager.raw_style = raw_style
 
         # 2) Load format config
         formatting_config = formatting_config_manager.load_formatting_config()

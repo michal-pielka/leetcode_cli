@@ -16,13 +16,13 @@ class StatsFormatter:
     2) Month-by-month heatmap calendar (8 rows x #weeks columns) horizontally joined.
     """
 
-    ANSI_RESET = "\033[0m"
     CALENDAR_SHADE_STEPS = 8
     DAY_ABBREVIATIONS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
     def __init__(self, theme_manager: ThemeManager):
         self.theme_manager = theme_manager
         self.theme_data = self.theme_manager.load_theme_data()
+        self.ANSI_RESET = "" if theme_manager.raw_style else "\033[0m"
 
     def format_user_stats(self, stats: UserStatsModel) -> str:
         lines = []

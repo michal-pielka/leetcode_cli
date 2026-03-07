@@ -46,7 +46,8 @@ logger = logging.getLogger(__name__)
     metavar="SECTION",
     help="Sections to display. Overrides formatting_config.",
 )
-def random_cmd(difficulty, tag, include):
+@click.option("-r", "--raw-style", is_flag=True, default=False, help="Show theme style keys instead of colors.")
+def random_cmd(difficulty, tag, include, raw_style):
     """
     Show random problem details.
 
@@ -58,6 +59,7 @@ def random_cmd(difficulty, tag, include):
         auth_service = AuthService(config_manager)
         formatting_config_manager = FormattingConfigManager(config_manager)
         theme_manager = ThemeManager(config_manager)
+        theme_manager.raw_style = raw_style
         problemset_manager = ProblemSetManager(config_manager, auth_service)
         problem_manager = ProblemManager(config_manager, auth_service, problemset_manager)
 

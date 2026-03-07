@@ -31,7 +31,8 @@ logger = logging.getLogger(__name__)
     metavar="SECTION",
     help="Sections to display. Overrides formatting_config.",
 )
-def show_cmd(title_slug_or_frontend_id, include):
+@click.option("-r", "--raw-style", is_flag=True, default=False, help="Show theme style keys instead of colors.")
+def show_cmd(title_slug_or_frontend_id, include, raw_style):
     """
     Show specific problem details.
 
@@ -46,6 +47,7 @@ def show_cmd(title_slug_or_frontend_id, include):
         problemset_manager = ProblemSetManager(config_manager, auth_service)
         problem_manager = ProblemManager(config_manager, auth_service, problemset_manager)
         theme_manager = ThemeManager(config_manager)
+        theme_manager.raw_style = raw_style
 
         formatting_config = formatting_config_manager.load_formatting_config()
 
