@@ -36,7 +36,7 @@ def fetch_problemset(cookie=None, csrf_token=None, tags=None, difficulty=None, l
 
     headers = {
         "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
     }
 
     if cookie and csrf_token:
