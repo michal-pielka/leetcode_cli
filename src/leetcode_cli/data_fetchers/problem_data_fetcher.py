@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 def fetch_problem_testcases(title_slug):
+    logger.info("Fetching testcases for '%s'.", title_slug)
     query = GRAPHQL_QUERIES["problem_testcases"]
     payload = {
         "query": query,
@@ -20,19 +21,23 @@ def fetch_problem_testcases(title_slug):
         result = response.json()
 
     except requests.RequestException as e:
+        logger.error("Network error fetching testcases for '%s': %s", title_slug, e)
         raise FetchingError(
             f"Network error while fetching testcases for {title_slug}: {e}"
         )
 
     except ValueError:
+        logger.error("Invalid JSON response for testcases of '%s'.", title_slug)
         raise FetchingError(
             "Failed to parse JSON response while fetching problem testcases."
         )
 
+    logger.debug("Fetched testcases for '%s' successfully.", title_slug)
     return result
 
 
 def fetch_problem_id(title_slug):
+    logger.info("Fetching problem ID for '%s'.", title_slug)
     query = GRAPHQL_QUERIES["problem_id"]
     payload = {
         "query": query,
@@ -46,17 +51,21 @@ def fetch_problem_id(title_slug):
         result = response.json()
 
     except requests.RequestException as e:
+        logger.error("Network error fetching problem ID for '%s': %s", title_slug, e)
         raise FetchingError(
             f"Network error while fetching problem ID for {title_slug}: {e}"
         )
 
     except ValueError:
+        logger.error("Invalid JSON response for problem ID of '%s'.", title_slug)
         raise FetchingError("Failed to parse JSON response while fetching problem ID.")
 
+    logger.debug("Fetched problem ID for '%s' successfully.", title_slug)
     return result
 
 
 def fetch_problem_frontend_id(title_slug):
+    logger.info("Fetching frontend ID for '%s'.", title_slug)
     query = GRAPHQL_QUERIES["problem_frontend_id"]
     payload = {
         "query": query,
@@ -70,17 +79,21 @@ def fetch_problem_frontend_id(title_slug):
         result = response.json()
 
     except requests.RequestException as e:
+        logger.error("Network error fetching frontend ID for '%s': %s", title_slug, e)
         raise FetchingError(
             f"Network error while fetching problem ID for {title_slug}: {e}"
         )
 
     except ValueError:
+        logger.error("Invalid JSON response for frontend ID of '%s'.", title_slug)
         raise FetchingError("Failed to parse JSON response while fetching problem ID.")
 
+    logger.debug("Fetched frontend ID for '%s' successfully.", title_slug)
     return result
 
 
 def fetch_random_title_slug(difficulty, tags):
+    logger.info("Fetching random title slug (difficulty=%s, tags=%s).", difficulty, tags)
     query = GRAPHQL_QUERIES["random_title_slug"]
     payload = {
         "query": query,
@@ -100,17 +113,21 @@ def fetch_random_title_slug(difficulty, tags):
         result = response.json()
 
     except requests.RequestException as e:
-        raise FetchingError(f"Netword error while fetching random title slug: {e}")
+        logger.error("Network error fetching random title slug: %s", e)
+        raise FetchingError(f"Network error while fetching random title slug: {e}")
 
     except ValueError:
+        logger.error("Invalid JSON response for random title slug.")
         raise FetchingError(
             "Failed to parse JSON response while fetching random title slug."
         )
 
+    logger.debug("Fetched random title slug successfully.")
     return result
 
 
 def fetch_problem_data(title_slug):
+    logger.info("Fetching problem data for '%s'.", title_slug)
     query = GRAPHQL_QUERIES["problem_detail"]
     payload = {
         "query": query,
@@ -124,13 +141,16 @@ def fetch_problem_data(title_slug):
         result = response.json()
 
     except requests.RequestException as e:
+        logger.error("Network error fetching problem data for '%s': %s", title_slug, e)
         raise FetchingError(
             f"Network error while fetching problem data for {title_slug}: {e}"
         )
 
     except ValueError:
+        logger.error("Invalid JSON response for problem data of '%s'.", title_slug)
         raise FetchingError(
             "Failed to parse JSON response while fetching problem data."
         )
 
+    logger.debug("Fetched problem data for '%s' successfully.", title_slug)
     return result

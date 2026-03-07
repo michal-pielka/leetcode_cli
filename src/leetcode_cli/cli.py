@@ -21,9 +21,10 @@ class OrderedGroup(click.Group):
         return self.commands.keys()
 
 
-def configure_logging():
+def configure_logging(verbose: bool = False):
+    level = logging.DEBUG if verbose else logging.WARNING
     logging.basicConfig(
-        level=logging.INFO,
+        level=level,
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
         handlers=[logging.StreamHandler()],
     )
@@ -33,13 +34,16 @@ def configure_logging():
     cls=OrderedGroup,
     context_settings=dict(help_option_names=["-h", "--help"], max_content_width=200),
 )
+@click.option("-v", "--verbose", is_flag=True, default=False, help="Enable verbose logging output.")
 @click.pass_context
-def cli(ctx):
+def cli(ctx, verbose):
     """
     LeetCode CLI Tool
 
     Manage your LeetCode activities directly from the command line.
     """
+    configure_logging(verbose)
+    initialize_leetcode_cli()
     if ctx.invoked_subcommand is None:
         click.echo(cli.get_help(ctx))
 
@@ -57,10 +61,6 @@ cli.add_command(download_problems_cmd, "download-problems")
 
 
 def main():
-    configure_logging()
-    # Optionally disable critical logs; up to you:
-    logging.disable(logging.CRITICAL)
-    initialize_leetcode_cli()
     cli()
 
 

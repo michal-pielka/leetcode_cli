@@ -1,7 +1,10 @@
 import requests
 import time
+import logging
 from typing import Dict
 from leetcode_cli.exceptions.exceptions import FetchingError
+
+logger = logging.getLogger(__name__)
 
 
 def fetch_interpretation_result(
@@ -47,22 +50,28 @@ def fetch_interpretation_result(
         "Referer": f"https://leetcode.com/problems/{title_slug}/",
     }
 
+    logger.info("Submitting interpretation for '%s' in '%s'.", title_slug, language)
+
     try:
         response = requests.post(submit_url, json=payload, headers=headers)
         response.raise_for_status()
         submission = response.json()
 
     except requests.RequestException as e:
+        logger.error("Interpretation submission failed for '%s': %s", title_slug, e)
         raise FetchingError(f"Submission failed: {e}")
 
     except ValueError:
+        logger.error("Invalid JSON response for interpretation of '%s'.", title_slug)
         raise FetchingError("Invalid response format from LeetCode.")
 
     interpret_id = submission.get("interpret_id")
     if not interpret_id:
+        logger.error("No interpret_id received for '%s'.", title_slug)
         raise FetchingError("Interpretation ID not received.")
 
-    # Check interpretation status until complete
+    logger.debug("Got interpret_id=%s, polling for result.", interpret_id)
+
     check_submission_url = (
         f"https://leetcode.com/submissions/detail/{interpret_id}/check/"
     )
@@ -73,12 +82,18 @@ def fetch_interpretation_result(
             result = r.json()
 
         except requests.RequestException as e:
+            logger.error("Failed to poll interpretation result: %s", e)
             raise FetchingError(f"Failed to check interpretation: {e}")
 
         except ValueError:
+            logger.error("Invalid JSON while polling interpretation result.")
             raise FetchingError("Invalid response format.")
 
-        if result.get("state") == "SUCCESS":
+        state = result.get("state")
+        logger.debug("Interpretation poll state: %s", state)
+
+        if state == "SUCCESS":
+            logger.info("Interpretation completed for '%s'.", title_slug)
             return result
 
         time.sleep(0.10)

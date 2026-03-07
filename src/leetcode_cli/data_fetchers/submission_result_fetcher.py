@@ -1,7 +1,10 @@
 import requests
 import time
+import logging
 from typing import Dict
 from leetcode_cli.exceptions.exceptions import FetchingError
+
+logger = logging.getLogger(__name__)
 
 
 def fetch_submission_result(
@@ -44,22 +47,28 @@ def fetch_submission_result(
         "Referer": f"https://leetcode.com/problems/{title_slug}/",
     }
 
+    logger.info("Submitting solution for '%s' in '%s'.", title_slug, language)
+
     try:
         response = requests.post(submit_url, json=payload, headers=headers)
         response.raise_for_status()
         submission = response.json()
 
     except requests.RequestException as e:
+        logger.error("Submission failed for '%s': %s", title_slug, e)
         raise FetchingError(f"Submission failed: {e}")
 
     except ValueError:
+        logger.error("Invalid JSON response for submission of '%s'.", title_slug)
         raise FetchingError("Invalid response format from LeetCode.")
 
     submission_id = submission.get("submission_id")
     if not submission_id:
+        logger.error("No submission_id received for '%s'.", title_slug)
         raise FetchingError("Submission ID not received.")
 
-    # Poll for final status
+    logger.debug("Got submission_id=%s, polling for result.", submission_id)
+
     check_submission_url = (
         f"https://leetcode.com/submissions/detail/{submission_id}/check/"
     )
@@ -70,12 +79,18 @@ def fetch_submission_result(
             result = r.json()
 
         except requests.RequestException as e:
+            logger.error("Failed to poll submission result: %s", e)
             raise FetchingError(f"Failed to check submission: {e}")
 
         except ValueError:
+            logger.error("Invalid JSON while polling submission result.")
             raise FetchingError("Invalid response format.")
 
-        if result.get("state") == "SUCCESS":
+        state = result.get("state")
+        logger.debug("Submission poll state: %s", state)
+
+        if state == "SUCCESS":
+            logger.info("Submission completed for '%s'.", title_slug)
             return result
 
         time.sleep(0.10)
