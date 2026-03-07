@@ -1,6 +1,5 @@
 import logging
 
-from leetcode_cli.exceptions.exceptions import ThemeError
 from leetcode_cli.managers.theme_manager import ThemeManager
 from leetcode_cli.models.submission import SubmissionResult
 
@@ -9,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 class SubmissionFormatter:
     """
-    Formats submission results using (ansi, symbol_left, symbol_right) theming.
+    Formats submission results with themed styling.
     """
 
     def __init__(self, result: SubmissionResult, format_conf: dict, theme_manager: ThemeManager):
@@ -18,12 +17,11 @@ class SubmissionFormatter:
         self.theme_manager = theme_manager
         self.theme_data = theme_manager.load_theme_data()
 
-        self.ANSI_RESET = "\033[0m"  # Reset all styles
+        self.ANSI_RESET = "\033[0m"
 
     def get_formatted_submission(self) -> str:
         status_msg = self.result.status_msg
         lang = self.result.pretty_lang or self.result.lang
-        total_testcases = self.result.total_testcases
 
         show_language = self.format_conf.get("show_language", True)
         show_testcases = self.format_conf.get("show_testcases", True)
@@ -40,7 +38,6 @@ class SubmissionFormatter:
         memory_beats = self.result.memory_percentile
         total_correct = self.result.total_correct
         total_testcases = self.result.total_testcases
-        lang = self.result.pretty_lang or self.result.lang
 
         last_testcase = self.result.last_testcase
         expected_output = self.result.expected_output
@@ -52,18 +49,11 @@ class SubmissionFormatter:
         full_runtime_error = getattr(self.result, "full_runtime_error", None)
         full_compile_error = getattr(self.result, "full_compile_error", None)
 
-        # Obtain the styling for the overall status line
-        try:
-            ansi_code, symbol_left, symbol_right = self.theme_manager.get_styling(
-                "SUBMISSION", "status_" + status_msg.lower().replace(" ", "_")
-            )
-        except ThemeError as te:
-            raise te
-
-        ansi_status = f"{ansi_code}{symbol_left}{status_msg}{symbol_right}{self.ANSI_RESET}"
+        status_key = status_msg.lower().replace(" ", "_")
+        status_ansi, status_icon = self.theme_manager.get_styling("status", status_key)
+        ansi_status = f"{status_ansi}{status_icon} {status_msg}{self.ANSI_RESET}"
         parsed_result = f"\n  {ansi_status} \n"
 
-        # Now we call _format_label_value for each item, instead of manually building strings
         if show_language and lang:
             parsed_result += self._format_label_value("Language", lang)
 
@@ -71,12 +61,10 @@ class SubmissionFormatter:
             parsed_result += self._format_label_value("Passed Testcases", f"{total_correct} / {total_testcases}")
 
         if show_runtime_memory:
-            # Runtime
             if time_ms and time_beats is not None:
                 runtime_str = f"{time_ms} (Beats: {time_beats:.2f}%)"
                 parsed_result += self._format_label_value("Runtime", runtime_str)
 
-            # Memory
             if memory_size and memory_beats is not None:
                 memory_str = f"{memory_size} (Beats: {memory_beats:.2f}%)"
                 parsed_result += self._format_label_value("Memory Usage", memory_str)
@@ -110,64 +98,33 @@ class SubmissionFormatter:
         return parsed_result
 
     def _format_label_value(self, label: str, value: str) -> str:
-        """
-        Combines label and value on one line in a columnar style, using
-        `_format_field_label` and `_format_field_value` under the hood.
-        If the value has multiple lines, subsequent lines are padded.
-        """
-        # Build the label portion
         label_str = self._format_field_label(label)
-        # Build the multi-line value portion
         value_lines = self._format_field_value(value).split("\n")
 
         if len(value_lines) == 1:
-            # Single line scenario
             return f"  {label_str} {value_lines[0]}\n"
 
-        # Multi-line scenario: the first line is next to label, subsequent lines are padded
         first_line = f"  {label_str} {value_lines[0]}\n"
-        subsequent = ""
-        # Indent subsequent lines so they align under the value column
-        # "  " + 25 chars from label => 2 + 25 + 1 space => 28 total
         padding = " " * (2 + 25 + 1)
+        subsequent = ""
         for line in value_lines[1:]:
             if line.strip():
                 subsequent += f"{padding}{line}\n"
             else:
-                # If the line is empty, we can still add a newline to keep spacing consistent
                 subsequent += f"{padding}\n"
 
         return first_line + subsequent
 
     def _format_field_label(self, label: str, width: int = 25) -> str:
-        """
-        Formats the field label using the 'field_label' mapping from SUBMISSION.
-        """
-        try:
-            ansi_code, symbol_left, symbol_right = self.theme_manager.get_styling("SUBMISSION", "label_field")
-        except ThemeError as te:
-            logger.error(f"Theming Error: {te}")
-            raise te
-
-        # Combine label + symbol_right (often a colon) and left justify
-        combined_label = f"{label}{symbol_right}"
-        return f"{ansi_code}{symbol_left}{combined_label:<{width}}{self.ANSI_RESET}"
+        label_ansi, _ = self.theme_manager.get_styling("text", "label")
+        combined_label = f"{label}:"
+        return f"{label_ansi}{combined_label:<{width}}{self.ANSI_RESET}"
 
     def _format_field_value(self, value: str) -> str:
-        """
-        Formats the field value using the 'field_value' mapping from SUBMISSION.
-        Handles multi-line values by splitting on newline.
-        """
-        try:
-            ansi_code, symbol_left, symbol_right = self.theme_manager.get_styling("SUBMISSION", "value_field")
-        except ThemeError as te:
-            logger.error(f"Theming Error: {te}")
-            raise te
+        value_ansi, _ = self.theme_manager.get_styling("text", "value")
 
         lines = value.split("\n")
         out_lines = []
         for line in lines:
-            # Even if blank, we still produce a line
-            out_lines.append(f"{ansi_code}{symbol_left}{line}{symbol_right}{self.ANSI_RESET}")
-
+            out_lines.append(f"{value_ansi}{line}{self.ANSI_RESET}")
         return "\n".join(out_lines)

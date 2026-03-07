@@ -90,59 +90,53 @@ class ThemeManager:
 
         ansi_data = self._load_yaml_file(theme_name, "ansi_codes.yaml")
         symbols_data = self._load_yaml_file(theme_name, "symbols.yaml")
-        mappings_data = self._load_yaml_file(theme_name, "mappings.yaml")
+        styles_data = self._load_yaml_file(theme_name, "styles.yaml")
 
-        # Validate mandatory top-level keys
         if "ANSI_CODES" not in ansi_data:
             raise ThemeError(f"'ANSI_CODES' missing in ansi_codes.yaml for theme '{theme_name}'.")
 
         if "SYMBOLS" not in symbols_data:
             raise ThemeError(f"'SYMBOLS' missing in symbols.yaml for theme '{theme_name}'.")
 
-        # Merge the loaded data
-        merged = {
-            "ANSI_CODES": ansi_data["ANSI_CODES"],
-            "SYMBOLS": symbols_data["SYMBOLS"],
-            **mappings_data,
-        }
-        logger.debug(f"Theme data for '{theme_name}': {merged}")
+        logger.debug(f"Theme data loaded for '{theme_name}'.")
 
         self.theme_data = ThemeData(
-            ANSI_CODES=merged["ANSI_CODES"],
-            SYMBOLS=merged["SYMBOLS"],
-            INTERPRETATION=merged.get("INTERPRETATION", {}),
-            SUBMISSION=merged.get("SUBMISSION", {}),
-            PROBLEMSET=merged.get("PROBLEMSET", {}),
-            PROBLEM_DESCRIPTION=merged.get("PROBLEM_DESCRIPTION", {}),
-            STATS_FORMATTER=merged.get("STATS_FORMATTER", {}),
+            ANSI_CODES=ansi_data["ANSI_CODES"],
+            SYMBOLS=symbols_data["SYMBOLS"],
+            styles=styles_data,
         )
         return self.theme_data
 
     def get_styling(self, section: str, key: str) -> tuple:
         """
-        Returns (combined_ansi_code, combined_symbol_left, combined_symbol_right).
-        E.g., ("\033[32m\033[1m", "✔ ", "")
+        Returns (combined_ansi_code, icon_string).
+        E.g., ("\033[32m\033[1m", "✔")
         """
         if not self.theme_data:
             self.theme_data = self.load_theme_data()
 
-        # Grab the relevant dictionary from the loaded theme data
-        try:
-            section_data = getattr(self.theme_data, section)
-            raw_mapping = section_data[key]
+        section_data = self.theme_data.styles.get(section)
+        if section_data is None:
+            raise ThemeError(f"Section '{section}' not found in theme styles.")
 
-        except AttributeError:
-            raise ThemeError(f"Section '{section}' not found in theme data.") from None
+        raw_mapping = section_data.get(key)
+        if raw_mapping is None:
+            raise ThemeError(f"Key '{key}' not found in section '{section}'.")
 
-        except KeyError:
-            raise ThemeError(f"Key '{key}' not found in section '{section}'.") from None
-
-        # e.g. raw_mapping => {"ansi": "green,bold", "symbol_left": "checkmark,space", "symbol_right": ""}
         combined_ansi = self._parse_ansi_codes(raw_mapping.get("style", ""))
-        combined_left = self._parse_symbols(raw_mapping.get("prefix", ""))
-        combined_right = self._parse_symbols(raw_mapping.get("suffix", ""))
+        icon = self._parse_symbols(raw_mapping.get("icon", ""))
 
-        return (combined_ansi, combined_left, combined_right)
+        return (combined_ansi, icon)
+
+    def get_layout_value(self, key: str, default=None):
+        """
+        Returns a value from the 'layout' section of the theme styles.
+        """
+        if not self.theme_data:
+            self.theme_data = self.load_theme_data()
+
+        layout = self.theme_data.styles.get("layout", {})
+        return layout.get(key, default)
 
     #
     # ──────────────────────────────────────────────────────

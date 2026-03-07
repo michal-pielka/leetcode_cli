@@ -211,7 +211,7 @@ def _discover_available_themes() -> list[str]:
 def _ensure_theme_folder(theme_name: str, theme_manager: ThemeManager):
     """
     Ensures that a theme folder exists in ~/.leetcode/themes/{theme_name},
-    and that it contains the necessary YAML files (ansi_codes.yaml, symbols.yaml, mappings.yaml).
+    and that it contains the necessary YAML files (ansi_codes.yaml, symbols.yaml, styles.yaml).
     """
     themes_dir = theme_manager.get_themes_dir()
     theme_constants_dir = os.path.join(os.path.dirname(__file__), "constants", "themes", theme_name)
@@ -228,7 +228,7 @@ def _ensure_theme_folder(theme_name: str, theme_manager: ThemeManager):
     yaml_files = {
         "ansi_codes.yaml": "ANSI_CODES_YAML",
         "symbols.yaml": "SYMBOLS_YAML",
-        "mappings.yaml": "MAPPINGS_YAML",
+        "styles.yaml": "STYLES_YAML",
     }
 
     for filename, var_name in yaml_files.items():

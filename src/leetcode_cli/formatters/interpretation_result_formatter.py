@@ -1,6 +1,5 @@
 import logging
 
-from leetcode_cli.exceptions.exceptions import ThemeError
 from leetcode_cli.managers.theme_manager import ThemeManager
 from leetcode_cli.models.interpretation import InterpretationResult
 
@@ -9,10 +8,7 @@ logger = logging.getLogger(__name__)
 
 class InterpretationFormatter:
     """
-    Formats the 'run code' interpretation results, printing
-    a separate "window" of info for each testcase, using the
-    'INTERPRETATION' theme mappings. The styling and layout
-    approach is similar to the SubmissionFormatter style.
+    Formats 'run code' interpretation results per testcase.
     """
 
     def __init__(
@@ -28,7 +24,7 @@ class InterpretationFormatter:
         self.theme_manager = theme_manager
         self.theme_data = theme_manager.load_theme_data()
 
-        self.ANSI_RESET = "\033[0m"  # Reset all styles
+        self.ANSI_RESET = "\033[0m"
 
     def get_formatted_interpretation(self) -> str:
         status_code = self.result.status_code
@@ -44,7 +40,6 @@ class InterpretationFormatter:
         show_errors = self.format_conf.get("show_error_messages", True)
         detailed_errors = self.format_conf.get("show_detailed_error_messages", True)
 
-        # Split testcases; each group of lines is one testcase's inputs
         testcases_split = self.testcases_str.split("\n") if self.testcases_str else []
         parameters_in_testcase = len(testcases_split) // total_testcases if total_testcases > 0 else 1
 
@@ -52,7 +47,6 @@ class InterpretationFormatter:
         code_outputs = self.result.code_answer or []
         std_outputs = self.result.std_output_list or []
 
-        # Error fields
         runtime_error = self.result.runtime_error
         full_runtime_error = self.result.full_runtime_error
         compile_error = self.result.compile_error
@@ -60,12 +54,10 @@ class InterpretationFormatter:
 
         parsed_result = ""
 
-        # For each expected output => 1 testcase
         for i, expected_out in enumerate(expected_outputs):
             if not expected_out:
                 break
 
-            # Slice out the matching lines from testcases
             start_idx = i * parameters_in_testcase
             end_idx = start_idx + parameters_in_testcase
             testcase_lines = testcases_split[start_idx:end_idx]
@@ -73,25 +65,15 @@ class InterpretationFormatter:
             code_out = code_outputs[i] if i < len(code_outputs) else None
             stdout_line = std_outputs[i] if i < len(std_outputs) else None
 
-            # Convert status_code -> status key
             if status_code == 10:
-                # Typically 10 means 'Accepted' or 'Wrong Answer'
-                status_key = "Accepted" if code_out == expected_out else "Wrong Answer"
+                status_key = "accepted" if code_out == expected_out else "wrong_answer"
             else:
-                status_key = status_msg or "Unknown"
+                status_key = (status_msg or "Unknown").lower().replace(" ", "_")
 
-            # Retrieve style codes for the status
-            try:
-                s_ansi, s_left, s_right = self.theme_manager.get_styling(
-                    "INTERPRETATION", "status_" + status_key.lower().replace(" ", "_")
-                )
-            except ThemeError as te:
-                raise te
+            s_ansi, s_icon = self.theme_manager.get_styling("status", status_key)
+            display_status = status_key.replace("_", " ").title()
+            parsed_result += f"\n  {s_ansi}{s_icon} {display_status}{self.ANSI_RESET}\n"
 
-            # Print the status line, e.g. "  ✘ Wrong Answer"
-            parsed_result += f"\n  {s_ansi}{s_left}{status_key}{s_right}{self.ANSI_RESET}\n"
-
-            # Show fields
             if show_language:
                 parsed_result += self._format_label_value("Language", lang)
 
@@ -122,66 +104,34 @@ class InterpretationFormatter:
         return parsed_result
 
     def _format_label_value(self, label: str, value: str) -> str:
-        """
-        High-level helper that calls _format_field_label and _format_field_value,
-        returning a single line (plus potential newlines if value is multiline).
-        """
-        # Build the label portion (left-justified within some width)
         label_str = self._format_field_label(label)
-        # The value portion
         value_str = self._format_field_value(value)
 
-        # We'll place them on the same line separated by a space
-        # If the value has multiple lines, we can handle that below
         lines = value_str.split("\n")
         if len(lines) == 1:
-            # Single-line scenario
             return f"  {label_str} {lines[0]}\n"
-        else:
-            # Multi-line scenario: the first line goes with label, subsequent lines are padded
-            first_line = f"  {label_str} {lines[0]}\n"
-            # Each subsequent line is padded so that it lines up after the label
-            padding = " " * (2 + 25 + 1)  # "  " + label_width(25) + 1 space
-            subsequent = ""
-            for line in lines[1:]:
-                if line.strip():
-                    subsequent += f"{padding}{line}\n"
-            return first_line + subsequent
+
+        first_line = f"  {label_str} {lines[0]}\n"
+        padding = " " * (2 + 25 + 1)
+        subsequent = ""
+        for line in lines[1:]:
+            if line.strip():
+                subsequent += f"{padding}{line}\n"
+        return first_line + subsequent
 
     def _format_field_label(self, label: str, width: int = 25) -> str:
-        """
-        Formats the field label using 'field_label' from INTERPRETATION.
-        We left-justify label in a fixed-width area so columns align nicely.
-        """
-        try:
-            ansi_code, sym_left, sym_right = self.theme_manager.get_styling("INTERPRETATION", "label_field")
-        except ThemeError as te:
-            logger.error(f"Theming Error: {te}")
-            raise te
-
-        # We combine label and the symbol_right (like a colon, if set in your theme).
-        combined_label = f"{label}{sym_right}"
-        # We left-justify within 'width' columns
-        field_label = f"{ansi_code}{sym_left}{combined_label:<{width}}{self.ANSI_RESET}"
-        return field_label
+        label_ansi, _ = self.theme_manager.get_styling("text", "label")
+        combined_label = f"{label}:"
+        return f"{label_ansi}{combined_label:<{width}}{self.ANSI_RESET}"
 
     def _format_field_value(self, value: str) -> str:
-        """
-        Formats the field value using 'field_value' from INTERPRETATION.
-        """
-        try:
-            ansi_code, sym_left, sym_right = self.theme_manager.get_styling("INTERPRETATION", "value_field")
-        except ThemeError as te:
-            logger.error(f"Theming Error: {te}")
-            raise te
+        value_ansi, _ = self.theme_manager.get_styling("text", "value")
 
         lines = value.split("\n")
-        # Format each line separately so multi-line values work properly
         out_lines = []
-        for _idx, line in enumerate(lines):
+        for line in lines:
             if not line.strip():
-                # If the line is blank, we can skip or just preserve blank line
                 out_lines.append("")
                 continue
-            out_lines.append(f"{ansi_code}{sym_left}{line}{sym_right}{self.ANSI_RESET}")
+            out_lines.append(f"{value_ansi}{line}{self.ANSI_RESET}")
         return "\n".join(out_lines)

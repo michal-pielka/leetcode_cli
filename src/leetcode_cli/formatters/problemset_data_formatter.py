@@ -1,6 +1,5 @@
 import logging
 
-from leetcode_cli.exceptions.exceptions import ThemeError
 from leetcode_cli.managers.theme_manager import ThemeManager
 from leetcode_cli.models.problemset import ProblemSet, ProblemSummary
 
@@ -15,17 +14,10 @@ class ProblemSetFormatterError(Exception):
 
 class ProblemSetFormatter:
     """
-    Replicates the original 'column-based' formatting of problem listings
-    but uses theme data (from ThemeManager) for coloring and symbols.
+    Formats problem listings using theme styling.
 
-    Format example (unchanged):
-        \t{status_symbol}[{question_id}] {title} {difficulty} ({ac_rate} %)
-
-    where:
-      - {question_id} is right-justified in 4 spaces
-      - {title} is left-justified with padding of 79 spaces
-      - {difficulty} is left-justified with padding of 8 spaces
-      - {ac_rate} is a floating percentage
+    Format:
+        {paid}{status}[{question_id}] {title} {difficulty} ({ac_rate}%)
     """
 
     def __init__(self, problemset: ProblemSet, theme_manager: ThemeManager):
@@ -33,73 +25,51 @@ class ProblemSetFormatter:
         self.theme_manager = theme_manager
         self.theme_data = self.theme_manager.load_theme_data()
 
-        self.ANSI_RESET = "\033[0m"  # Reset all styles
+        self.ANSI_RESET = "\033[0m"
 
     def _format_question(self, q: ProblemSummary) -> str:
-        """
-        Formats a single problem with spacing identical to the original code snippet.
-        """
-        # Title padded to 79 characters
         title = q.title.ljust(79)
-        title_ansi, title_left, title_right = self.theme_manager.get_styling("PROBLEMSET", "text_title")
-        formatted_title = f"{title_ansi}{title_left}{title}{title_right}{self.ANSI_RESET}"
+        title_ansi, _ = self.theme_manager.get_styling("text", "title")
+        formatted_title = f"{title_ansi}{title}{self.ANSI_RESET}"
 
         question_id = q.frontend_question_id.rjust(4)
-        id_ansi, id_left, id_right = self.theme_manager.get_styling("PROBLEMSET", "text_question_id")
-        formatted_question_id = f"{id_ansi}{id_left}{question_id}{id_right}{self.ANSI_RESET}"
+        id_ansi, _ = self.theme_manager.get_styling("text", "question_id")
+        formatted_question_id = f"{id_ansi}[{question_id}]{self.ANSI_RESET}"
 
         ac_rate = f"{float(q.ac_rate):.2f}"
-        ac_ansi, ac_left, ac_right = self.theme_manager.get_styling("PROBLEMSET", "text_acceptance_rate")
-        formatted_ac_rate = f"{ac_ansi}{ac_left}{ac_rate}{ac_right}{self.ANSI_RESET}"
+        ac_ansi, _ = self.theme_manager.get_styling("text", "ac_rate")
+        formatted_ac_rate = f"{ac_ansi}({ac_rate}%){self.ANSI_RESET}"
 
-        difficulty_str = q.difficulty
-        diff_key = difficulty_str.capitalize()  # e.g., "Easy", "Medium", "Hard"
-        try:
-            diff_ansi, diff_left, diff_right = self.theme_manager.get_styling(
-                "PROBLEMSET", "difficulty_" + diff_key.lower()
-            )
-
-        except ThemeError as te:
-            raise te
-
-        padded_diff = difficulty_str.ljust(8)
-        formatted_difficulty = f"{diff_ansi}{diff_left}{padded_diff}{diff_right}{self.ANSI_RESET}"
+        diff_key = q.difficulty.lower()
+        diff_ansi, _ = self.theme_manager.get_styling("difficulty", diff_key)
+        padded_diff = q.difficulty.ljust(8)
+        formatted_difficulty = f"{diff_ansi}{padded_diff}{self.ANSI_RESET}"
 
         status_key = q.status.lower() if q.status else "not_started"
-        try:
-            status_ansi, status_left, status_right = self.theme_manager.get_styling(
-                "PROBLEMSET", "status_" + status_key.lower()
-            )
-
-        except ThemeError as te:
-            raise te
-
-        formatted_status_symbol = f"{status_ansi}{status_left}{status_right}{self.ANSI_RESET}"
+        status_ansi, status_icon = self.theme_manager.get_styling("status", status_key)
+        formatted_status = f"{status_ansi}{status_icon}{self.ANSI_RESET}"
 
         is_paid_key = "paid_only" if q.paid_only else "not_paid_only"
-        try:
-            paid_ansi, paid_left, paid_right = self.theme_manager.get_styling("PROBLEMSET", is_paid_key)
+        paid_ansi, paid_icon = self.theme_manager.get_styling("paid", is_paid_key)
+        formatted_paid = f"{paid_ansi}{paid_icon}{self.ANSI_RESET}"
 
-        except ThemeError as te:
-            raise te
-
-        formatted_paid_symbol = f"{paid_ansi}{paid_left}{paid_right}{self.ANSI_RESET}"
+        # Pad icon fields to consistent width
+        if not status_icon:
+            formatted_status = " "
+        if not paid_icon:
+            formatted_paid = " "
 
         line = (
-            f"\t{formatted_paid_symbol}"
-            f"{formatted_status_symbol}"  # e.g. "\t✔"
-            f"{formatted_question_id} "  # e.g. "[ 299]" (4 digits right-justified)
-            f"{formatted_title} "  # 79-char-ljust title
-            f" {formatted_difficulty} "  # e.g. "Easy    " with theming
-            f"{formatted_ac_rate}"  # e.g. "(53.45 %)"
+            f"\t{formatted_paid}"
+            f"{formatted_status}"
+            f"{formatted_question_id} "
+            f"{formatted_title} "
+            f" {formatted_difficulty} "
+            f"{formatted_ac_rate}"
         )
         return line
 
     def get_formatted_questions(self) -> str:
-        """
-        Returns a formatted string of all problems in the problemset,
-        matching the old spacing & alignment, but theming is applied.
-        """
         if not self.problemset.questions:
             logger.error("No questions available to format.")
             raise ProblemSetFormatterError("No questions available to format.")
