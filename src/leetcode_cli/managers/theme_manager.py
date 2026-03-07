@@ -132,7 +132,7 @@ class ThemeManager:
             raw_mapping = section_data[key]
 
         except AttributeError:
-            raise ThemeError(f"Section '{section}' not found in theme data.")
+            raise ThemeError(f"Section '{section}' not found in theme data.") from None
 
         except KeyError:
             raise ThemeError(f"Key '{key}' not found in section '{section}'.") from None

@@ -85,7 +85,7 @@ def fetch_problemset_metadata():
 
     except requests.RequestException as e:
         logger.error("Network error fetching problemset metadata: %s", e)
-        raise FetchingError(f"Network error while fetching problemset: {e}") from e from e
+        raise FetchingError(f"Network error while fetching problemset: {e}") from e
 
     except ValueError:
         logger.error("Invalid JSON response for problemset metadata.")

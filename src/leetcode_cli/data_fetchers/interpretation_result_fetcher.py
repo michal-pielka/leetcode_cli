@@ -60,11 +60,11 @@ def fetch_interpretation_result(
 
     except requests.RequestException as e:
         logger.error("Interpretation submission failed for '%s': %s", title_slug, e)
-        raise FetchingError(f"Submission failed: {e}")
+        raise FetchingError(f"Submission failed: {e}") from e
 
     except ValueError:
         logger.error("Invalid JSON response for interpretation of '%s'.", title_slug)
-        raise FetchingError("Invalid response format from LeetCode.")
+        raise FetchingError("Invalid response format from LeetCode.") from None
 
     interpret_id = submission.get("interpret_id")
     if not interpret_id:
@@ -82,7 +82,7 @@ def fetch_interpretation_result(
 
         except requests.RequestException as e:
             logger.error("Failed to poll interpretation result: %s", e)
-            raise FetchingError(f"Failed to check interpretation: {e}")
+            raise FetchingError(f"Failed to check interpretation: {e}") from e
 
         except ValueError:
             logger.error("Invalid JSON while polling interpretation result.")
