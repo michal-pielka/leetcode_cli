@@ -2,7 +2,7 @@ import logging
 
 import requests
 
-from leetcode_cli.data_fetchers.graphql_queries import GRAPHQL_QUERIES, GRAPHQL_URL
+from leetcode_cli.data_fetchers.graphql_queries import GRAPHQL_QUERIES, GRAPHQL_URL, REQUEST_TIMEOUT
 from leetcode_cli.exceptions.exceptions import FetchingError
 
 logger = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ def fetch_problemset(cookie=None, csrf_token=None, tags=None, difficulty=None, l
         logger.debug("Using authenticated request for problemset.")
 
     try:
-        response = requests.post(GRAPHQL_URL, json=payload, headers=headers)
+        response = requests.post(GRAPHQL_URL, json=payload, headers=headers, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         result = response.json()
 
@@ -79,7 +79,7 @@ def fetch_problemset_metadata():
     }
 
     try:
-        response = requests.post(GRAPHQL_URL, json=payload)
+        response = requests.post(GRAPHQL_URL, json=payload, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         result = response.json()
 

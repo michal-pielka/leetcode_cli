@@ -1,5 +1,8 @@
 GRAPHQL_URL = "https://leetcode.com/graphql"
 
+REQUEST_TIMEOUT = 30
+POLL_TIMEOUT = 120
+
 GRAPHQL_QUERIES = {
     "user_problem_stats": """
         query userProfileUserQuestionProgressV2($userSlug: String!) {

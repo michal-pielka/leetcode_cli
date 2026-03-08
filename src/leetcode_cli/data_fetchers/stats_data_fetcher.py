@@ -2,7 +2,7 @@ import logging
 
 import requests
 
-from leetcode_cli.data_fetchers.graphql_queries import GRAPHQL_QUERIES, GRAPHQL_URL
+from leetcode_cli.data_fetchers.graphql_queries import GRAPHQL_QUERIES, GRAPHQL_URL, REQUEST_TIMEOUT
 from leetcode_cli.exceptions.exceptions import FetchingError
 
 logger = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ def fetch_user_stats(username):
     }
 
     try:
-        response = requests.post(GRAPHQL_URL, json=payload)
+        response = requests.post(GRAPHQL_URL, json=payload, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         result = response.json()
 
@@ -44,7 +44,7 @@ def fetch_user_activity(username, year):
     }
 
     try:
-        response = requests.post(GRAPHQL_URL, json=payload)
+        response = requests.post(GRAPHQL_URL, json=payload, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         result = response.json()
 

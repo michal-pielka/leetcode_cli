@@ -2,7 +2,7 @@ import logging
 
 import requests
 
-from leetcode_cli.data_fetchers.graphql_queries import GRAPHQL_QUERIES, GRAPHQL_URL
+from leetcode_cli.data_fetchers.graphql_queries import GRAPHQL_QUERIES, GRAPHQL_URL, REQUEST_TIMEOUT
 from leetcode_cli.exceptions.exceptions import FetchingError
 
 logger = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ def fetch_problem_testcases(title_slug):
     }
 
     try:
-        response = requests.post(GRAPHQL_URL, json=payload)
+        response = requests.post(GRAPHQL_URL, json=payload, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         result = response.json()
 
@@ -44,7 +44,7 @@ def fetch_problem_id(title_slug):
     }
 
     try:
-        response = requests.post(GRAPHQL_URL, json=payload)
+        response = requests.post(GRAPHQL_URL, json=payload, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         result = response.json()
 
@@ -70,7 +70,7 @@ def fetch_problem_frontend_id(title_slug):
     }
 
     try:
-        response = requests.post(GRAPHQL_URL, json=payload)
+        response = requests.post(GRAPHQL_URL, json=payload, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         result = response.json()
 
@@ -102,7 +102,7 @@ def fetch_random_title_slug(difficulty, tags):
         payload["variables"]["filters"]["tags"] = tags
 
     try:
-        response = requests.post(GRAPHQL_URL, json=payload)
+        response = requests.post(GRAPHQL_URL, json=payload, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         result = response.json()
 
@@ -128,7 +128,7 @@ def fetch_problem_data(title_slug):
     }
 
     try:
-        response = requests.post(GRAPHQL_URL, json=payload)
+        response = requests.post(GRAPHQL_URL, json=payload, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         result = response.json()
 

@@ -3,6 +3,7 @@ import time
 
 import requests
 
+from leetcode_cli.data_fetchers.graphql_queries import POLL_TIMEOUT, REQUEST_TIMEOUT
 from leetcode_cli.exceptions.exceptions import FetchingError
 
 logger = logging.getLogger(__name__)
@@ -51,7 +52,7 @@ def fetch_submission_result(
     logger.info("Submitting solution for '%s' in '%s'.", title_slug, language)
 
     try:
-        response = requests.post(submit_url, json=payload, headers=headers)
+        response = requests.post(submit_url, json=payload, headers=headers, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         submission = response.json()
 
@@ -71,9 +72,10 @@ def fetch_submission_result(
     logger.debug("Got submission_id=%s, polling for result.", submission_id)
 
     check_submission_url = f"https://leetcode.com/submissions/detail/{submission_id}/check/"
-    while True:
+    deadline = time.monotonic() + POLL_TIMEOUT
+    while time.monotonic() < deadline:
         try:
-            r = requests.get(check_submission_url, headers=headers)
+            r = requests.get(check_submission_url, headers=headers, timeout=REQUEST_TIMEOUT)
             r.raise_for_status()
             result = r.json()
 
@@ -93,3 +95,5 @@ def fetch_submission_result(
             return result
 
         time.sleep(0.10)
+
+    raise FetchingError(f"Submission polling timed out after {POLL_TIMEOUT}s.")
