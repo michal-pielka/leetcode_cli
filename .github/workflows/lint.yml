@@ -17,7 +17,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install ruff
-        run: pip install ruff
+        run: pip install ruff==0.14.1
 
       - name: Check linting
         run: ruff check src/
