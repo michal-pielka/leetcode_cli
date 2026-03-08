@@ -61,6 +61,8 @@ pip install .
 
 ## Quick Start 🚦
 
+https://github.com/user-attachments/assets/c7b50293-035b-40bd-97f2-1e33701daafa
+
 1. **Initialize Configuration**
 ```bash
 leetcode config cookie YOUR_LEETCODE_SESSION_COOKIE
@@ -137,11 +139,9 @@ You can edit these defaults to tailor your experience. For example, if you find 
 
 
 
-
-
-
-
 ## Theming 🎨
+
+https://github.com/user-attachments/assets/c491c334-d6fa-4783-918b-28e6c1c8df8c
 
 The CLI uses a theming system built around three YAML files per theme:
 
