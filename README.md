@@ -64,8 +64,11 @@ pip install .
 https://github.com/user-attachments/assets/c7b50293-035b-40bd-97f2-1e33701daafa
 
 1. **Initialize Configuration**
+
+To authenticate, paste your **full** cookie string from the LeetCode website. Open your browser's DevTools (F12) → Application → Cookies → `https://leetcode.com`, then copy the entire cookie header value (it starts with `csrftoken=...;LEETCODE_SESSION=...`).
+
 ```bash
-leetcode config cookie YOUR_LEETCODE_SESSION_COOKIE
+leetcode config cookie "csrftoken=abc123;LEETCODE_SESSION=xyz789..."
 leetcode config username YOUR_LEETCODE_USERNAME
 leetcode config language python
 ```
