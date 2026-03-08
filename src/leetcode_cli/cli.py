@@ -21,8 +21,16 @@ class OrderedGroup(click.Group):
         return self.commands.keys()
 
 
-def configure_logging(verbose: bool = False):
-    level = logging.DEBUG if verbose else logging.WARNING
+VERBOSITY_LEVELS = {
+    0: logging.CRITICAL + 1,
+    1: logging.WARNING,
+    2: logging.INFO,
+    3: logging.DEBUG,
+}
+
+
+def configure_logging(verbosity: int = 0):
+    level = VERBOSITY_LEVELS.get(min(verbosity, 3), logging.CRITICAL + 1)
     logging.basicConfig(
         level=level,
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -34,7 +42,7 @@ def configure_logging(verbose: bool = False):
     cls=OrderedGroup,
     context_settings=dict(help_option_names=["-h", "--help"], max_content_width=200),
 )
-@click.option("-v", "--verbose", is_flag=True, default=False, help="Enable verbose logging output.")
+@click.option("-v", "--verbose", count=True, help="Increase log verbosity: -v (warnings), -vv (info), -vvv (debug).")
 @click.pass_context
 def cli(ctx, verbose):
     """
