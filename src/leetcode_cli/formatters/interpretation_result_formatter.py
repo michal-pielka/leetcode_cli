@@ -54,6 +54,29 @@ class InterpretationFormatter:
 
         parsed_result = ""
 
+        if not expected_outputs:
+            status_key = (status_msg or "Unknown").lower().replace(" ", "_")
+            s_ansi, s_icon = self.theme_manager.get_styling("status", status_key)
+            display_status = status_key.replace("_", " ").title()
+            parsed_result += f"\n  {s_ansi}{s_icon} {display_status}{self.ANSI_RESET}\n"
+
+            if show_language:
+                parsed_result += self._format_label_value("Language", lang)
+
+            if show_errors:
+                if runtime_error:
+                    parsed_result += self._format_label_value("Error Message", runtime_error)
+                if compile_error:
+                    parsed_result += self._format_label_value("Error Message", compile_error)
+
+            if detailed_errors:
+                if full_runtime_error:
+                    parsed_result += self._format_label_value("Detailed Error", full_runtime_error)
+                if full_compile_error:
+                    parsed_result += self._format_label_value("Detailed Error", full_compile_error)
+
+            return parsed_result
+
         for i, expected_out in enumerate(expected_outputs):
             if not expected_out:
                 break
